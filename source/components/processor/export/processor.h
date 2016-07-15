@@ -4,12 +4,43 @@
 #include <functional>
 #include <memory>
 #include <ostream>
+#include <stdexcept>
 #include <vector>
 #include <memorymanager.h>
 #include <iomanager.h>
+#include <core/Util.h>
 
 namespace Simulate
 {
+
+class DisassemblerUnknownInstructionException : public std::runtime_error
+{
+public:
+    DisassemblerUnknownInstructionException(uint8_t opcodeByte)
+        : std::runtime_error("Unknown instruction: 0x" + Core::Util::ToString(opcodeByte, 16))
+    {
+    }
+};
+
+class AssemblerUnknownOpcodeException : public std::runtime_error
+{
+public:
+    AssemblerUnknownOpcodeException(std::string const & opcodeString)
+        : std::runtime_error("Unknown opcode: " + opcodeString)
+    {
+
+    }
+};
+
+class AssemblerInvalidOptionException : public std::runtime_error
+{
+public:
+    AssemblerInvalidOptionException(std::string const & expected, std::string const & actual)
+        : std::runtime_error("Invalid option: Expected " + expected + " have " + actual)
+    {
+
+    }
+};
 
 using Reg8 = uint8_t;
 using Reg16 = uint16_t;

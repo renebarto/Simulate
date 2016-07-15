@@ -4,268 +4,480 @@
 #include <iostream>
 #include <sstream>
 
-using namespace Simulate;
+namespace Simulate
+{
 
 static const Reg16 InitialPC = 0;
 
+enum InstructionOption8080
+{
+    rp4,
+    rs0,
+    rd0,
+    rd3,
+    data8,
+    data16,
+};
+
+static std::ostream & operator << (std::ostream & stream, InstructionOption8080 option)
+{
+    switch (option)
+    {
+    case InstructionOption8080::rp4:
+        stream << "rp";
+        break;
+    case InstructionOption8080::rs0:
+        stream << "r";
+        break;
+    case InstructionOption8080::rd0:
+        stream << "r";
+        break;
+    case InstructionOption8080::rd3:
+        stream << "r";
+        break;
+    case InstructionOption8080::data8:
+        stream << "data";
+        break;
+    case InstructionOption8080::data16:
+        stream << "data16";
+        break;
+    }
+    return stream;
+}
+
+using InstructionOptions8080 = std::vector<InstructionOption8080>;
+
+enum class OpcodesRaw8080 : uint8_t
+{
+    NOP = 0x00,
+    LXI = 0x01,
+    STAX = 0x02,
+    INX = 0x03,
+    INR = 0x04,
+    DCR = 0x05,
+    RLC = 0x07,
+    DAD = 0x08,
+    LDAX = 0x0A,
+    DCX = 0x0B,
+    RRC = 0x0F,
+    RAL = 0x17,
+    RAR = 0x1F,
+    SHLD = 0x22,
+    DAA = 0x27,
+    LHLD = 0x2A,
+    CMA = 0x2F,
+    STA = 0x32,
+    MVI = 0x36,
+    STC = 0x37,
+    LDA = 0x3A,
+    CMC = 0x3F,
+    MOV = 0x40,
+    HLT = 0x76,
+    ADD = 0x80,
+    ADC = 0x88,
+    SUB = 0x90,
+    SBB = 0x98,
+    ANA = 0xA0,
+    XRA = 0xA8,
+    ORA = 0xB0,
+    CMP = 0xB8,
+    //RNZ, POP_B, JNZ, JMP, CNZ, PUSH_B, ADI, RST_0, // C0
+    //RZ, RET, JZ, _CB, CZ, CALL, ACI, RST_1, // C8
+    //RNC, POP_D, JNC, OUTP, CNC, PUSH_D, SUI, RST_2, // D0
+    //RC, _D9, JC, INP, CC, _DD, SBI, RST_3, // D8
+    //RPO, POP_H, JPO, XTHL, CPO, PUSH_H, ANI, RST_4, // E0
+    //RPE, PCHL, JPE, 
+    XCHG = 0xEB,
+    //CPE, _ED, XRI, RST_5, // E8
+    //RP, POP_PSW, JP, DI, CP, PUSH_PSW, ORI, RST_6, // F0
+    //RM, SPHL, JM, EI, CM, _FD, CPI, RST_7, // F8
+};
+
+enum Reg8Selector
+{
+    B,
+    C,
+    D,
+    E,
+    H,
+    L,
+    M,
+    A,
+};
+
+enum Reg16Selector
+{
+    BC,
+    DE,
+    HL,
+    SP,
+};
+
+struct InstructionParserData
+{
+    OpcodesRaw8080 opcodeByte;
+    std::string instructionMnemonic;
+    InstructionOptions8080 instructionOptions;
+};
+
+static const InstructionParserData instructionParserData[] =
+{
+    { OpcodesRaw8080::NOP, "NOP", {} },
+    { OpcodesRaw8080::LXI, "LXI", { InstructionOption8080::rp4, InstructionOption8080::data16 } },
+    { OpcodesRaw8080::STAX, "STAX", { InstructionOption8080::rp4 } },
+    { OpcodesRaw8080::INX, "INX", { InstructionOption8080::rp4 } },
+    { OpcodesRaw8080::INR, "INR", { InstructionOption8080::rd3 } },
+    { OpcodesRaw8080::DCR, "DCR", { InstructionOption8080::rd3 } },
+    { OpcodesRaw8080::RLC, "RLC", { } },
+    { OpcodesRaw8080::DAD, "DAD", { InstructionOption8080::rp4 } },
+    { OpcodesRaw8080::LDAX, "LDAX", { InstructionOption8080::rp4 } },
+    { OpcodesRaw8080::DCX, "DCX", { InstructionOption8080::rp4 } },
+    { OpcodesRaw8080::RRC, "RRC", {} },
+    { OpcodesRaw8080::RAL, "RAL", {} },
+    { OpcodesRaw8080::RAR, "RAR", {} },
+    { OpcodesRaw8080::SHLD, "SHLD", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::DAA, "DAA", {} },
+    { OpcodesRaw8080::LHLD, "LHLD", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::CMA, "CMA", {} },
+    { OpcodesRaw8080::STA, "STA", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::MVI, "MVI", { InstructionOption8080::rd3, InstructionOption8080::data8 } },
+    { OpcodesRaw8080::STC, "STC", {} },
+    { OpcodesRaw8080::LDA, "LDA", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::CMC, "CMC", { } },
+    { OpcodesRaw8080::MOV, "MOV", { InstructionOption8080::rd3, InstructionOption8080::rs0 } },
+    { OpcodesRaw8080::HLT, "HLT", {} },
+    { OpcodesRaw8080::ADD, "ADD", { InstructionOption8080::rd0 } },
+    { OpcodesRaw8080::ADC, "ADC", { InstructionOption8080::rd0 } },
+    { OpcodesRaw8080::SUB, "SUB", { InstructionOption8080::rd0 } },
+    { OpcodesRaw8080::SBB, "SBB", { InstructionOption8080::rd0 } },
+    { OpcodesRaw8080::ANA, "ANA", { InstructionOption8080::rd0 } },
+    { OpcodesRaw8080::XRA, "XRA", { InstructionOption8080::rd0 } },
+    { OpcodesRaw8080::ORA, "ORA", { InstructionOption8080::rd0 } },
+    { OpcodesRaw8080::CMP, "CMP", { InstructionOption8080::rd0 } },
+    //{ 0xC0, 11, 5,  3, 1, 1, "RNZ" },
+    //{ 0xC1, 10, 0,  3, 0, 1, "POP B" },
+    //{ 0xC2, 10, 0,  3, 0, 3, "JNZ " },
+    //{ 0xC3, 10, 0,  3, 0, 3, "JMP " },
+    //{ 0xC4, 17, 11, 5, 3, 3, "CNZ " },
+    //{ 0xC5, 11, 0,  3, 0, 1, "PUSH B" },
+    //{ 0xC6, 7,  0,  2, 0, 2, "ADI " },
+    //{ 0xC7, 11, 0,  3, 0, 1, "RST 0" },
+    //{ 0xC8, 11, 5,  3, 1, 1, "RZ" },
+    //{ 0xC9, 10, 0,  3, 0, 1, "RET" },
+    //{ 0xCA, 10, 0,  3, 0, 3, "JZ " },
+    //{ 0xCB, 0,  0,  0, 0, 0, "" },
+    //{ 0xCC, 17, 11, 5, 3, 3, "CZ " },
+    //{ 0xCD, 17, 0,  5, 0, 3, "CALL " },
+    //{ 0xCE, 7,  0,  2, 0, 2, "ACI " },
+    //{ 0xCF, 11, 0,  3, 0, 1, "RST 1" },
+    //{ 0xD0, 11, 5,  3, 1, 1, "RNC" },
+    //{ 0xD1, 10, 0,  3, 0, 1, "POP D" },
+    //{ 0xD2, 10, 0,  3, 0, 3, "JNC " },
+    //{ 0xD3, 10, 0,  3, 0, 2, "OUT " },
+    //{ 0xD4, 17, 11, 5, 3, 3, "CNC " },
+    //{ 0xD5, 11, 0,  3, 0, 1, "PUSH D" },
+    //{ 0xD6, 7,  0,  2, 0, 2, "SUI " },
+    //{ 0xD7, 11, 0,  3, 0, 1, "RST 2" },
+    //{ 0xD8, 11, 5,  3, 1, 1, "RC" },
+    //{ 0xD9, 0,  0,  0, 0, 0, "" },
+    //{ 0xDA, 10, 0,  3, 0, 3, "JC " },
+    //{ 0xDB, 10, 0,  3, 0, 2, "IN " },
+    //{ 0xDC, 17, 11, 5, 3, 3, "CC " },
+    //{ 0xDD, 0,  0,  0, 0, 0, "" },
+    //{ 0xDE, 7,  0,  2, 0, 2, "SBI " },
+    //{ 0xDF, 11, 0,  3, 0, 1, "RST 3" },
+    //{ 0xE0, 11, 5,  3, 1, 1, "RPO" },
+    //{ 0xE1, 10, 0,  3, 0, 1, "POP H" },
+    //{ 0xE2, 10, 0,  3, 0, 3, "JPO " },
+    //{ 0xE3, 18, 0,  5, 0, 1, "XTHL" },
+    //{ 0xE4, 17, 11, 5, 3, 3, "CPO " },
+    //{ 0xE5, 11, 0,  3, 0, 1, "PUSH H" },
+    //{ 0xE6, 7,  0,  2, 0, 2, "ANI " },
+    //{ 0xE7, 11, 0,  3, 0, 1, "RST 4" },
+    //{ 0xE8, 11, 5,  3, 1, 1, "RPE" },
+    //{ 0xE9, 5,  0,  1, 0, 1, "PCHL" },
+    //{ 0xEA, 10, 0,  3, 0, 3, "JPE " },
+    { OpcodesRaw8080::XCHG, "XCHG", {} },
+    //{ 0xEC, 17, 11, 5, 3, 3, "CPE " },
+    //{ 0xED, 0,  0,  0, 0, 0, "" },
+    //{ 0xEE, 7,  0,  2, 0, 2, "XRI " },
+    //{ 0xEF, 11, 0,  3, 0, 1, "RST 5" },
+    //{ 0xF0, 11, 5,  3, 1, 1, "RP" },
+    //{ 0xF1, 10, 0,  3, 0, 1, "POP PSW" },
+    //{ 0xF2, 10, 0,  3, 0, 3, "JP " },
+    //{ 0xF3, 4,  0,  1, 0, 1, "DI" },
+    //{ 0xF4, 17, 11, 5, 3, 3, "CP " },
+    //{ 0xF5, 11, 0,  3, 0, 1, "PUSH PSW" },
+    //{ 0xF6, 7,  0,  2, 0, 2, "ORI " },
+    //{ 0xF7, 11, 0,  3, 0, 1, "RST 6" },
+    //{ 0xF8, 11, 5,  3, 1, 1, "RM" },
+    //{ 0xF9, 5,  0,  1, 0, 1, "SPHL" },
+    //{ 0xFA, 10, 0,  3, 0, 3, "JM " },
+    //{ 0xFB, 4,  0,  1, 0, 1, "EI" },
+    //{ 0xFC, 17, 11, 5, 3, 3, "CM " },
+    //{ 0xFD, 0,  0,  0, 0, 0, "" },
+    //{ 0xFE, 7,  0,  2, 0, 2, "CPI " },
+    //{ 0xFF, 11, 0,  3, 0, 1, "RST 7" },
+};
+
 static const InstructionData8080 instructionData8080[256] =
 {
-    /*00*/ { 4,  0, 0, 1, "NOP" },
-    /*01*/ { 10, 0, 3, 3, "LXI B," },
-    /*02*/ { 7,  0, 2, 1, "STAX B" },
-    /*03*/ { 5,  0, 1, 1, "INX B" },
-    /*04*/ { 5,  0, 1, 1, "INR B" },
-    /*05*/ { 5,  0, 1, 1, "DCR B" },
-    /*06*/ { 0,  0, 0, 0, "" },
-    /*07*/ { 4,  0, 1, 1, "RLC" },
-    /*08*/ { 0,  0, 0, 0, "" },
-    /*09*/ { 10, 0, 3, 1, "DAD B" },
-    /*0A*/ { 7,  0, 2, 1, "LDAX B" },
-    /*0B*/ { 5,  0, 1, 1, "DCX B" },
-    /*0C*/ { 5,  0, 1, 1, "INR C" },
-    /*0D*/ { 5,  0, 1, 1, "DCR C" },
-    /*0E*/ { 0,  0, 0, 0, "" },
-    /*0F*/ { 4,  0, 1, 1, "RRC" },
-    /*10*/ { 0,  0, 0, 0, "" },
-    /*11*/ { 10, 0, 3, 3, "LXI D," },
-    /*12*/ { 7,  0, 2, 1, "STAX D" },
-    /*13*/ { 5,  0, 1, 1, "INX D" },
-    /*14*/ { 5,  0, 1, 1, "INR D" },
-    /*15*/ { 5,  0, 1, 1, "DCR D" },
-    /*16*/ { 0,  0, 0, 0, "" },
-    /*17*/ { 4,  0, 1, 1, "RAL" },
-    /*18*/ { 0,  0, 0, 0, "" },
-    /*19*/ { 10, 0, 3, 1, "DAD D" },
-    /*1A*/ { 7,  0, 2, 1, "LDAX D" },
-    /*1B*/ { 5,  0, 1, 1, "DCX D" },
-    /*1C*/ { 5,  0, 1, 1, "INR E" },
-    /*1D*/ { 5,  0, 1, 1, "DCR E" },
-    /*1E*/ { 0,  0, 0, 0, "" },
-    /*1F*/ { 4,  0, 1, 1, "RAR" },
-    /*20*/ { 0,  0, 0, 0, "" },
-    /*21*/ { 10, 0, 3, 3, "LXI H," },
-    /*22*/ { 16, 0, 5, 3, "SHLD " },
-    /*23*/ { 5,  0, 1, 1, "INX H" },
-    /*24*/ { 5,  0, 1, 1, "INR H" },
-    /*25*/ { 5,  0, 1, 1, "DCR H" },
-    /*26*/ { 0,  0, 0, 0, "" },
-    /*27*/ { 4,  0, 1, 1, "DAA" },
-    /*28*/ { 0,  0, 0, 0, "" },
-    /*29*/ { 10, 0, 3, 1, "DAD H" },
-    /*2A*/ { 16, 0, 5, 3, "LHLD " },
-    /*2B*/ { 5,  0, 1, 1, "DCX H" },
-    /*2C*/ { 5,  0, 1, 1, "INR L" },
-    /*2D*/ { 5,  0, 1, 1, "DCR L" },
-    /*2E*/ { 0,  0, 0, 0, "" },
-    /*2F*/ { 4,  0, 1, 1, "CMA" },
-    /*30*/ { 0,  0, 0, 0, "" },
-    /*31*/ { 10, 0, 3, 3, "LXI SP," },
-    /*32*/ { 13, 0, 4, 3, "STA " },
-    /*33*/ { 5,  0, 1, 1, "INX SP" },
-    /*34*/ { 10, 0, 3, 1, "INR M" },
-    /*35*/ { 10, 0, 3, 1, "DCR M" },
-    /*36*/ { 10, 0, 3, 2, "MVI M," },
-    /*37*/ { 4,  0, 1, 1, "STC" },
-    /*38*/ { 0,  0, 0, 0, "" },
-    /*39*/ { 10, 0, 3, 1, "DAD SP" },
-    /*3A*/ { 13, 0, 4, 3, "LDA " },
-    /*3B*/ { 5,  0, 1, 1, "DCX SP" },
-    /*3C*/ { 5,  0, 1, 1, "INR A" },
-    /*3D*/ { 5,  0, 1, 1, "DCR A" },
-    /*3E*/ { 0,  0, 0, 0, "" },
-    /*3F*/ { 4,  0, 1, 1, "CMC" },
-    /*40*/ { 5,  0, 1, 1, "MOV B,B" },
-    /*41*/ { 5,  0, 1, 1, "MOV B,C" },
-    /*42*/ { 5,  0, 1, 1, "MOV B,D" },
-    /*43*/ { 5,  0, 1, 1, "MOV B,E" },
-    /*44*/ { 5,  0, 1, 1, "MOV B,H" },
-    /*45*/ { 5,  0, 1, 1, "MOV B,L" },
-    /*46*/ { 7,  0, 2, 1, "MOV B,M" },
-    /*47*/ { 5,  0, 1, 1, "MOV B,A" },
-    /*48*/ { 5,  0, 1, 1, "MOV C,B" },
-    /*49*/ { 5,  0, 1, 1, "MOV C,C" },
-    /*4A*/ { 5,  0, 1, 1, "MOV C,D" },
-    /*4B*/ { 5,  0, 1, 1, "MOV C,E" },
-    /*4C*/ { 5,  0, 1, 1, "MOV C,H" },
-    /*4D*/ { 5,  0, 1, 1, "MOV C,L" },
-    /*4E*/ { 7,  0, 2, 1, "MOV C,M" },
-    /*4F*/ { 5,  0, 1, 1, "MOV C,A" },
-    /*50*/ { 5,  0, 1, 1, "MOV D,B" },
-    /*51*/ { 5,  0, 1, 1, "MOV D,C" },
-    /*52*/ { 5,  0, 1, 1, "MOV D,D" },
-    /*53*/ { 5,  0, 1, 1, "MOV D,E" },
-    /*54*/ { 5,  0, 1, 1, "MOV D,H" },
-    /*55*/ { 5,  0, 1, 1, "MOV D,L" },
-    /*56*/ { 7,  0, 2, 1, "MOV D,M" },
-    /*57*/ { 5,  0, 1, 1, "MOV D,A" },
-    /*58*/ { 5,  0, 1, 1, "MOV E,B" },
-    /*59*/ { 5,  0, 1, 1, "MOV E,C" },
-    /*5A*/ { 5,  0, 1, 1, "MOV E,D" },
-    /*5B*/ { 5,  0, 1, 1, "MOV E,E" },
-    /*5C*/ { 5,  0, 1, 1, "MOV E,H" },
-    /*5D*/ { 5,  0, 1, 1, "MOV E,L" },
-    /*5E*/ { 7,  0, 2, 1, "MOV E,M" },
-    /*5F*/ { 5,  0, 1, 1, "MOV E,A" },
-    /*60*/ { 5,  0, 1, 1, "MOV H,B" },
-    /*61*/ { 5,  0, 1, 1, "MOV H,C" },
-    /*62*/ { 5,  0, 1, 1, "MOV H,D" },
-    /*63*/ { 5,  0, 1, 1, "MOV H,E" },
-    /*64*/ { 5,  0, 1, 1, "MOV H,H" },
-    /*65*/ { 5,  0, 1, 1, "MOV H,L" },
-    /*66*/ { 7,  0, 2, 1, "MOV H,M" },
-    /*67*/ { 5,  0, 1, 1, "MOV H,A" },
-    /*68*/ { 5,  0, 1, 1, "MOV L,B" },
-    /*69*/ { 5,  0, 1, 1, "MOV L,C" },
-    /*6A*/ { 5,  0, 1, 1, "MOV L,D" },
-    /*6B*/ { 5,  0, 1, 1, "MOV L,E" },
-    /*6C*/ { 5,  0, 1, 1, "MOV L,H" },
-    /*6D*/ { 5,  0, 1, 1, "MOV L,L" },
-    /*6E*/ { 7,  0, 2, 1, "MOV L,M" },
-    /*6F*/ { 5,  0, 1, 1, "MOV L,A" },
-    /*70*/ { 7,  0, 2, 1, "MOV M,B" },
-    /*71*/ { 7,  0, 2, 1, "MOV M,C" },
-    /*72*/ { 7,  0, 2, 1, "MOV M,D" },
-    /*73*/ { 7,  0, 2, 1, "MOV M,E" },
-    /*74*/ { 7,  0, 2, 1, "MOV M,H" },
-    /*75*/ { 7,  0, 2, 1, "MOV M,L" },
-    /*76*/ { 7,  0, 0, 1, "HLT" },
-    /*77*/ { 7,  0, 2, 1, "MOV M,A" },
-    /*78*/ { 5,  0, 1, 1, "MOV A,B" },
-    /*79*/ { 5,  0, 1, 1, "MOV A,C" },
-    /*7A*/ { 5,  0, 1, 1, "MOV A,D" },
-    /*7B*/ { 5,  0, 1, 1, "MOV A,E" },
-    /*7C*/ { 5,  0, 1, 1, "MOV A,H" },
-    /*7D*/ { 5,  0, 1, 1, "MOV A,L" },
-    /*7E*/ { 7,  0, 2, 1, "MOV A,M" },
-    /*7F*/ { 5,  0, 1, 1, "MOV A,A" },
-    /*80*/ { 4,  0, 1, 1, "ADD B" },
-    /*81*/ { 4,  0, 1, 1, "ADD C" },
-    /*82*/ { 4,  0, 1, 1, "ADD D" },
-    /*83*/ { 4,  0, 1, 1, "ADD E" },
-    /*84*/ { 4,  0, 1, 1, "ADD H" },
-    /*85*/ { 4,  0, 1, 1, "ADD L" },
-    /*86*/ { 7,  0, 2, 1, "ADD M" },
-    /*87*/ { 4,  0, 1, 1, "ADD A" },
-    /*88*/ { 4,  0, 1, 1, "ADC B" },
-    /*89*/ { 4,  0, 1, 1, "ADC C" },
-    /*8A*/ { 4,  0, 1, 1, "ADC D" },
-    /*8B*/ { 4,  0, 1, 1, "ADC E" },
-    /*8C*/ { 4,  0, 1, 1, "ADC H" },
-    /*8D*/ { 4,  0, 1, 1, "ADC L" },
-    /*8E*/ { 7,  0, 2, 1, "ADC M" },
-    /*8F*/ { 4,  0, 1, 1, "ADC A" },
-    /*90*/ { 4,  0, 1, 1, "SUB B" },
-    /*91*/ { 4,  0, 1, 1, "SUB C" },
-    /*92*/ { 4,  0, 1, 1, "SUB D" },
-    /*93*/ { 4,  0, 1, 1, "SUB E" },
-    /*94*/ { 4,  0, 1, 1, "SUB H" },
-    /*95*/ { 4,  0, 1, 1, "SUB L" },
-    /*96*/ { 7,  0, 2, 1, "SUB M" },
-    /*97*/ { 4,  0, 1, 1, "SUB A" },
-    /*98*/ { 4,  0, 1, 1, "SBB B" },
-    /*99*/ { 4,  0, 1, 1, "SBB C" },
-    /*9A*/ { 4,  0, 1, 1, "SBB D" },
-    /*9B*/ { 4,  0, 1, 1, "SBB E" },
-    /*9C*/ { 4,  0, 1, 1, "SBB H" },
-    /*9D*/ { 4,  0, 1, 1, "SBB L" },
-    /*9E*/ { 7,  0, 2, 1, "SBB M" },
-    /*9F*/ { 4,  0, 1, 1, "SBB A" },
-    /*A0*/ { 4,  0, 1, 1, "ANA B" },
-    /*A1*/ { 4,  0, 1, 1, "ANA C" },
-    /*A2*/ { 4,  0, 1, 1, "ANA D" },
-    /*A3*/ { 4,  0, 1, 1, "ANA E" },
-    /*A4*/ { 4,  0, 1, 1, "ANA H" },
-    /*A5*/ { 4,  0, 1, 1, "ANA L" },
-    /*A6*/ { 7,  0, 2, 1, "ANA M" },
-    /*A7*/ { 4,  0, 1, 1, "ANA A" },
-    /*A8*/ { 4,  0, 1, 1, "XRA B" },
-    /*A9*/ { 4,  0, 1, 1, "XRA C" },
-    /*AA*/ { 4,  0, 1, 1, "XRA D" },
-    /*AB*/ { 4,  0, 1, 1, "XRA E" },
-    /*AC*/ { 4,  0, 1, 1, "XRA H" },
-    /*AD*/ { 4,  0, 1, 1, "XRA L" },
-    /*AE*/ { 7,  0, 2, 1, "XRA M" },
-    /*AF*/ { 4,  0, 1, 1, "XRA A" },
-    /*B0*/ { 4,  0, 1, 1, "ORA B" },
-    /*B1*/ { 4,  0, 1, 1, "ORA C" },
-    /*B2*/ { 4,  0, 1, 1, "ORA D" },
-    /*B3*/ { 4,  0, 1, 1, "ORA E" },
-    /*B4*/ { 4,  0, 1, 1, "ORA H" },
-    /*B5*/ { 4,  0, 1, 1, "ORA L" },
-    /*B6*/ { 7,  0, 2, 1, "ORA M" },
-    /*B7*/ { 4,  0, 1, 1, "ORA A" },
-    /*B8*/ { 4,  0, 1, 1, "CMP B" },
-    /*B9*/ { 4,  0, 1, 1, "CMP C" },
-    /*BA*/ { 4,  0, 1, 1, "CMP D" },
-    /*BB*/ { 4,  0, 1, 1, "CMP E" },
-    /*BC*/ { 4,  0, 1, 1, "CMP H" },
-    /*BD*/ { 4,  0, 1, 1, "CMP L" },
-    /*BE*/ { 7,  0, 2, 1, "CMP M" },
-    /*BF*/ { 4,  0, 1, 1, "CMP A" },
-    /*C0*/ { 0,  0, 0, 0, "" },
-    /*C1*/ { 0,  0, 0, 0, "" },
-    /*C2*/ { 0,  0, 0, 0, "" },
-    /*C3*/ { 0,  0, 0, 0, "" },
-    /*C4*/ { 0,  0, 0, 0, "" },
-    /*C5*/ { 0,  0, 0, 0, "" },
-    /*C6*/ { 7,  0, 2, 2, "ADI " },
-    /*C7*/ { 0,  0, 0, 0, "" },
-    /*C8*/ { 0,  0, 0, 0, "" },
-    /*C9*/ { 0,  0, 0, 0, "" },
-    /*CA*/ { 0,  0, 0, 0, "" },
-    /*CB*/ { 0,  0, 0, 0, "" },
-    /*CC*/ { 0,  0, 0, 0, "" },
-    /*CD*/ { 0,  0, 0, 0, "" },
-    /*CE*/ { 7,  0, 2, 2, "ACI " },
-    /*CF*/ { 0,  0, 0, 0, "" },
-    /*D0*/ { 0,  0, 0, 0, "" },
-    /*D1*/ { 0,  0, 0, 0, "" },
-    /*D2*/ { 0,  0, 0, 0, "" },
-    /*D3*/ { 0,  0, 0, 0, "" },
-    /*D4*/ { 0,  0, 0, 0, "" },
-    /*D5*/ { 0,  0, 0, 0, "" },
-    /*D6*/ { 7,  0, 2, 2, "SUI " },
-    /*D7*/ { 0,  0, 0, 0, "" },
-    /*D8*/ { 0,  0, 0, 0, "" },
-    /*D9*/ { 0,  0, 0, 0, "" },
-    /*DA*/ { 0,  0, 0, 0, "" },
-    /*DB*/ { 0,  0, 0, 0, "" },
-    /*DC*/ { 0,  0, 0, 0, "" },
-    /*DD*/ { 0,  0, 0, 0, "" },
-    /*DE*/ { 7,  0, 2, 2, "SBI " },
-    /*DF*/ { 0,  0, 0, 0, "" },
-    /*E0*/ { 0,  0, 0, 0, "" },
-    /*E1*/ { 0,  0, 0, 0, "" },
-    /*E2*/ { 0,  0, 0, 0, "" },
-    /*E3*/ { 0,  0, 0, 0, "" },
-    /*E4*/ { 0,  0, 0, 0, "" },
-    /*E5*/ { 0,  0, 0, 0, "" },
-    /*E6*/ { 7,  0, 2, 2, "ANI " },
-    /*E7*/ { 0,  0, 0, 0, "" },
-    /*E8*/ { 0,  0, 0, 0, "" },
-    /*E9*/ { 0,  0, 0, 0, "" },
-    /*EA*/ { 0,  0, 0, 0, "" },
-    /*EB*/ { 4,  0, 1, 1, "XCHG" },
-    /*EC*/ { 0,  0, 0, 0, "" },
-    /*ED*/ { 0,  0, 0, 0, "" },
-    /*EE*/ { 7,  0, 2, 2, "XRI " },
-    /*EF*/ { 0,  0, 0, 0, "" },
-    /*F0*/ { 0,  0, 0, 0, "" },
-    /*F1*/ { 0,  0, 0, 0, "" },
-    /*F2*/ { 0,  0, 0, 0, "" },
-    /*F3*/ { 4,  0, 0, 0, "DI" },
-    /*F4*/ { 0,  0, 0, 0, "" },
-    /*F5*/ { 0,  0, 0, 0, "" },
-    /*F6*/ { 7,  0, 2, 2, "ORI " },
-    /*F7*/ { 0,  0, 0, 0, "" },
-    /*F8*/ { 0,  0, 0, 0, "" },
-    /*F9*/ { 0,  0, 0, 0, "" },
-    /*FA*/ { 0,  0, 0, 0, "" },
-    /*FB*/ { 0,  0, 0, 0, "EI" },
-    /*FC*/ { 0,  0, 0, 0, "" },
-    /*FD*/ { 0,  0, 0, 0, "" },
-    /*FE*/ { 7,  0, 2, 2, "CPI " },
-    /*FF*/ { 0,  0, 0, 0, "" },
+        { 0x00, 4,  0,  1, 0, 1, "NOP" },
+        { 0x01, 10, 0,  3, 0, 3, "LXI B," },
+        { 0x02, 7,  0,  2, 0, 1, "STAX B" },
+        { 0x03, 5,  0,  1, 0, 1, "INX B" },
+        { 0x04, 5,  0,  1, 0, 1, "INR B" },
+        { 0x05, 5,  0,  1, 0, 1, "DCR B" },
+        { 0x06, 0,  0,  0, 0, 0, "" },
+        { 0x07, 4,  0,  1, 0, 1, "RLC" },
+        { 0x08, 0,  0,  0, 0, 0, "" },
+        { 0x09, 10, 0,  3, 0, 1, "DAD B" },
+        { 0x0A, 7,  0,  2, 0, 1, "LDAX B" },
+        { 0x0B, 5,  0,  1, 0, 1, "DCX B" },
+        { 0x0C, 5,  0,  1, 0, 1, "INR C" },
+        { 0x0D, 5,  0,  1, 0, 1, "DCR C" },
+        { 0x0E, 0,  0,  0, 0, 0, "" },
+        { 0x0F, 4,  0,  1, 0, 1, "RRC" },
+        { 0x10, 0,  0,  0, 0, 0, "" },
+        { 0x11, 10, 0,  3, 0, 3, "LXI D," },
+        { 0x12, 7,  0,  2, 0, 1, "STAX D" },
+        { 0x13, 5,  0,  1, 0, 1, "INX D" },
+        { 0x14, 5,  0,  1, 0, 1, "INR D" },
+        { 0x15, 5,  0,  1, 0, 1, "DCR D" },
+        { 0x16, 0,  0,  0, 0, 0, "" },
+        { 0x17, 4,  0,  1, 0, 1, "RAL" },
+        { 0x18, 0,  0,  0, 0, 0, "" },
+        { 0x19, 10, 0,  3, 0, 1, "DAD D" },
+        { 0x1A, 7,  0,  2, 0, 1, "LDAX D" },
+        { 0x1B, 5,  0,  1, 0, 1, "DCX D" },
+        { 0x1C, 5,  0,  1, 0, 1, "INR E" },
+        { 0x1D, 5,  0,  1, 0, 1, "DCR E" },
+        { 0x1E, 0,  0,  0, 0, 0, "" },
+        { 0x1F, 4,  0,  1, 0, 1, "RAR" },
+        { 0x20, 0,  0,  0, 0, 0, "" },
+        { 0x21, 10, 0,  3, 0, 3, "LXI H," },
+        { 0x22, 16, 0,  5, 0, 3, "SHLD " },
+        { 0x23, 5,  0,  1, 0, 1, "INX H" },
+        { 0x24, 5,  0,  1, 0, 1, "INR H" },
+        { 0x25, 5,  0,  1, 0, 1, "DCR H" },
+        { 0x26, 0,  0,  0, 0, 0, "" },
+        { 0x27, 4,  0,  1, 0, 1, "DAA" },
+        { 0x28, 0,  0,  0, 0, 0, "" },
+        { 0x29, 10, 0,  3, 0, 1, "DAD H" },
+        { 0x2A, 16, 0,  5, 0, 3, "LHLD " },
+        { 0x2B, 5,  0,  1, 0, 1, "DCX H" },
+        { 0x2C, 5,  0,  1, 0, 1, "INR L" },
+        { 0x2D, 5,  0,  1, 0, 1, "DCR L" },
+        { 0x2E, 0,  0,  0, 0, 0, "" },
+        { 0x2F, 4,  0,  1, 0, 1, "CMA" },
+        { 0x30, 0,  0,  0, 0, 0, "" },
+        { 0x31, 10, 0,  3, 0, 3, "LXI SP," },
+        { 0x32, 13, 0,  4, 0, 3, "STA " },
+        { 0x33, 5,  0,  1, 0, 1, "INX SP" },
+        { 0x34, 10, 0,  3, 0, 1, "INR M" },
+        { 0x35, 10, 0,  3, 0, 1, "DCR M" },
+        { 0x36, 10, 0,  3, 0, 2, "MVI M," },
+        { 0x37, 4,  0,  1, 0, 1, "STC" },
+        { 0x38, 0,  0,  0, 0, 0, "" },
+        { 0x39, 10, 0,  3, 0, 1, "DAD SP" },
+        { 0x3A, 13, 0,  4, 0, 3, "LDA " },
+        { 0x3B, 5,  0,  1, 0, 1, "DCX SP" },
+        { 0x3C, 5,  0,  1, 0, 1, "INR A" },
+        { 0x3D, 5,  0,  1, 0, 1, "DCR A" },
+        { 0x3E, 0,  0,  0, 0, 0, "" },
+        { 0x3F, 4,  0,  1, 0, 1, "CMC" },
+        { 0x40, 5,  0,  1, 0, 1, "MOV B,B" },
+        { 0x41, 5,  0,  1, 0, 1, "MOV B,C" },
+        { 0x42, 5,  0,  1, 0, 1, "MOV B,D" },
+        { 0x43, 5,  0,  1, 0, 1, "MOV B,E" },
+        { 0x44, 5,  0,  1, 0, 1, "MOV B,H" },
+        { 0x45, 5,  0,  1, 0, 1, "MOV B,L" },
+        { 0x46, 7,  0,  2, 0, 1, "MOV B,M" },
+        { 0x47, 5,  0,  1, 0, 1, "MOV B,A" },
+        { 0x48, 5,  0,  1, 0, 1, "MOV C,B" },
+        { 0x49, 5,  0,  1, 0, 1, "MOV C,C" },
+        { 0x4A, 5,  0,  1, 0, 1, "MOV C,D" },
+        { 0x4B, 5,  0,  1, 0, 1, "MOV C,E" },
+        { 0x4C, 5,  0,  1, 0, 1, "MOV C,H" },
+        { 0x4D, 5,  0,  1, 0, 1, "MOV C,L" },
+        { 0x4E, 7,  0,  2, 0, 1, "MOV C,M" },
+        { 0x4F, 5,  0,  1, 0, 1, "MOV C,A" },
+        { 0x50, 5,  0,  1, 0, 1, "MOV D,B" },
+        { 0x51, 5,  0,  1, 0, 1, "MOV D,C" },
+        { 0x52, 5,  0,  1, 0, 1, "MOV D,D" },
+        { 0x53, 5,  0,  1, 0, 1, "MOV D,E" },
+        { 0x54, 5,  0,  1, 0, 1, "MOV D,H" },
+        { 0x55, 5,  0,  1, 0, 1, "MOV D,L" },
+        { 0x56, 7,  0,  2, 0, 1, "MOV D,M" },
+        { 0x57, 5,  0,  1, 0, 1, "MOV D,A" },
+        { 0x58, 5,  0,  1, 0, 1, "MOV E,B" },
+        { 0x59, 5,  0,  1, 0, 1, "MOV E,C" },
+        { 0x5A, 5,  0,  1, 0, 1, "MOV E,D" },
+        { 0x5B, 5,  0,  1, 0, 1, "MOV E,E" },
+        { 0x5C, 5,  0,  1, 0, 1, "MOV E,H" },
+        { 0x5D, 5,  0,  1, 0, 1, "MOV E,L" },
+        { 0x5E, 7,  0,  2, 0, 1, "MOV E,M" },
+        { 0x5F, 5,  0,  1, 0, 1, "MOV E,A" },
+        { 0x60, 5,  0,  1, 0, 1, "MOV H,B" },
+        { 0x61, 5,  0,  1, 0, 1, "MOV H,C" },
+        { 0x62, 5,  0,  1, 0, 1, "MOV H,D" },
+        { 0x63, 5,  0,  1, 0, 1, "MOV H,E" },
+        { 0x64, 5,  0,  1, 0, 1, "MOV H,H" },
+        { 0x65, 5,  0,  1, 0, 1, "MOV H,L" },
+        { 0x66, 7,  0,  2, 0, 1, "MOV H,M" },
+        { 0x67, 5,  0,  1, 0, 1, "MOV H,A" },
+        { 0x68, 5,  0,  1, 0, 1, "MOV L,B" },
+        { 0x69, 5,  0,  1, 0, 1, "MOV L,C" },
+        { 0x6A, 5,  0,  1, 0, 1, "MOV L,D" },
+        { 0x6B, 5,  0,  1, 0, 1, "MOV L,E" },
+        { 0x6C, 5,  0,  1, 0, 1, "MOV L,H" },
+        { 0x6D, 5,  0,  1, 0, 1, "MOV L,L" },
+        { 0x6E, 7,  0,  2, 0, 1, "MOV L,M" },
+        { 0x6F, 5,  0,  1, 0, 1, "MOV L,A" },
+        { 0x70, 7,  0,  2, 0, 1, "MOV M,B" },
+        { 0x71, 7,  0,  2, 0, 1, "MOV M,C" },
+        { 0x72, 7,  0,  2, 0, 1, "MOV M,D" },
+        { 0x73, 7,  0,  2, 0, 1, "MOV M,E" },
+        { 0x74, 7,  0,  2, 0, 1, "MOV M,H" },
+        { 0x75, 7,  0,  2, 0, 1, "MOV M,L" },
+        { 0x76, 7,  0,  1, 0, 1, "HLT" },
+        { 0x77, 7,  0,  2, 0, 1, "MOV M,A" },
+        { 0x78, 5,  0,  1, 0, 1, "MOV A,B" },
+        { 0x79, 5,  0,  1, 0, 1, "MOV A,C" },
+        { 0x7A, 5,  0,  1, 0, 1, "MOV A,D" },
+        { 0x7B, 5,  0,  1, 0, 1, "MOV A,E" },
+        { 0x7C, 5,  0,  1, 0, 1, "MOV A,H" },
+        { 0x7D, 5,  0,  1, 0, 1, "MOV A,L" },
+        { 0x7E, 7,  0,  2, 0, 1, "MOV A,M" },
+        { 0x7F, 5,  0,  1, 0, 1, "MOV A,A" },
+        { 0x80, 4,  0,  1, 0, 1, "ADD B" },
+        { 0x81, 4,  0,  1, 0, 1, "ADD C" },
+        { 0x82, 4,  0,  1, 0, 1, "ADD D" },
+        { 0x83, 4,  0,  1, 0, 1, "ADD E" },
+        { 0x84, 4,  0,  1, 0, 1, "ADD H" },
+        { 0x85, 4,  0,  1, 0, 1, "ADD L" },
+        { 0x86, 7,  0,  2, 0, 1, "ADD M" },
+        { 0x87, 4,  0,  1, 0, 1, "ADD A" },
+        { 0x88, 4,  0,  1, 0, 1, "ADC B" },
+        { 0x89, 4,  0,  1, 0, 1, "ADC C" },
+        { 0x8A, 4,  0,  1, 0, 1, "ADC D" },
+        { 0x8B, 4,  0,  1, 0, 1, "ADC E" },
+        { 0x8C, 4,  0,  1, 0, 1, "ADC H" },
+        { 0x8D, 4,  0,  1, 0, 1, "ADC L" },
+        { 0x8E, 7,  0,  2, 0, 1, "ADC M" },
+        { 0x8F, 4,  0,  1, 0, 1, "ADC A" },
+        { 0x90, 4,  0,  1, 0, 1, "SUB B" },
+        { 0x91, 4,  0,  1, 0, 1, "SUB C" },
+        { 0x92, 4,  0,  1, 0, 1, "SUB D" },
+        { 0x93, 4,  0,  1, 0, 1, "SUB E" },
+        { 0x94, 4,  0,  1, 0, 1, "SUB H" },
+        { 0x95, 4,  0,  1, 0, 1, "SUB L" },
+        { 0x96, 7,  0,  2, 0, 1, "SUB M" },
+        { 0x97, 4,  0,  1, 0, 1, "SUB A" },
+        { 0x98, 4,  0,  1, 0, 1, "SBB B" },
+        { 0x99, 4,  0,  1, 0, 1, "SBB C" },
+        { 0x9A, 4,  0,  1, 0, 1, "SBB D" },
+        { 0x9B, 4,  0,  1, 0, 1, "SBB E" },
+        { 0x9C, 4,  0,  1, 0, 1, "SBB H" },
+        { 0x9D, 4,  0,  1, 0, 1, "SBB L" },
+        { 0x9E, 7,  0,  2, 0, 1, "SBB M" },
+        { 0x9F, 4,  0,  1, 0, 1, "SBB A" },
+        { 0xA0, 4,  0,  1, 0, 1, "ANA B" },
+        { 0xA1, 4,  0,  1, 0, 1, "ANA C" },
+        { 0xA2, 4,  0,  1, 0, 1, "ANA D" },
+        { 0xA3, 4,  0,  1, 0, 1, "ANA E" },
+        { 0xA4, 4,  0,  1, 0, 1, "ANA H" },
+        { 0xA5, 4,  0,  1, 0, 1, "ANA L" },
+        { 0xA6, 7,  0,  2, 0, 1, "ANA M" },
+        { 0xA7, 4,  0,  1, 0, 1, "ANA A" },
+        { 0xA8, 4,  0,  1, 0, 1, "XRA B" },
+        { 0xA9, 4,  0,  1, 0, 1, "XRA C" },
+        { 0xAA, 4,  0,  1, 0, 1, "XRA D" },
+        { 0xAB, 4,  0,  1, 0, 1, "XRA E" },
+        { 0xAC, 4,  0,  1, 0, 1, "XRA H" },
+        { 0xAD, 4,  0,  1, 0, 1, "XRA L" },
+        { 0xAE, 7,  0,  2, 0, 1, "XRA M" },
+        { 0xAF, 4,  0,  1, 0, 1, "XRA A" },
+        { 0xB0, 4,  0,  1, 0, 1, "ORA B" },
+        { 0xB1, 4,  0,  1, 0, 1, "ORA C" },
+        { 0xB2, 4,  0,  1, 0, 1, "ORA D" },
+        { 0xB3, 4,  0,  1, 0, 1, "ORA E" },
+        { 0xB4, 4,  0,  1, 0, 1, "ORA H" },
+        { 0xB5, 4,  0,  1, 0, 1, "ORA L" },
+        { 0xB6, 7,  0,  2, 0, 1, "ORA M" },
+        { 0xB7, 4,  0,  1, 0, 1, "ORA A" },
+        { 0xB8, 4,  0,  1, 0, 1, "CMP B" },
+        { 0xB9, 4,  0,  1, 0, 1, "CMP C" },
+        { 0xBA, 4,  0,  1, 0, 1, "CMP D" },
+        { 0xBB, 4,  0,  1, 0, 1, "CMP E" },
+        { 0xBC, 4,  0,  1, 0, 1, "CMP H" },
+        { 0xBD, 4,  0,  1, 0, 1, "CMP L" },
+        { 0xBE, 7,  0,  2, 0, 1, "CMP M" },
+        { 0xBF, 4,  0,  1, 0, 1, "CMP A" },
+        { 0xC0, 11, 5,  3, 1, 1, "RNZ" },
+        { 0xC1, 10, 0,  3, 0, 1, "POP B" },
+        { 0xC2, 10, 0,  3, 0, 3, "JNZ " },
+        { 0xC3, 10, 0,  3, 0, 3, "JMP " },
+        { 0xC4, 17, 11, 5, 3, 3, "CNZ " },
+        { 0xC5, 11, 0,  3, 0, 1, "PUSH B" },
+        { 0xC6, 7,  0,  2, 0, 2, "ADI " },
+        { 0xC7, 11, 0,  3, 0, 1, "RST 0" },
+        { 0xC8, 11, 5,  3, 1, 1, "RZ" },
+        { 0xC9, 10, 0,  3, 0, 1, "RET" },
+        { 0xCA, 10, 0,  3, 0, 3, "JZ " },
+        { 0xCB, 0,  0,  0, 0, 0, "" },
+        { 0xCC, 17, 11, 5, 3, 3, "CZ " },
+        { 0xCD, 17, 0,  5, 0, 3, "CALL " },
+        { 0xCE, 7,  0,  2, 0, 2, "ACI " },
+        { 0xCF, 11, 0,  3, 0, 1, "RST 1" },
+        { 0xD0, 11, 5,  3, 1, 1, "RNC" },
+        { 0xD1, 10, 0,  3, 0, 1, "POP D" },
+        { 0xD2, 10, 0,  3, 0, 3, "JNC " },
+        { 0xD3, 10, 0,  3, 0, 2, "OUT " },
+        { 0xD4, 17, 11, 5, 3, 3, "CNC " },
+        { 0xD5, 11, 0,  3, 0, 1, "PUSH D" },
+        { 0xD6, 7,  0,  2, 0, 2, "SUI " },
+        { 0xD7, 11, 0,  3, 0, 1, "RST 2" },
+        { 0xD8, 11, 5,  3, 1, 1, "RC" },
+        { 0xD9, 0,  0,  0, 0, 0, "" },
+        { 0xDA, 10, 0,  3, 0, 3, "JC " },
+        { 0xDB, 10, 0,  3, 0, 2, "IN " },
+        { 0xDC, 17, 11, 5, 3, 3, "CC " },
+        { 0xDD, 0,  0,  0, 0, 0, "" },
+        { 0xDE, 7,  0,  2, 0, 2, "SBI " },
+        { 0xDF, 11, 0,  3, 0, 1, "RST 3" },
+        { 0xE0, 11, 5,  3, 1, 1, "RPO" },
+        { 0xE1, 10, 0,  3, 0, 1, "POP H" },
+        { 0xE2, 10, 0,  3, 0, 3, "JPO " },
+        { 0xE3, 18, 0,  5, 0, 1, "XTHL" },
+        { 0xE4, 17, 11, 5, 3, 3, "CPO " },
+        { 0xE5, 11, 0,  3, 0, 1, "PUSH H" },
+        { 0xE6, 7,  0,  2, 0, 2, "ANI " },
+        { 0xE7, 11, 0,  3, 0, 1, "RST 4" },
+        { 0xE8, 11, 5,  3, 1, 1, "RPE" },
+        { 0xE9, 5,  0,  1, 0, 1, "PCHL" },
+        { 0xEA, 10, 0,  3, 0, 3, "JPE " },
+        { 0xEB, 4,  0,  1, 0, 1, "XCHG" },
+        { 0xEC, 17, 11, 5, 3, 3, "CPE " },
+        { 0xED, 0,  0,  0, 0, 0, "" },
+        { 0xEE, 7,  0,  2, 0, 2, "XRI " },
+        { 0xEF, 11, 0,  3, 0, 1, "RST 5" },
+        { 0xF0, 11, 5,  3, 1, 1, "RP" },
+        { 0xF1, 10, 0,  3, 0, 1, "POP PSW" },
+        { 0xF2, 10, 0,  3, 0, 3, "JP " },
+        { 0xF3, 4,  0,  1, 0, 1, "DI" },
+        { 0xF4, 17, 11, 5, 3, 3, "CP " },
+        { 0xF5, 11, 0,  3, 0, 1, "PUSH PSW" },
+        { 0xF6, 7,  0,  2, 0, 2, "ORI " },
+        { 0xF7, 11, 0,  3, 0, 1, "RST 6" },
+        { 0xF8, 11, 5,  3, 1, 1, "RM" },
+        { 0xF9, 5,  0,  1, 0, 1, "SPHL" },
+        { 0xFA, 10, 0,  3, 0, 3, "JM " },
+        { 0xFB, 4,  0,  1, 0, 1, "EI" },
+        { 0xFC, 17, 11, 5, 3, 3, "CM " },
+        { 0xFD, 0,  0,  0, 0, 0, "" },
+        { 0xFE, 7,  0,  2, 0, 2, "CPI " },
+        { 0xFF, 11, 0,  3, 0, 1, "RST 7" },
 };
 
 static const uint8_t flagsZSTable[256] =
@@ -885,6 +1097,24 @@ size_t Processor8080::DisassembleInstruction(std::vector<uint8_t> const & machin
     case Opcodes8080::LXI_D:
     case Opcodes8080::LXI_H:
     case Opcodes8080::LXI_SP:
+    case Opcodes8080::JMP:
+    case Opcodes8080::JNZ:
+    case Opcodes8080::JZ:
+    case Opcodes8080::JNC:
+    case Opcodes8080::JC:
+    case Opcodes8080::JPO:
+    case Opcodes8080::JPE:
+    case Opcodes8080::JP:
+    case Opcodes8080::JM:
+    case Opcodes8080::CALL:
+    case Opcodes8080::CNZ:
+    case Opcodes8080::CZ:
+    case Opcodes8080::CNC:
+    case Opcodes8080::CC:
+    case Opcodes8080::CPO:
+    case Opcodes8080::CPE:
+    case Opcodes8080::CP:
+    case Opcodes8080::CM:
         stream << std::hex << std::setw(2) << std::setfill('0') << std::uppercase << int(machineCode[2])
             << std::setw(2) << std::setfill('0') << int(machineCode[1]);
         break;
@@ -898,6 +1128,8 @@ size_t Processor8080::DisassembleInstruction(std::vector<uint8_t> const & machin
     case Opcodes8080::XRI:
     case Opcodes8080::ORI:
     case Opcodes8080::CPI:
+    case Opcodes8080::INP:
+    case Opcodes8080::OUTP:
         stream << std::hex << std::setw(2) << std::setfill('0') << std::uppercase << int(machineCode[1]);
         break;
 
@@ -1070,22 +1302,228 @@ size_t Processor8080::DisassembleInstruction(std::vector<uint8_t> const & machin
     case Opcodes8080::CMP_L:
     case Opcodes8080::CMP_M:
     case Opcodes8080::CMP_A:
+    case Opcodes8080::RET:
+    case Opcodes8080::RNZ:
+    case Opcodes8080::RZ:
+    case Opcodes8080::RNC:
+    case Opcodes8080::RC:
+    case Opcodes8080::RPO:
+    case Opcodes8080::RPE:
+    case Opcodes8080::RP:
+    case Opcodes8080::RM:
     case Opcodes8080::XCHG:
     case Opcodes8080::EI:
     case Opcodes8080::DI:
+    case Opcodes8080::RST_0:
+    case Opcodes8080::RST_1:
+    case Opcodes8080::RST_2:
+    case Opcodes8080::RST_3:
+    case Opcodes8080::RST_4:
+    case Opcodes8080::RST_5:
+    case Opcodes8080::RST_6:
+    case Opcodes8080::RST_7:
+    case Opcodes8080::PCHL:
+    case Opcodes8080::XTHL:
+    case Opcodes8080::SPHL:
+    case Opcodes8080::PUSH_B:
+    case Opcodes8080::PUSH_D:
+    case Opcodes8080::PUSH_H:
+    case Opcodes8080::PUSH_PSW:
+    case Opcodes8080::POP_B:
+    case Opcodes8080::POP_D:
+    case Opcodes8080::POP_H:
+    case Opcodes8080::POP_PSW:
         break;
 
     default:
-        std::cout << "Unrecognized instruction: " << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << int(machineCode[0]);
+        throw DisassemblerUnknownInstructionException(machineCode[0]);
         break;
     }
     mnemonic = stream.str();
     return instructionSize;
 }
 
+InstructionParserData const * FindOpcode(std::string const & opcodeString)
+{
+    size_t index = 0;
+    for (auto & instructionData : instructionParserData)
+    {
+        if (instructionData.instructionMnemonic == opcodeString)
+            return &(instructionParserData[index]);
+        index++;
+    }
+    return nullptr;
+}
+
+std::string trim(std::string const & text)
+{
+    size_t left = 0;
+    size_t right = text.length();
+    while ((left < text.length()) && isspace(text[left]))
+        ++left;
+    while ((right > 0) && !isspace(text[right - 1]))
+        --right;
+    return text.substr(left, right - left);
+}
+
+uint8_t GetRegisterSelector(std::string const & text)
+{
+    if (text == "B")
+        return 0;
+    if (text == "C")
+        return 1;
+    if (text == "D")
+        return 2;
+    if (text == "E")
+        return 3;
+    if (text == "H")
+        return 4;
+    if (text == "L")
+        return 5;
+    if (text == "M")
+        return 6;
+    if (text == "A")
+        return 7;
+    return 0xFF;
+}
+
+uint8_t GetRegisterPairSelector(std::string const & text)
+{
+    if (text == "B")
+        return 0;
+    if (text == "D")
+        return 1;
+    if (text == "H")
+        return 2;
+    if (text == "SP")
+        return 3;
+    return 0xFF;
+}
+
+std::string BuildExpectedMnemonic(std::string const & opcodeString, InstructionOptions8080 const & options)
+{
+    std::ostringstream stream;
+    stream << opcodeString;
+    if (!options.empty())
+    {
+        std::string infix = " ";
+        for (auto & option : options)
+        {
+            stream << infix << option;
+            infix = ",";
+        }
+    }
+    return stream.str();
+}
+
 size_t Processor8080::AssembleInstruction(std::string const & mnemonic, std::vector<uint8_t> & machineCode)
 {
-    return 0;
+    std::string opcodeString;
+    StringVector options;
+
+    ParseInstruction(mnemonic, opcodeString, options);
+    InstructionParserData const * instructionData = FindOpcode(opcodeString);
+    if (!instructionData)
+    {
+        throw AssemblerUnknownOpcodeException(opcodeString);
+    }
+    if (instructionData->instructionOptions.size() != options.size())
+    {
+        throw AssemblerInvalidOptionException(BuildExpectedMnemonic(opcodeString, instructionData->instructionOptions), mnemonic);
+    }
+    uint8_t opcodeByte = uint8_t(instructionData->opcodeByte);
+    uint8_t instructionSize = 1;
+    uint8_t selectorSrce = 0xFF;
+    uint8_t selectorDest = 0xFF;
+    uint8_t byte2 = 0x00;
+    uint8_t byte3 = 0x00;
+    StringVector::const_iterator optionIndex = options.begin();
+    for (auto & option : instructionData->instructionOptions)
+    {
+        switch (option)
+        {
+        case InstructionOption8080::rs0:
+            {
+                selectorSrce = GetRegisterSelector(*optionIndex);
+                if (selectorSrce == 0xFF)
+                {
+                    throw AssemblerInvalidOptionException(BuildExpectedMnemonic(opcodeString, instructionData->instructionOptions), mnemonic);
+                }
+                opcodeByte |= selectorSrce << 0;
+            }
+            break;
+        case InstructionOption8080::rd3:
+            {
+                selectorDest = GetRegisterSelector(*optionIndex);
+                if (selectorDest == 0xFF)
+                {
+                    throw AssemblerInvalidOptionException(BuildExpectedMnemonic(opcodeString, instructionData->instructionOptions), mnemonic);
+                }
+                opcodeByte |= selectorDest << 3;
+            }
+            break;
+        case InstructionOption8080::rp4:
+            {
+                selectorDest = GetRegisterPairSelector(*optionIndex);
+                if (selectorDest == 0xFF)
+                {
+                    throw AssemblerInvalidOptionException(BuildExpectedMnemonic(opcodeString, instructionData->instructionOptions), mnemonic);
+                }
+                opcodeByte |= selectorDest << 4;
+            }
+            break;
+        case InstructionOption8080::data8:
+            {
+                if (!Core::Util::TryParse(*optionIndex, byte2, 16))
+                {
+                    throw AssemblerInvalidOptionException(BuildExpectedMnemonic(opcodeString, instructionData->instructionOptions), mnemonic);
+                }
+                instructionSize = 2;
+            }
+            break;
+        case InstructionOption8080::data16:
+            {
+                Reg16LH data;
+                if (!Core::Util::TryParse(*optionIndex, data.W, 16))
+                {
+                    throw AssemblerInvalidOptionException(BuildExpectedMnemonic(opcodeString, instructionData->instructionOptions), mnemonic);
+                }
+                byte2 = data.B.l;
+                byte3 = data.B.h;
+                instructionSize = 3;
+            }
+            break;
+        default:
+            throw std::runtime_error("Invalid option");
+        }
+        ++optionIndex;
+    }
+    switch (instructionData->opcodeByte)
+    {
+    case OpcodesRaw8080::MOV:
+        if ((selectorSrce == Reg8Selector::M) && (selectorDest == Reg8Selector::M))
+        {
+            throw AssemblerInvalidOptionException(BuildExpectedMnemonic(opcodeString, instructionData->instructionOptions), mnemonic);
+        }
+        break;
+    case OpcodesRaw8080::LDAX:
+    case OpcodesRaw8080::STAX:
+        if ((selectorDest == Reg16Selector::HL) || (selectorDest == Reg16Selector::SP))
+        {
+            throw AssemblerInvalidOptionException(BuildExpectedMnemonic(opcodeString, instructionData->instructionOptions), mnemonic);
+        }
+        break;
+    default:
+        break;
+    }
+
+    machineCode.push_back(opcodeByte);
+    if (instructionSize > 1)
+        machineCode.push_back(byte2);
+    if (instructionSize > 2)
+        machineCode.push_back(byte3);
+
+    return instructionSize;
 }
 
 void Processor8080::Disassemble(std::vector<uint8_t> const & machineCode, std::ostream & disassembledCode)
@@ -1143,3 +1581,28 @@ uint8_t Processor8080::FetchInstructionByte()
     return memory->Fetch8(registers.pc++);
 }
 
+void Processor8080::ParseInstruction(std::string const & mnemonic, std::string & opcodeString, StringVector & options)
+{
+    opcodeString.clear();
+    options.clear();
+    std::string::const_iterator index = mnemonic.begin();
+    while ((index != mnemonic.end()) && isspace(*index))
+        index++;
+    while ((index != mnemonic.end()) && !isspace(*index))
+        opcodeString += *index++;
+    while ((index != mnemonic.end()) && isspace(*index))
+        index++;
+    while (index != mnemonic.end())
+    {
+        std::string option;
+        while ((index != mnemonic.end()) && (*index != ',') && !isspace(*index))
+        {
+            option += *index++;
+        }
+        while ((index != mnemonic.end()) && ((*index == ',') || isspace(*index)))
+            ++index;
+        options.push_back(option);
+    }
+}
+
+} // namespace Simulate
