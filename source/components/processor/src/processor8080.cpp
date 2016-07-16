@@ -100,7 +100,6 @@ enum class OpcodesRaw8080 : uint8_t
     RZ = 0xC8, 
     RET = 0xC9, 
     JZ = 0xCA, 
-    //_CB, 
     CZ = 0xCC, 
     CALL = 0xCD, 
     ACI = 0xCE, 
@@ -110,11 +109,9 @@ enum class OpcodesRaw8080 : uint8_t
     CNC = 0xD4, 
     SUI = 0xD6, 
     RC = 0xD8, 
-    //_D9, 
     JC = 0xDA, 
     INP = 0xDB, 
     CC = 0xDC, 
-    //_DD, 
     SBI = 0xDE, 
     RPO = 0xE0, 
     JPO = 0XE2, 
@@ -126,19 +123,17 @@ enum class OpcodesRaw8080 : uint8_t
     JPE = 0xEA, 
     XCHG = 0xEB,
     CPE = 0xEC, 
-    //_ED, 
     XRI = 0xEE, 
     RP = 0xF0, 
     JP = 0xF2, 
-    //DI, 
+    DI = 0xF3, 
     CP = 0xF4, 
     ORI = 0xF6, 
     RM = 0xF8, 
     SPHL = 0xF9, 
     JM = 0xFA, 
-    //EI, 
+    EI = 0xFB, 
     CM = 0xFC, 
-    //_FD, 
     CPI = 0xFE, 
 };
 
@@ -240,13 +235,13 @@ static const InstructionParserData instructionParserData[] =
     { OpcodesRaw8080::XRI, "XRI", { InstructionOption8080::data8 } },
     { OpcodesRaw8080::RP, "RP", { } },
     { OpcodesRaw8080::JP, "JP", { InstructionOption8080::data16 } },
-    //{ 0xF3, 4,  0,  1, 0, 1, "DI" },
+    { OpcodesRaw8080::DI, "DI", { } },
     { OpcodesRaw8080::CP, "CP", { InstructionOption8080::data16 } },
     { OpcodesRaw8080::ORI, "ORI", { InstructionOption8080::data8 } },
     { OpcodesRaw8080::RM, "RM", { } },
     { OpcodesRaw8080::SPHL, "SPHL", { } },
     { OpcodesRaw8080::JM, "JM", { InstructionOption8080::data16 } },
-    //{ 0xFB, 4,  0,  1, 0, 1, "EI" },
+    { OpcodesRaw8080::EI, "EI", { } },
     { OpcodesRaw8080::CM, "CM", { InstructionOption8080::data16 } },
     { OpcodesRaw8080::CPI, "CPI", { InstructionOption8080::data8 } },
 };
@@ -1120,10 +1115,6 @@ size_t Processor8080::DisassembleInstruction(std::vector<uint8_t> const & machin
     case Opcodes8080::LHLD:
     case Opcodes8080::STA:
     case Opcodes8080::LDA:      
-        stream << "(" << std::hex << std::setw(2) << std::setfill('0') << std::uppercase << int(machineCode[2]) 
-               << std::setw(2) << std::setfill('0') << int(machineCode[1]) << ")";
-        break;
-
     case Opcodes8080::LXI_B:
     case Opcodes8080::LXI_D:
     case Opcodes8080::LXI_H:

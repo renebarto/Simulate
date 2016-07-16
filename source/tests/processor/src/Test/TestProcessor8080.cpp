@@ -660,10 +660,10 @@ TEST_FIXTURE(Processor8080Test, Disassemble_LDA_STA)
     std::string mnemonic;
 
     EXPECT_EQ(3, processor.DisassembleInstruction({ 0x3A, 0X12, 0x34 }, mnemonic));
-    EXPECT_EQ("LDA (3412)", mnemonic);
+    EXPECT_EQ("LDA 3412", mnemonic);
 
     EXPECT_EQ(3, processor.DisassembleInstruction({ 0x32, 0X56, 0x78 }, mnemonic));
-    EXPECT_EQ("STA (7856)", mnemonic);
+    EXPECT_EQ("STA 7856", mnemonic);
 
     Registers8080 & registers = dynamic_cast<Registers8080 &>(processor.GetRegisters());
     AssertEmptyRegisters(registers);
@@ -679,10 +679,10 @@ TEST_FIXTURE(Processor8080Test, Disassemble_LHLD_SHLD)
     std::string mnemonic;
 
     EXPECT_EQ(3, processor.DisassembleInstruction({ 0x2A, 0X12, 0x34 }, mnemonic));
-    EXPECT_EQ("LHLD (3412)", mnemonic);
+    EXPECT_EQ("LHLD 3412", mnemonic);
 
     EXPECT_EQ(3, processor.DisassembleInstruction({ 0x22, 0X56, 0x78 }, mnemonic));
-    EXPECT_EQ("SHLD (7856)", mnemonic);
+    EXPECT_EQ("SHLD 7856", mnemonic);
 
     Registers8080 & registers = dynamic_cast<Registers8080 &>(processor.GetRegisters());
     AssertEmptyRegisters(registers);
@@ -1903,12 +1903,14 @@ static const AssembleTestData assembleTestData[] =
     { "RP",             { 0xF0 }, false },
     { "POP PSW",        { 0xF1 }, false },
     { "JP 1234",        { 0xF2, 0x34, 0x12 }, false },
+    { "DI",             { 0xF3 }, false },
     { "CP 1234",        { 0xF4, 0x34, 0x12 }, false },
     { "PUSH PSW",       { 0xF5 }, false },
     { "ORI 12",         { 0xF6, 0x12 }, false },
     { "RST 6",          { 0xF7 }, false },
     { "RM",             { 0xF8 }, false },
     { "SPHL",           { 0xF9 }, false },
+    { "EI",             { 0xFB }, false },
     { "JM 1234",        { 0xFA, 0x34, 0x12 }, false },
     { "CM 1234",        { 0xFC, 0x34, 0x12 }, false },
     { "CPI 12",         { 0xFE, 0x12 }, false },
@@ -1932,6 +1934,23 @@ TEST_FIXTURE(Processor8080Test, Assemble)
             EXPECT_EQ(expected.size(), processor.AssembleInstruction(testData.mnemonic, actual));
         }
         AssertInstruction(expected, actual);
+    }
+}
+
+TEST_FIXTURE(Processor8080Test, DisAssembleAssemble)
+{
+    Processor8080 processor(1000000);
+
+    for (auto & testData : assembleTestData)
+    {
+        std::string disassembledInstruction;
+        std::vector<uint8_t> machineCode;
+        if (!testData.throws)
+        {
+            EXPECT_EQ(testData.machineCode.size(), processor.DisassembleInstruction(testData.machineCode, disassembledInstruction));
+            EXPECT_EQ(testData.machineCode.size(), processor.AssembleInstruction(disassembledInstruction, machineCode));
+            AssertInstruction(testData.machineCode, machineCode);
+        }
     }
 }
 
