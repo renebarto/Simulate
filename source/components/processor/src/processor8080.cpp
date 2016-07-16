@@ -12,9 +12,11 @@ static const Reg16 InitialPC = 0;
 enum InstructionOption8080
 {
     rp4,
+    rpp4,
     rs0,
     rd0,
     rd3,
+    n3,
     data8,
     data16,
 };
@@ -26,6 +28,9 @@ static std::ostream & operator << (std::ostream & stream, InstructionOption8080 
     case InstructionOption8080::rp4:
         stream << "rp";
         break;
+    case InstructionOption8080::rpp4:
+        stream << "rp or PSW";
+        break;
     case InstructionOption8080::rs0:
         stream << "r";
         break;
@@ -34,6 +39,9 @@ static std::ostream & operator << (std::ostream & stream, InstructionOption8080 
         break;
     case InstructionOption8080::rd3:
         stream << "r";
+        break;
+    case InstructionOption8080::n3:
+        stream << "n";
         break;
     case InstructionOption8080::data8:
         stream << "data";
@@ -56,7 +64,7 @@ enum class OpcodesRaw8080 : uint8_t
     INR = 0x04,
     DCR = 0x05,
     RLC = 0x07,
-    DAD = 0x08,
+    DAD = 0x09,
     LDAX = 0x0A,
     DCX = 0x0B,
     RRC = 0x0F,
@@ -81,16 +89,57 @@ enum class OpcodesRaw8080 : uint8_t
     XRA = 0xA8,
     ORA = 0xB0,
     CMP = 0xB8,
-    //RNZ, POP_B, JNZ, JMP, CNZ, PUSH_B, ADI, RST_0, // C0
-    //RZ, RET, JZ, _CB, CZ, CALL, ACI, RST_1, // C8
-    //RNC, POP_D, JNC, OUTP, CNC, PUSH_D, SUI, RST_2, // D0
-    //RC, _D9, JC, INP, CC, _DD, SBI, RST_3, // D8
-    //RPO, POP_H, JPO, XTHL, CPO, PUSH_H, ANI, RST_4, // E0
-    //RPE, PCHL, JPE, 
+    RNZ = 0xC0, 
+    POP = 0xC1, 
+    JNZ = 0xC2, 
+    JMP = 0xC3, 
+    CNZ = 0xC4, 
+    PUSH = 0xC5, 
+    ADI = 0xC6, 
+    RST = 0xC7, 
+    RZ = 0xC8, 
+    RET = 0xC9, 
+    JZ = 0xCA, 
+    //_CB, 
+    CZ = 0xCC, 
+    CALL = 0xCD, 
+    ACI = 0xCE, 
+    RNC = 0xD0, 
+    JNC = 0xD2, 
+    OUTP = 0xD3, 
+    CNC = 0xD4, 
+    SUI = 0xD6, 
+    RC = 0xD8, 
+    //_D9, 
+    JC = 0xDA, 
+    INP = 0xDB, 
+    CC = 0xDC, 
+    //_DD, 
+    SBI = 0xDE, 
+    RPO = 0xE0, 
+    JPO = 0XE2, 
+    XTHL = 0xE3, 
+    CPO = 0xE4, 
+    ANI = 0xE6, 
+    RPE = 0xE8, 
+    PCHL = 0xE9, 
+    JPE = 0xEA, 
     XCHG = 0xEB,
-    //CPE, _ED, XRI, RST_5, // E8
-    //RP, POP_PSW, JP, DI, CP, PUSH_PSW, ORI, RST_6, // F0
-    //RM, SPHL, JM, EI, CM, _FD, CPI, RST_7, // F8
+    CPE = 0xEC, 
+    //_ED, 
+    XRI = 0xEE, 
+    RP = 0xF0, 
+    JP = 0xF2, 
+    //DI, 
+    CP = 0xF4, 
+    ORI = 0xF6, 
+    RM = 0xF8, 
+    SPHL = 0xF9, 
+    JM = 0xFA, 
+    //EI, 
+    CM = 0xFC, 
+    //_FD, 
+    CPI = 0xFE, 
 };
 
 enum Reg8Selector
@@ -154,70 +203,52 @@ static const InstructionParserData instructionParserData[] =
     { OpcodesRaw8080::XRA, "XRA", { InstructionOption8080::rd0 } },
     { OpcodesRaw8080::ORA, "ORA", { InstructionOption8080::rd0 } },
     { OpcodesRaw8080::CMP, "CMP", { InstructionOption8080::rd0 } },
-    //{ 0xC0, 11, 5,  3, 1, 1, "RNZ" },
-    //{ 0xC1, 10, 0,  3, 0, 1, "POP B" },
-    //{ 0xC2, 10, 0,  3, 0, 3, "JNZ " },
-    //{ 0xC3, 10, 0,  3, 0, 3, "JMP " },
-    //{ 0xC4, 17, 11, 5, 3, 3, "CNZ " },
-    //{ 0xC5, 11, 0,  3, 0, 1, "PUSH B" },
-    //{ 0xC6, 7,  0,  2, 0, 2, "ADI " },
-    //{ 0xC7, 11, 0,  3, 0, 1, "RST 0" },
-    //{ 0xC8, 11, 5,  3, 1, 1, "RZ" },
-    //{ 0xC9, 10, 0,  3, 0, 1, "RET" },
-    //{ 0xCA, 10, 0,  3, 0, 3, "JZ " },
-    //{ 0xCB, 0,  0,  0, 0, 0, "" },
-    //{ 0xCC, 17, 11, 5, 3, 3, "CZ " },
-    //{ 0xCD, 17, 0,  5, 0, 3, "CALL " },
-    //{ 0xCE, 7,  0,  2, 0, 2, "ACI " },
-    //{ 0xCF, 11, 0,  3, 0, 1, "RST 1" },
-    //{ 0xD0, 11, 5,  3, 1, 1, "RNC" },
-    //{ 0xD1, 10, 0,  3, 0, 1, "POP D" },
-    //{ 0xD2, 10, 0,  3, 0, 3, "JNC " },
-    //{ 0xD3, 10, 0,  3, 0, 2, "OUT " },
-    //{ 0xD4, 17, 11, 5, 3, 3, "CNC " },
-    //{ 0xD5, 11, 0,  3, 0, 1, "PUSH D" },
-    //{ 0xD6, 7,  0,  2, 0, 2, "SUI " },
-    //{ 0xD7, 11, 0,  3, 0, 1, "RST 2" },
-    //{ 0xD8, 11, 5,  3, 1, 1, "RC" },
-    //{ 0xD9, 0,  0,  0, 0, 0, "" },
-    //{ 0xDA, 10, 0,  3, 0, 3, "JC " },
-    //{ 0xDB, 10, 0,  3, 0, 2, "IN " },
-    //{ 0xDC, 17, 11, 5, 3, 3, "CC " },
-    //{ 0xDD, 0,  0,  0, 0, 0, "" },
-    //{ 0xDE, 7,  0,  2, 0, 2, "SBI " },
-    //{ 0xDF, 11, 0,  3, 0, 1, "RST 3" },
-    //{ 0xE0, 11, 5,  3, 1, 1, "RPO" },
-    //{ 0xE1, 10, 0,  3, 0, 1, "POP H" },
-    //{ 0xE2, 10, 0,  3, 0, 3, "JPO " },
-    //{ 0xE3, 18, 0,  5, 0, 1, "XTHL" },
-    //{ 0xE4, 17, 11, 5, 3, 3, "CPO " },
-    //{ 0xE5, 11, 0,  3, 0, 1, "PUSH H" },
-    //{ 0xE6, 7,  0,  2, 0, 2, "ANI " },
-    //{ 0xE7, 11, 0,  3, 0, 1, "RST 4" },
-    //{ 0xE8, 11, 5,  3, 1, 1, "RPE" },
-    //{ 0xE9, 5,  0,  1, 0, 1, "PCHL" },
-    //{ 0xEA, 10, 0,  3, 0, 3, "JPE " },
+    { OpcodesRaw8080::RNZ, "RNZ", { } },
+    { OpcodesRaw8080::POP, "POP", { InstructionOption8080::rpp4 } },
+    { OpcodesRaw8080::JNZ, "JNZ", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::JMP, "JMP", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::CNZ, "CNZ", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::PUSH, "PUSH", { InstructionOption8080::rpp4 } },
+    { OpcodesRaw8080::ADI, "ADI", { InstructionOption8080::data8 } },
+    { OpcodesRaw8080::RST, "RST", { InstructionOption8080::n3 } },
+    { OpcodesRaw8080::RZ, "RZ", { } },
+    { OpcodesRaw8080::RET, "RET", { } },
+    { OpcodesRaw8080::JZ, "JZ", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::CZ, "CZ", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::CALL, "CALL", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::ACI, "ACI", { InstructionOption8080::data8 } },
+    { OpcodesRaw8080::RNC, "RNC", { } },
+    { OpcodesRaw8080::JNC, "JNC", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::OUTP, "OUT", { InstructionOption8080::data8 } },
+    { OpcodesRaw8080::CNC, "CNC", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::SUI, "SUI", { InstructionOption8080::data8 } },
+    { OpcodesRaw8080::RC, "RC", { } },
+    { OpcodesRaw8080::JC, "JC", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::INP, "IN", { InstructionOption8080::data8 } },
+    { OpcodesRaw8080::CC, "CC", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::SBI, "SBI", { InstructionOption8080::data8 } },
+    { OpcodesRaw8080::RPO, "RPO", { } },
+    { OpcodesRaw8080::JPO, "JPO", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::XTHL, "XTHL", { } },
+    { OpcodesRaw8080::CPO, "CPO", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::ANI, "ANI", { InstructionOption8080::data8 } },
+    { OpcodesRaw8080::RPE, "RPE", { } },
+    { OpcodesRaw8080::PCHL, "PCHL", { } },
+    { OpcodesRaw8080::JPE, "JPE", { InstructionOption8080::data16 } },
     { OpcodesRaw8080::XCHG, "XCHG", {} },
-    //{ 0xEC, 17, 11, 5, 3, 3, "CPE " },
-    //{ 0xED, 0,  0,  0, 0, 0, "" },
-    //{ 0xEE, 7,  0,  2, 0, 2, "XRI " },
-    //{ 0xEF, 11, 0,  3, 0, 1, "RST 5" },
-    //{ 0xF0, 11, 5,  3, 1, 1, "RP" },
-    //{ 0xF1, 10, 0,  3, 0, 1, "POP PSW" },
-    //{ 0xF2, 10, 0,  3, 0, 3, "JP " },
+    { OpcodesRaw8080::CPE, "CPE", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::XRI, "XRI", { InstructionOption8080::data8 } },
+    { OpcodesRaw8080::RP, "RP", { } },
+    { OpcodesRaw8080::JP, "JP", { InstructionOption8080::data16 } },
     //{ 0xF3, 4,  0,  1, 0, 1, "DI" },
-    //{ 0xF4, 17, 11, 5, 3, 3, "CP " },
-    //{ 0xF5, 11, 0,  3, 0, 1, "PUSH PSW" },
-    //{ 0xF6, 7,  0,  2, 0, 2, "ORI " },
-    //{ 0xF7, 11, 0,  3, 0, 1, "RST 6" },
-    //{ 0xF8, 11, 5,  3, 1, 1, "RM" },
-    //{ 0xF9, 5,  0,  1, 0, 1, "SPHL" },
-    //{ 0xFA, 10, 0,  3, 0, 3, "JM " },
+    { OpcodesRaw8080::CP, "CP", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::ORI, "ORI", { InstructionOption8080::data8 } },
+    { OpcodesRaw8080::RM, "RM", { } },
+    { OpcodesRaw8080::SPHL, "SPHL", { } },
+    { OpcodesRaw8080::JM, "JM", { InstructionOption8080::data16 } },
     //{ 0xFB, 4,  0,  1, 0, 1, "EI" },
-    //{ 0xFC, 17, 11, 5, 3, 3, "CM " },
-    //{ 0xFD, 0,  0,  0, 0, 0, "" },
-    //{ 0xFE, 7,  0,  2, 0, 2, "CPI " },
-    //{ 0xFF, 11, 0,  3, 0, 1, "RST 7" },
+    { OpcodesRaw8080::CM, "CM", { InstructionOption8080::data16 } },
+    { OpcodesRaw8080::CPI, "CPI", { InstructionOption8080::data8 } },
 };
 
 static const InstructionData8080 instructionData8080[256] =
@@ -1400,6 +1431,40 @@ uint8_t GetRegisterPairSelector(std::string const & text)
     return 0xFF;
 }
 
+uint8_t GetRegisterPairSelectorPushPop(std::string const & text)
+{
+    if (text == "B")
+        return 0;
+    if (text == "D")
+        return 1;
+    if (text == "H")
+        return 2;
+    if (text == "PSW")
+        return 3;
+    return 0xFF;
+}
+
+uint8_t GetRestartSelector(std::string const & text)
+{
+    if (text == "0")
+        return 0;
+    if (text == "1")
+        return 1;
+    if (text == "2")
+        return 2;
+    if (text == "3")
+        return 3;
+    if (text == "4")
+        return 4;
+    if (text == "5")
+        return 5;
+    if (text == "6")
+        return 6;
+    if (text == "7")
+        return 7;
+    return 0xFF;
+}
+
 std::string BuildExpectedMnemonic(std::string const & opcodeString, InstructionOptions8080 const & options)
 {
     std::ostringstream stream;
@@ -1462,6 +1527,16 @@ size_t Processor8080::AssembleInstruction(std::string const & mnemonic, std::vec
                 opcodeByte |= selectorDest << 3;
             }
             break;
+        case InstructionOption8080::rd0:
+            {
+                selectorDest = GetRegisterSelector(*optionIndex);
+                if (selectorDest == 0xFF)
+                {
+                    throw AssemblerInvalidOptionException(BuildExpectedMnemonic(opcodeString, instructionData->instructionOptions), mnemonic);
+                }
+                opcodeByte |= selectorDest << 0;
+            }
+            break;
         case InstructionOption8080::rp4:
             {
                 selectorDest = GetRegisterPairSelector(*optionIndex);
@@ -1470,6 +1545,26 @@ size_t Processor8080::AssembleInstruction(std::string const & mnemonic, std::vec
                     throw AssemblerInvalidOptionException(BuildExpectedMnemonic(opcodeString, instructionData->instructionOptions), mnemonic);
                 }
                 opcodeByte |= selectorDest << 4;
+            }
+            break;
+        case InstructionOption8080::rpp4:
+            {
+                selectorDest = GetRegisterPairSelectorPushPop(*optionIndex);
+                if (selectorDest == 0xFF)
+                {
+                    throw AssemblerInvalidOptionException(BuildExpectedMnemonic(opcodeString, instructionData->instructionOptions), mnemonic);
+                }
+                opcodeByte |= selectorDest << 4;
+            }
+            break;
+        case InstructionOption8080::n3:
+            {
+                selectorDest = GetRestartSelector(*optionIndex);
+                if (selectorDest == 0xFF)
+                {
+                    throw AssemblerInvalidOptionException(BuildExpectedMnemonic(opcodeString, instructionData->instructionOptions), mnemonic);
+                }
+                opcodeByte |= selectorDest << 3;
             }
             break;
         case InstructionOption8080::data8:
