@@ -53,9 +53,10 @@ enum class InterruptFlags8080 : uint16_t
 enum Flags8080
 {
     Carry = 0x01,
+    Overflow = 0x02, // 8085 only
     Parity = 0x04,
     AuxCarry = 0x10,
-    Interrupt = 0x20,
+    KFlag = 0x20,    // 8085 only, undocumented
     Zero = 0x40,
     Sign = 0x80,
 };

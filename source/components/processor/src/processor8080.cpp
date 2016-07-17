@@ -11,43 +11,51 @@ static const Reg16 InitialPC = 0;
 
 enum InstructionOption8080
 {
-    rp4,
-    rpp4,
-    rs0,
-    rd0,
-    rd3,
+    reg16_4,
+    reg16_psw_4,
+    regm8_s0,
+    regm8_d0,
+    regm8_d3,
     n3,
-    data8,
-    data16,
+    d8,
+    p8,
+    d16,
+    a16,
 };
 
 static std::ostream & operator << (std::ostream & stream, InstructionOption8080 option)
 {
     switch (option)
     {
-    case InstructionOption8080::rp4:
-        stream << "rp";
+    case InstructionOption8080::reg16_4:
+        stream << "reg16";
         break;
-    case InstructionOption8080::rpp4:
-        stream << "rp or PSW";
+    case InstructionOption8080::reg16_psw_4:
+        stream << "reg16 or PSW";
         break;
-    case InstructionOption8080::rs0:
-        stream << "r";
+    case InstructionOption8080::regm8_s0:
+        stream << "regm8";
         break;
-    case InstructionOption8080::rd0:
-        stream << "r";
+    case InstructionOption8080::regm8_d0:
+        stream << "regm8";
         break;
-    case InstructionOption8080::rd3:
-        stream << "r";
+    case InstructionOption8080::regm8_d3:
+        stream << "regm8";
         break;
     case InstructionOption8080::n3:
         stream << "n";
         break;
-    case InstructionOption8080::data8:
-        stream << "data";
+    case InstructionOption8080::p8:
+        stream << "port";
         break;
-    case InstructionOption8080::data16:
+    case InstructionOption8080::d8:
+        stream << "data8";
+        break;
+    case InstructionOption8080::d16:
         stream << "data16";
+        break;
+    case InstructionOption8080::a16:
+        stream << "address16";
         break;
     }
     return stream;
@@ -135,6 +143,27 @@ enum class OpcodesRaw8080 : uint8_t
     EI = 0xFB, 
     CM = 0xFC, 
     CPI = 0xFE, 
+// 8085 only
+    DSUB = 0x08, // undocumented: HL = HL - BC . Z, S, P, CY, AC and X5, V all flag receives influence
+    ARHL = 0x10, // undocumented: Rotate HL right. 16-bit rotation, flags unchanged.HL = HL/2 and CY = L0. 
+                 // ARHL order is arithmetic right shift of HL register pair. MSB of the H register which means the mark does not change. 
+                 // The least significant bit of L register enters into the CY flag. Just the CY flag changes.
+    RDEL = 0x18, // undocumented: Rotate DE left. Bit 15 to Carry. No other flags. DE = DE*2 and E0=CY and CY =D7
+    RIM = 0x20,  // Read interrupt mask
+    LDHI = 0x28, // undocumented: Add 00bb immediate to HL, setting flags. DE = HL + imm
+    SIM = 0x30,  // Set interrupt mask
+    LDSI = 0x38, // undocumented: Add 00bb immediate to stack pointer, setting flags. DE < - SP + imm
+    RSTV = 0xCB, // undocumented: RST 8 (to 0040) if the V flag is set. push PC and PC = 0040H
+    SHLX = 0xD9, // undocumented: LD (DE),HL. [DE] = HL
+    JNK = 0xDD,  // undocumented: Jump to location addr if K flag is reset. if (!KFLag) PC = addr
+    LHLX = 0xED, // undocumented: LD HL,(DE). HL=[DE]
+    JK = 0xFD,   // undocumented: Jump to location addr if K flag is set. if (KFLag) PC = addr
+};
+
+enum ProcessorType
+{
+    Both,
+    Only8085,
 };
 
 enum Reg8Selector
@@ -160,93 +189,106 @@ enum Reg16Selector
 struct InstructionParserData
 {
     OpcodesRaw8080 opcodeByte;
+    ProcessorType processor;
     std::string instructionMnemonic;
     InstructionOptions8080 instructionOptions;
 };
 
 static const InstructionParserData instructionParserData[] =
 {
-    { OpcodesRaw8080::NOP, "NOP", {} },
-    { OpcodesRaw8080::LXI, "LXI", { InstructionOption8080::rp4, InstructionOption8080::data16 } },
-    { OpcodesRaw8080::STAX, "STAX", { InstructionOption8080::rp4 } },
-    { OpcodesRaw8080::INX, "INX", { InstructionOption8080::rp4 } },
-    { OpcodesRaw8080::INR, "INR", { InstructionOption8080::rd3 } },
-    { OpcodesRaw8080::DCR, "DCR", { InstructionOption8080::rd3 } },
-    { OpcodesRaw8080::RLC, "RLC", { } },
-    { OpcodesRaw8080::DAD, "DAD", { InstructionOption8080::rp4 } },
-    { OpcodesRaw8080::LDAX, "LDAX", { InstructionOption8080::rp4 } },
-    { OpcodesRaw8080::DCX, "DCX", { InstructionOption8080::rp4 } },
-    { OpcodesRaw8080::RRC, "RRC", {} },
-    { OpcodesRaw8080::RAL, "RAL", {} },
-    { OpcodesRaw8080::RAR, "RAR", {} },
-    { OpcodesRaw8080::SHLD, "SHLD", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::DAA, "DAA", {} },
-    { OpcodesRaw8080::LHLD, "LHLD", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::CMA, "CMA", {} },
-    { OpcodesRaw8080::STA, "STA", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::MVI, "MVI", { InstructionOption8080::rd3, InstructionOption8080::data8 } },
-    { OpcodesRaw8080::STC, "STC", {} },
-    { OpcodesRaw8080::LDA, "LDA", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::CMC, "CMC", { } },
-    { OpcodesRaw8080::MOV, "MOV", { InstructionOption8080::rd3, InstructionOption8080::rs0 } },
-    { OpcodesRaw8080::HLT, "HLT", {} },
-    { OpcodesRaw8080::ADD, "ADD", { InstructionOption8080::rd0 } },
-    { OpcodesRaw8080::ADC, "ADC", { InstructionOption8080::rd0 } },
-    { OpcodesRaw8080::SUB, "SUB", { InstructionOption8080::rd0 } },
-    { OpcodesRaw8080::SBB, "SBB", { InstructionOption8080::rd0 } },
-    { OpcodesRaw8080::ANA, "ANA", { InstructionOption8080::rd0 } },
-    { OpcodesRaw8080::XRA, "XRA", { InstructionOption8080::rd0 } },
-    { OpcodesRaw8080::ORA, "ORA", { InstructionOption8080::rd0 } },
-    { OpcodesRaw8080::CMP, "CMP", { InstructionOption8080::rd0 } },
-    { OpcodesRaw8080::RNZ, "RNZ", { } },
-    { OpcodesRaw8080::POP, "POP", { InstructionOption8080::rpp4 } },
-    { OpcodesRaw8080::JNZ, "JNZ", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::JMP, "JMP", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::CNZ, "CNZ", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::PUSH, "PUSH", { InstructionOption8080::rpp4 } },
-    { OpcodesRaw8080::ADI, "ADI", { InstructionOption8080::data8 } },
-    { OpcodesRaw8080::RST, "RST", { InstructionOption8080::n3 } },
-    { OpcodesRaw8080::RZ, "RZ", { } },
-    { OpcodesRaw8080::RET, "RET", { } },
-    { OpcodesRaw8080::JZ, "JZ", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::CZ, "CZ", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::CALL, "CALL", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::ACI, "ACI", { InstructionOption8080::data8 } },
-    { OpcodesRaw8080::RNC, "RNC", { } },
-    { OpcodesRaw8080::JNC, "JNC", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::OUTP, "OUT", { InstructionOption8080::data8 } },
-    { OpcodesRaw8080::CNC, "CNC", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::SUI, "SUI", { InstructionOption8080::data8 } },
-    { OpcodesRaw8080::RC, "RC", { } },
-    { OpcodesRaw8080::JC, "JC", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::INP, "IN", { InstructionOption8080::data8 } },
-    { OpcodesRaw8080::CC, "CC", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::SBI, "SBI", { InstructionOption8080::data8 } },
-    { OpcodesRaw8080::RPO, "RPO", { } },
-    { OpcodesRaw8080::JPO, "JPO", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::XTHL, "XTHL", { } },
-    { OpcodesRaw8080::CPO, "CPO", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::ANI, "ANI", { InstructionOption8080::data8 } },
-    { OpcodesRaw8080::RPE, "RPE", { } },
-    { OpcodesRaw8080::PCHL, "PCHL", { } },
-    { OpcodesRaw8080::JPE, "JPE", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::XCHG, "XCHG", {} },
-    { OpcodesRaw8080::CPE, "CPE", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::XRI, "XRI", { InstructionOption8080::data8 } },
-    { OpcodesRaw8080::RP, "RP", { } },
-    { OpcodesRaw8080::JP, "JP", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::DI, "DI", { } },
-    { OpcodesRaw8080::CP, "CP", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::ORI, "ORI", { InstructionOption8080::data8 } },
-    { OpcodesRaw8080::RM, "RM", { } },
-    { OpcodesRaw8080::SPHL, "SPHL", { } },
-    { OpcodesRaw8080::JM, "JM", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::EI, "EI", { } },
-    { OpcodesRaw8080::CM, "CM", { InstructionOption8080::data16 } },
-    { OpcodesRaw8080::CPI, "CPI", { InstructionOption8080::data8 } },
+    { OpcodesRaw8080::NOP, ProcessorType::Both, "NOP", {} },
+    { OpcodesRaw8080::LXI, ProcessorType::Both, "LXI", { InstructionOption8080::reg16_4, InstructionOption8080::d16 } },
+    { OpcodesRaw8080::STAX, ProcessorType::Both, "STAX", { InstructionOption8080::reg16_4 } },
+    { OpcodesRaw8080::INX, ProcessorType::Both, "INX", { InstructionOption8080::reg16_4 } },
+    { OpcodesRaw8080::INR, ProcessorType::Both, "INR", { InstructionOption8080::regm8_d3 } },
+    { OpcodesRaw8080::DCR, ProcessorType::Both, "DCR", { InstructionOption8080::regm8_d3 } },
+    { OpcodesRaw8080::RLC, ProcessorType::Both, "RLC", { } },
+    { OpcodesRaw8080::DSUB, ProcessorType::Only8085, "DSUB", {} },
+    { OpcodesRaw8080::DAD, ProcessorType::Both, "DAD", { InstructionOption8080::reg16_4 } },
+    { OpcodesRaw8080::LDAX, ProcessorType::Both, "LDAX", { InstructionOption8080::reg16_4 } },
+    { OpcodesRaw8080::DCX, ProcessorType::Both, "DCX", { InstructionOption8080::reg16_4 } },
+    { OpcodesRaw8080::RRC, ProcessorType::Both, "RRC", {} },
+    { OpcodesRaw8080::ARHL, ProcessorType::Only8085, "ARHL", {} },
+    { OpcodesRaw8080::RAL, ProcessorType::Both, "RAL", {} },
+    { OpcodesRaw8080::RDEL, ProcessorType::Only8085, "RDEL", {} },
+    { OpcodesRaw8080::RAR, ProcessorType::Both, "RAR", {} },
+    { OpcodesRaw8080::RIM, ProcessorType::Only8085, "RIM", {} },
+    { OpcodesRaw8080::SHLD, ProcessorType::Both, "SHLD", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::DAA, ProcessorType::Both, "DAA", {} },
+    { OpcodesRaw8080::LDHI, ProcessorType::Only8085, "LDHI", { InstructionOption8080::d8 } },
+    { OpcodesRaw8080::LHLD, ProcessorType::Both, "LHLD", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::CMA, ProcessorType::Both, "CMA", {} },
+    { OpcodesRaw8080::SIM, ProcessorType::Only8085, "SIM", {} },
+    { OpcodesRaw8080::STA, ProcessorType::Both, "STA", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::MVI, ProcessorType::Both, "MVI", { InstructionOption8080::regm8_d3, InstructionOption8080::d8 } },
+    { OpcodesRaw8080::STC, ProcessorType::Both, "STC", {} },
+    { OpcodesRaw8080::LDSI, ProcessorType::Only8085, "LDSI", { InstructionOption8080::d8 } },
+    { OpcodesRaw8080::LDA, ProcessorType::Both, "LDA", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::CMC, ProcessorType::Both, "CMC", { } },
+    { OpcodesRaw8080::MOV, ProcessorType::Both, "MOV", { InstructionOption8080::regm8_d3, InstructionOption8080::regm8_s0 } },
+    { OpcodesRaw8080::HLT, ProcessorType::Both, "HLT", {} },
+    { OpcodesRaw8080::ADD, ProcessorType::Both, "ADD", { InstructionOption8080::regm8_d0 } },
+    { OpcodesRaw8080::ADC, ProcessorType::Both, "ADC", { InstructionOption8080::regm8_d0 } },
+    { OpcodesRaw8080::SUB, ProcessorType::Both, "SUB", { InstructionOption8080::regm8_d0 } },
+    { OpcodesRaw8080::SBB, ProcessorType::Both, "SBB", { InstructionOption8080::regm8_d0 } },
+    { OpcodesRaw8080::ANA, ProcessorType::Both, "ANA", { InstructionOption8080::regm8_d0 } },
+    { OpcodesRaw8080::XRA, ProcessorType::Both, "XRA", { InstructionOption8080::regm8_d0 } },
+    { OpcodesRaw8080::ORA, ProcessorType::Both, "ORA", { InstructionOption8080::regm8_d0 } },
+    { OpcodesRaw8080::CMP, ProcessorType::Both, "CMP", { InstructionOption8080::regm8_d0 } },
+    { OpcodesRaw8080::RNZ, ProcessorType::Both, "RNZ", { } },
+    { OpcodesRaw8080::POP, ProcessorType::Both, "POP", { InstructionOption8080::reg16_psw_4 } },
+    { OpcodesRaw8080::JNZ, ProcessorType::Both, "JNZ", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::JMP, ProcessorType::Both, "JMP", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::CNZ, ProcessorType::Both, "CNZ", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::PUSH, ProcessorType::Both, "PUSH", { InstructionOption8080::reg16_psw_4 } },
+    { OpcodesRaw8080::ADI, ProcessorType::Both, "ADI", { InstructionOption8080::d8 } },
+    { OpcodesRaw8080::RST, ProcessorType::Both, "RST", { InstructionOption8080::n3 } },
+    { OpcodesRaw8080::RZ, ProcessorType::Both, "RZ", { } },
+    { OpcodesRaw8080::RET, ProcessorType::Both, "RET", { } },
+    { OpcodesRaw8080::JZ, ProcessorType::Both, "JZ", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::RSTV, ProcessorType::Only8085, "RSTV", {} },
+    { OpcodesRaw8080::CZ, ProcessorType::Both, "CZ", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::CALL, ProcessorType::Both, "CALL", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::ACI, ProcessorType::Both, "ACI", { InstructionOption8080::d8 } },
+    { OpcodesRaw8080::RNC, ProcessorType::Both, "RNC", { } },
+    { OpcodesRaw8080::JNC, ProcessorType::Both, "JNC", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::OUTP, ProcessorType::Both, "OUT", { InstructionOption8080::p8 } },
+    { OpcodesRaw8080::CNC, ProcessorType::Both, "CNC", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::SUI, ProcessorType::Both, "SUI", { InstructionOption8080::d8 } },
+    { OpcodesRaw8080::RC, ProcessorType::Both, "RC", { } },
+    { OpcodesRaw8080::SHLX, ProcessorType::Only8085, "SHLX", {} },
+    { OpcodesRaw8080::JC, ProcessorType::Both, "JC", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::INP, ProcessorType::Both, "IN", { InstructionOption8080::p8 } },
+    { OpcodesRaw8080::CC, ProcessorType::Both, "CC", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::JNK, ProcessorType::Only8085, "JNK", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::SBI, ProcessorType::Both, "SBI", { InstructionOption8080::d8 } },
+    { OpcodesRaw8080::RPO, ProcessorType::Both, "RPO", { } },
+    { OpcodesRaw8080::JPO, ProcessorType::Both, "JPO", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::XTHL, ProcessorType::Both, "XTHL", { } },
+    { OpcodesRaw8080::CPO, ProcessorType::Both, "CPO", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::ANI, ProcessorType::Both, "ANI", { InstructionOption8080::d8 } },
+    { OpcodesRaw8080::RPE, ProcessorType::Both, "RPE", { } },
+    { OpcodesRaw8080::PCHL, ProcessorType::Both, "PCHL", { } },
+    { OpcodesRaw8080::JPE, ProcessorType::Both, "JPE", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::XCHG, ProcessorType::Both, "XCHG", {} },
+    { OpcodesRaw8080::CPE, ProcessorType::Both, "CPE", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::LHLX, ProcessorType::Only8085, "LHLX", {} },
+    { OpcodesRaw8080::XRI, ProcessorType::Both, "XRI", { InstructionOption8080::d8 } },
+    { OpcodesRaw8080::RP, ProcessorType::Both, "RP", { } },
+    { OpcodesRaw8080::JP, ProcessorType::Both, "JP", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::DI, ProcessorType::Both, "DI", { } },
+    { OpcodesRaw8080::CP, ProcessorType::Both, "CP", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::ORI, ProcessorType::Both, "ORI", { InstructionOption8080::d8 } },
+    { OpcodesRaw8080::RM, ProcessorType::Both, "RM", { } },
+    { OpcodesRaw8080::SPHL, ProcessorType::Both, "SPHL", { } },
+    { OpcodesRaw8080::JM, ProcessorType::Both, "JM", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::EI,ProcessorType::Both,  "EI", { } },
+    { OpcodesRaw8080::CM, ProcessorType::Both, "CM", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::JK, ProcessorType::Only8085, "JK", { InstructionOption8080::a16 } },
+    { OpcodesRaw8080::CPI, ProcessorType::Both, "CPI", { InstructionOption8080::d8 } },
 };
 
-static const InstructionData8080 instructionData8080[256] =
+static const InstructionData8080 instructiond8080[256] =
 {
         { 0x00, 4,  0,  1, 0, 1, "NOP" },
         { 0x01, 10, 0,  3, 0, 3, "LXI B," },
@@ -705,7 +747,7 @@ static const uint16_t correctDAATable[1024] =
 
 std::ostream & Simulate::operator << (std::ostream & stream, Opcodes8080 opcode)
 {
-    stream << instructionData8080[uint8_t(opcode)].instructionMnemonic;
+    stream << instructiond8080[uint8_t(opcode)].instructionMnemonic;
     return stream;
 }
 
@@ -747,7 +789,7 @@ void Processor8080::FetchInstruction()
 
     uint8_t data = FetchInstructionByte();
     instruction = Opcodes8080(data);
-    registers.instructionCycles = instructionData8080[data].cycleCount;
+    registers.instructionCycles = instructiond8080[data].cycleCount;
     registers.cycleCount -= registers.instructionCycles;
 }
 
@@ -1100,15 +1142,15 @@ InstructionData8080 Processor8080::GetInstructionData()
 
 InstructionData8080 Processor8080::GetInstructionData(Opcodes8080 opcode)
 {
-    return instructionData8080[int(opcode)];
+    return instructiond8080[int(opcode)];
 }
 
 size_t Processor8080::DisassembleInstruction(std::vector<uint8_t> const & machineCode, std::string & mnemonic)
 {
     std::ostringstream stream;
     Opcodes8080 opcode = Opcodes8080(machineCode[0]);
-    stream << instructionData8080[machineCode[0]].instructionMnemonic;
-    size_t instructionSize = instructionData8080[machineCode[0]].instructionSize;
+    stream << instructiond8080[machineCode[0]].instructionMnemonic;
+    size_t instructionSize = instructiond8080[machineCode[0]].instructionSize;
     switch (opcode)
     {
     case Opcodes8080::SHLD:
@@ -1498,7 +1540,7 @@ size_t Processor8080::AssembleInstruction(std::string const & mnemonic, std::vec
     {
         switch (option)
         {
-        case InstructionOption8080::rs0:
+        case InstructionOption8080::regm8_s0:
             {
                 selectorSrce = GetRegisterSelector(*optionIndex);
                 if (selectorSrce == 0xFF)
@@ -1508,7 +1550,7 @@ size_t Processor8080::AssembleInstruction(std::string const & mnemonic, std::vec
                 opcodeByte |= selectorSrce << 0;
             }
             break;
-        case InstructionOption8080::rd3:
+        case InstructionOption8080::regm8_d3:
             {
                 selectorDest = GetRegisterSelector(*optionIndex);
                 if (selectorDest == 0xFF)
@@ -1518,7 +1560,7 @@ size_t Processor8080::AssembleInstruction(std::string const & mnemonic, std::vec
                 opcodeByte |= selectorDest << 3;
             }
             break;
-        case InstructionOption8080::rd0:
+        case InstructionOption8080::regm8_d0:
             {
                 selectorDest = GetRegisterSelector(*optionIndex);
                 if (selectorDest == 0xFF)
@@ -1528,7 +1570,7 @@ size_t Processor8080::AssembleInstruction(std::string const & mnemonic, std::vec
                 opcodeByte |= selectorDest << 0;
             }
             break;
-        case InstructionOption8080::rp4:
+        case InstructionOption8080::reg16_4:
             {
                 selectorDest = GetRegisterPairSelector(*optionIndex);
                 if (selectorDest == 0xFF)
@@ -1538,7 +1580,7 @@ size_t Processor8080::AssembleInstruction(std::string const & mnemonic, std::vec
                 opcodeByte |= selectorDest << 4;
             }
             break;
-        case InstructionOption8080::rpp4:
+        case InstructionOption8080::reg16_psw_4:
             {
                 selectorDest = GetRegisterPairSelectorPushPop(*optionIndex);
                 if (selectorDest == 0xFF)
@@ -1558,7 +1600,8 @@ size_t Processor8080::AssembleInstruction(std::string const & mnemonic, std::vec
                 opcodeByte |= selectorDest << 3;
             }
             break;
-        case InstructionOption8080::data8:
+        case InstructionOption8080::d8:
+        case InstructionOption8080::p8:
             {
                 if (!Core::Util::TryParse(*optionIndex, byte2, 16))
                 {
@@ -1567,7 +1610,8 @@ size_t Processor8080::AssembleInstruction(std::string const & mnemonic, std::vec
                 instructionSize = 2;
             }
             break;
-        case InstructionOption8080::data16:
+        case InstructionOption8080::d16:
+        case InstructionOption8080::a16:
             {
                 Reg16LH data;
                 if (!Core::Util::TryParse(*optionIndex, data.W, 16))
