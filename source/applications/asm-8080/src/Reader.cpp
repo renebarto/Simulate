@@ -2,6 +2,8 @@
 
 #include <string>
 
+using namespace ASM8080;
+
 Reader::Reader(std::istream & stream)
     : stream(stream)
     , lineNumber(0)

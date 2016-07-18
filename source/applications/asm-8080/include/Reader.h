@@ -2,6 +2,9 @@
 
 #include <istream>
 
+namespace ASM8080
+{
+
 class Reader
 {
 public:
@@ -18,3 +21,4 @@ protected:
     size_t lineNumber;
 };
 
+} // namespace ASM8080

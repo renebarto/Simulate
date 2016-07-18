@@ -1,6 +1,9 @@
 #pragma once
 #include <Parser.h>
 
+namespace ASM8080
+{
+
 class Parser8080 : public Parser
 {
 public:
@@ -14,3 +17,4 @@ protected:
     Reader * reader;
 };
 
+} // namespace ASM8080

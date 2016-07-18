@@ -1,6 +1,6 @@
 #include "Parser8080.h"
 
-
+using namespace ASM8080;
 
 Parser8080::Parser8080(Reader & reader)
     : reader(&reader)

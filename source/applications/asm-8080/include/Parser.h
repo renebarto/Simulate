@@ -1,6 +1,9 @@
 #pragma once
 #include <Reader.h>
 
+namespace ASM8080
+{
+
 class Parser
 {
 public:
@@ -10,3 +13,4 @@ public:
     virtual bool Parse() = 0;
 };
 
+} // namespace ASM8080
