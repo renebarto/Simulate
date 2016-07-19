@@ -1,9 +1,11 @@
 #include <fstream>
 #include <iostream>
 #include <CommandLineOptionsParser.h>
-#include <Parser8080.h>
+#include <LineParser8080.h>
+#include <Parser.h>
 
 using namespace std;
+using namespace ASM8080;
 
 int main(int argc, char * argv[])
 {
@@ -18,6 +20,7 @@ int main(int argc, char * argv[])
     ofstream outputCrossReferenceFile(commandLineParser.outputCrossReferenceFilePath);
 
     Reader reader(inputFile);
-    Parser8080 parser(reader);
+    LineParser8080 lineParser;
+    Parser parser(reader, lineParser);
     parser.Parse();
 }

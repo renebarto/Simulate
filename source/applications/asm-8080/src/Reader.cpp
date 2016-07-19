@@ -19,6 +19,11 @@ bool Reader::Eof()
     return stream.eof();
 }
 
+size_t Reader::LineNumber()
+{
+    return lineNumber;
+}
+
 std::string Reader::ReadLine()
 {
     std::string line;

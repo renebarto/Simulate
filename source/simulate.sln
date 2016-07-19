@@ -52,6 +52,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "asm-8080", "applications\asm-8080\asm-8080.vcxproj", "{E5EAAC46-739C-439D-9859-A64C66401368}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "asm-8080.test", "tests\asm-8080\asm-8080.test.vcxproj", "{E326DF93-158D-4150-A922-B8FDC166B076}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E5EAAC46-739C-439D-9859-A64C66401368} = {E5EAAC46-739C-439D-9859-A64C66401368}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

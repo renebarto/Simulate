@@ -38,7 +38,8 @@ public:
 
     static std::string TestDirectoryASM8080() { return Core::Path::CombinePath(TestDirectory(), ProjectName()); }
 
-    static std::string InputFile() { return Core::Path::CombinePath(TestDirectoryASM8080(), "input.asm"); }
+    static std::string InputFileEmpty() { return Core::Path::CombinePath(TestDirectoryASM8080(), "empty.asm"); }
+    static std::string InputFileSmall() { return Core::Path::CombinePath(TestDirectoryASM8080(), "small.asm"); }
 
 };
 

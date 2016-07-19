@@ -14,6 +14,7 @@ public:
     virtual ~Reader();
 
     bool Eof();
+    size_t LineNumber();
     std::string ReadLine();
 
 protected:
