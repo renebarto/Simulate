@@ -7,8 +7,9 @@
 using namespace ASM8080;
 using namespace std;
 
-const LineParserToken ASM8080::LineParserToken::None(TokenType::None);
-const LineParserToken ASM8080::LineParserToken::Invalid(TokenType::Invalid);
+const TokenInfo ASM8080::TokenInfo::None{ TokenType::None, TokenClass::None };
+const LineParserToken ASM8080::LineParserToken::None(TokenInfo::None);
+const LineParserToken ASM8080::LineParserToken::Invalid(TokenInfo{ TokenType::Invalid, TokenClass::None });
 
 std::ostream & ASM8080::operator << (std::ostream & stream, TokenType type)
 {
@@ -324,26 +325,55 @@ std::ostream & ASM8080::operator << (std::ostream & stream, TokenType type)
         stream << "JK";
         break;
     default:
-        stream << "Invalid TokenType";
+        stream << "Invalid TokenType: " << int(type);
+        break;
+    }
+    return stream;
+}
+
+std::ostream & ASM8080::operator << (std::ostream & stream, TokenClass tokenClass)
+{
+    switch (tokenClass)
+    {
+    case TokenClass::None:
+        stream << "None";
+        break;
+    case TokenClass::Directive:
+        stream << "Directive";
+        break;
+    case TokenClass::Opcode:
+        stream << "Opcode";
+        break;
+    case TokenClass::Opcode8085:
+        stream << "Opcode8085";
+        break;
+    case TokenClass::Register:
+        stream << "Register";
+        break;
+    case TokenClass::Expression:
+        stream << "Expression";
+        break;
+    default:
+        stream << "Invalid TokenClass: " << int(tokenClass);
         break;
     }
     return stream;
 }
 
 LineParserToken::LineParserToken()
-    : type(TokenType::None)
+    : tokenInfo(TokenInfo::None)
     , value()
 {
 }
 
-LineParserToken::LineParserToken(TokenType type, std::string const & value)
-    : type(type)
+LineParserToken::LineParserToken(TokenInfo tokenInfo, std::string const & value)
+    : tokenInfo(tokenInfo)
     , value(value)
 {
 }
 
 LineParserToken::LineParserToken(LineParserToken const & other)
-    : type(other.type)
+    : tokenInfo(other.tokenInfo)
     , value(other.value)
 {
 }
@@ -352,7 +382,7 @@ LineParserToken & LineParserToken::operator = (LineParserToken const & other)
 {
     if (this != &other)
     {
-        this->type = other.type;
+        this->tokenInfo = other.tokenInfo;
         this->value = other.value;
     }
     return *this;
@@ -360,7 +390,7 @@ LineParserToken & LineParserToken::operator = (LineParserToken const & other)
 
 bool LineParserToken::operator == (LineParserToken const & other) const
 {
-    return (this->type == other.type) &&
+    return (this->tokenInfo == other.tokenInfo) &&
            Core::String::IsEqualIgnoreCase(this->value, other.value);
 }
 
@@ -371,5 +401,5 @@ bool LineParserToken::operator != (LineParserToken const & other) const
 
 void LineParserToken::PrintTo(std::ostream & stream) const
 {
-    stream << type << ": \"" << value << "\"";
+    stream << tokenInfo.tokenType << "(" << tokenInfo.tokenClass << ")" << ": \"" << value << "\"";
 }

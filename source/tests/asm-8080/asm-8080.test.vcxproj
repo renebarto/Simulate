@@ -171,14 +171,14 @@
     <ClInclude Include="include\CommandLineOptionsParser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\applications\asm-8080\src\Assembler.cpp" />
     <ClCompile Include="..\..\applications\asm-8080\src\LineParserToken.cpp" />
     <ClCompile Include="..\..\applications\asm-8080\src\LineParser8080.cpp" />
-    <ClCompile Include="..\..\applications\asm-8080\src\Parser.cpp" />
     <ClCompile Include="..\..\applications\asm-8080\src\Reader.cpp" />
     <ClCompile Include="src\CommandLineOptionsParser.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Test\TestLineParser8080.cpp" />
-    <ClCompile Include="src\Test\TestParser.cpp" />
+    <ClCompile Include="src\Test\TestAssembler.cpp" />
     <ClCompile Include="src\Test\TestReader.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,7 +1,7 @@
 #include "unit-test-c++/UnitTestC++.h"
 
 #include <sstream>
-#include "Parser.h"
+#include "Assembler.h"
 #include "asm-8080\TestData.h"
 
 using namespace std;
@@ -27,47 +27,47 @@ protected:
     TokenSet tokens;
 };
 
-class ParserTest : public UnitTestCpp::TestFixture
+class AssemblerTest : public UnitTestCpp::TestFixture
 {
 public:
 	virtual void SetUp();
 	virtual void TearDown();
 };
 
-void ParserTest::SetUp()
+void AssemblerTest::SetUp()
 {
 }
 
-void ParserTest::TearDown()
+void AssemblerTest::TearDown()
 {
 }
 
-TEST_FIXTURE(ParserTest, ParseEmpty)
+TEST_FIXTURE(AssemblerTest, ParseEmpty)
 {
     std::istringstream stream("");
     Reader reader(stream);
     LineParserTest lineParser;
-    Parser parser(reader, lineParser);
+    Assembler parser(reader, lineParser);
 
     EXPECT_TRUE(parser.Parse());
 }
 
-TEST_FIXTURE(ParserTest, ParseFail)
+TEST_FIXTURE(AssemblerTest, ParseFail)
 {
     std::istringstream stream("FAIL\n");
     Reader reader(stream);
     LineParserTest lineParser;
-    Parser parser(reader, lineParser);
+    Assembler parser(reader, lineParser);
 
     EXPECT_FALSE(parser.Parse());
 }
 
-TEST_FIXTURE(ParserTest, ParseSucceed)
+TEST_FIXTURE(AssemblerTest, ParseSucceed)
 {
     std::istringstream stream("OK\n");
     Reader reader(stream);
     LineParserTest lineParser;
-    Parser parser(reader, lineParser);
+    Assembler parser(reader, lineParser);
 
     EXPECT_TRUE(parser.Parse());
 }

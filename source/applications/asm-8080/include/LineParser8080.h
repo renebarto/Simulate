@@ -23,7 +23,7 @@ protected:
     LineParserToken GetNextToken();
     LineParserToken ExtractIdentifier(size_t startIndex);
     LineParserToken ExtractQuotedString();
-    TokenType LookupReservedWord(std::string const & value);
+    TokenInfo LookupReservedWord(std::string const & value);
 };
 
 } // namespace ASM8080

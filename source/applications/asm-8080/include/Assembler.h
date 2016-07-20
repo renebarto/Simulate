@@ -1,5 +1,5 @@
 #pragma once
-#include "Parser.h"
+#include "Assembler.h"
 
 #include "LineParser.h"
 #include "Reader.h"
@@ -7,18 +7,18 @@
 namespace ASM8080
 {
 
-class Parser
+class Assembler
 {
 public:
-    Parser(Reader & reader, LineParser & lineParser);
-    virtual ~Parser();
+    Assembler(Reader & reader, LineParser & lineAssembler);
+    virtual ~Assembler();
 
     void Attach(Reader & reader);
     bool Parse();
 
 protected:
     Reader * reader;
-    LineParser & lineParser;
+    LineParser & lineAssembler;
 };
 
 } // namespace ASM8080

@@ -24,20 +24,17 @@
     <ClCompile Include="src\CommandLineOptionsParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Parser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\LineParser8080.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\LineParserToken.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Assembler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\Parser.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Reader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -51,6 +48,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\LineParserToken.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Assembler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

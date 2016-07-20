@@ -166,7 +166,7 @@
     <ClCompile Include="src\LineParser8080.cpp" />
     <ClCompile Include="src\LineParserToken.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\Parser.cpp" />
+    <ClCompile Include="src\Assembler.cpp" />
     <ClCompile Include="src\Reader.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -174,7 +174,7 @@
     <ClInclude Include="include\LineParser.h" />
     <ClInclude Include="include\LineParser8080.h" />
     <ClInclude Include="include\LineParserToken.h" />
-    <ClInclude Include="include\Parser.h" />
+    <ClInclude Include="include\Assembler.h" />
     <ClInclude Include="include\Reader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

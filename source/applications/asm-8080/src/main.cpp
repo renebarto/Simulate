@@ -2,7 +2,7 @@
 #include <iostream>
 #include <CommandLineOptionsParser.h>
 #include <LineParser8080.h>
-#include <Parser.h>
+#include <Assembler.h>
 
 using namespace std;
 using namespace ASM8080;
@@ -21,6 +21,6 @@ int main(int argc, char * argv[])
 
     Reader reader(inputFile);
     LineParser8080 lineParser;
-    Parser parser(reader, lineParser);
+    Assembler parser(reader, lineParser);
     parser.Parse();
 }
