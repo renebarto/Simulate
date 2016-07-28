@@ -18,10 +18,24 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\CommandLineOptionsParser.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Test\Assertions.cpp" />
+    <ClCompile Include="src\Test\TestRAM.cpp" />
+    <ClCompile Include="src\Test\TestROM.cpp" />
+    <ClCompile Include="src\Test\TestSimpleProcessor.cpp" />
+    <ClCompile Include="src\Test\TestSimpleProcessorEmulator.cpp" />
+    <ClCompile Include="src\Test\TestSimpleProcessorMachine.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\CommandLineOptionsParser.h" />
+    <ClInclude Include="include\simple-processor\Assertions.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E5EAAC46-739C-439D-9859-A64C66401368}</ProjectGuid>
+    <ProjectGuid>{BD20628D-7FBF-442A-917B-112AC68723B6}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>asm8080</RootNamespace>
+    <RootNamespace>simpleprocessortest</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -96,13 +110,14 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../../components/processor/export;$(ProjectDir)/../../components/processor/include;$(ProjectDir)/../../components/unit-test-c++/export;$(ProjectDir)/../../components/osal/export;$(ProjectDir)/../../components/core/export</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../../components/simple-processor/export;$(ProjectDir)/../../components/processor/export;$(ProjectDir)/../../components/processor/include;$(ProjectDir)/../../components/unit-test-c++/export;$(ProjectDir)/../../components/osal/export;$(ProjectDir)/../../components/core/export</AdditionalIncludeDirectories>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>processor.lib;unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>simple-processor.lib;processor.lib;unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -112,13 +127,14 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../../components/processor/export;$(ProjectDir)/../../components/processor/include;$(ProjectDir)/../../components/unit-test-c++/export;$(ProjectDir)/../../components/osal/export;$(ProjectDir)/../../components/core/export</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../../components/simple-processor/export;$(ProjectDir)/../../components/processor/export;$(ProjectDir)/../../components/processor/include;$(ProjectDir)/../../components/unit-test-c++/export;$(ProjectDir)/../../components/osal/export;$(ProjectDir)/../../components/core/export</AdditionalIncludeDirectories>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>processor.lib;unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>simple-processor.lib;processor.lib;unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -130,7 +146,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../../components/processor/export;$(ProjectDir)/../../components/processor/include;$(ProjectDir)/../../components/unit-test-c++/export;$(ProjectDir)/../../components/osal/export;$(ProjectDir)/../../components/core/export</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../../components/simple-processor/export;$(ProjectDir)/../../components/processor/export;$(ProjectDir)/../../components/processor/include;$(ProjectDir)/../../components/unit-test-c++/export;$(ProjectDir)/../../components/osal/export;$(ProjectDir)/../../components/core/export</AdditionalIncludeDirectories>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -138,7 +155,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>processor.lib;unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>simple-processor.lib;processor.lib;unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -150,7 +167,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../../components/processor/export;$(ProjectDir)/../../components/processor/include;$(ProjectDir)/../../components/unit-test-c++/export;$(ProjectDir)/../../components/osal/export;$(ProjectDir)/../../components/core/export</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../../components/simple-processor/export;$(ProjectDir)/../../components/processor/export;$(ProjectDir)/../../components/processor/include;$(ProjectDir)/../../components/unit-test-c++/export;$(ProjectDir)/../../components/osal/export;$(ProjectDir)/../../components/core/export</AdditionalIncludeDirectories>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -158,29 +176,9 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>processor.lib;unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>simple-processor.lib;processor.lib;unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="src\AbstractSyntaxTree.cpp" />
-    <ClCompile Include="src\CommandLineOptionsParser.cpp" />
-    <ClCompile Include="src\LineParser8080.cpp" />
-    <ClCompile Include="src\LineParserToken.cpp" />
-    <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\Assembler.cpp" />
-    <ClCompile Include="src\Reader.cpp" />
-    <ClCompile Include="src\Translator.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\AbstractSyntaxTree.h" />
-    <ClInclude Include="include\CommandLineOptionsParser.h" />
-    <ClInclude Include="include\LineParser.h" />
-    <ClInclude Include="include\LineParser8080.h" />
-    <ClInclude Include="include\LineParserToken.h" />
-    <ClInclude Include="include\Assembler.h" />
-    <ClInclude Include="include\Reader.h" />
-    <ClInclude Include="include\Translator.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

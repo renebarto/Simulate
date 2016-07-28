@@ -140,6 +140,37 @@ bool Compare(T const * expected, T const * actual, size_t numSamples)
 }
 
 template<class T>
+bool Compare(std::vector<T> const & expected, int offsetExpected,
+             std::vector<T> const & actual, int offsetActual, size_t numSamples)
+{
+    if ((expected.size() < offsetExpected + numSamples) || (actual.size() < offsetActual + numSamples))
+    {
+        throw std::runtime_error("Arrays not large enough");
+    }
+    return Compare(expected.data(), offsetExpected, actual.data(), offsetActual, numSamples);
+}
+
+template<class T>
+bool Compare(std::vector<T> const & expected, std::vector<T> const & actual, size_t numSamples)
+{
+    if ((expected.size() < numSamples) || (actual.size() < numSamples))
+    {
+        throw std::runtime_error("Arrays not large enough");
+    }
+    return Compare(expected.data(), 0, actual.data(), 0, numSamples);
+}
+
+template<class T>
+bool Compare(std::vector<T> const & expected, std::vector<T> const & actual)
+{
+    if (expected.size() != actual.size())
+    {
+        throw std::runtime_error("Arrays not equal size");
+    }
+    return Compare(expected.data(), actual.data(), expected.size());
+}
+
+template<class T>
 typename std::enable_if<std::is_floating_point<T>::value, bool>::type
 Compare(T const * expected, int offsetExpected,
         T const * actual, int offsetActual, int numSamples,
@@ -165,6 +196,43 @@ Compare(T const * expected, T const * actual, int numSamples,
         T epsilonAbs, T epsilonRel)
 {
     return Compare(expected, 0, actual, 0, numSamples, epsilonAbs, epsilonRel);
+}
+
+template<class T>
+typename std::enable_if<std::is_floating_point<T>::value, bool>::type
+Compare(std::vector<T> const & expected, int offsetExpected,
+        std::vector<T> const & actual, int offsetActual, int numSamples,
+        T epsilonAbs, T epsilonRel)
+{
+    if ((expected.size() < offsetExpected + numSamples) || (actual.size() < offsetActual + numSamples))
+    {
+        throw std::runtime_error("Arrays not large enough");
+    }
+    return Compare(expected.data(), offsetExpected, actual.data(), offsetActual, numSamples, epsilonAbs, epsilonRel);
+}
+
+template<class T>
+typename std::enable_if<std::is_floating_point<T>::value, bool>::type
+Compare(std::vector<T> const & expected, std::vector<T> const & actual, int numSamples,
+        T epsilonAbs, T epsilonRel)
+{
+    if ((expected.size() < numSamples) || (actual.size() < numSamples))
+    {
+        throw std::runtime_error("Arrays not large enough");
+    }
+    return Compare(expected.data(), 0, actual.data(), 0, numSamples, epsilonAbs, epsilonRel);
+}
+
+template<class T>
+typename std::enable_if<std::is_floating_point<T>::value, bool>::type
+Compare(std::vector<T> const & expected, std::vector<T> const & actual,
+        T epsilonAbs, T epsilonRel)
+{
+    if (expected.size() != actual.size())
+    {
+        throw std::runtime_error("Arrays not equal size");
+    }
+    return Compare(expected.data(), 0, actual.data(), 0, expected.size());
 }
 
 template<class T>

@@ -1,5 +1,4 @@
 #pragma once
-#include "Assembler.h"
 
 #include "LineParser.h"
 #include "Reader.h"

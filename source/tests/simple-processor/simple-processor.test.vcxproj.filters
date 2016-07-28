@@ -15,54 +15,36 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Reader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\CommandLineOptionsParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\LineParser8080.cpp">
+    <ClCompile Include="src\Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\LineParserToken.cpp">
+    <ClCompile Include="src\Test\TestSimpleProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Assembler.cpp">
+    <ClCompile Include="src\Test\TestSimpleProcessorEmulator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Translator.cpp">
+    <ClCompile Include="src\Test\TestSimpleProcessorMachine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\AbstractSyntaxTree.cpp">
+    <ClCompile Include="src\Test\TestRAM.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Test\TestROM.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Test\Assertions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\Reader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\CommandLineOptionsParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\LineParser.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\LineParser8080.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\LineParserToken.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Assembler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Translator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\AbstractSyntaxTree.h">
+    <ClInclude Include="include\simple-processor\Assertions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
