@@ -1,14 +1,16 @@
 #include "simple-processor/processor.h"
 
 #include <map>
+#include <thread>
 #include "core/String.h"
 #include "core/Util.h"
 
+using namespace std;
 using namespace Simulate;
 
 const uint8_t SimpleProcessor::InitialPC = 0;
 
-static std::map<SimpleProcessor::Opcode, std::string> mnemonics =
+static map<SimpleProcessor::Opcode, string> mnemonics =
 {
     {SimpleProcessor::Opcode::ACI, "ACI"},
     {SimpleProcessor::Opcode::ACX, "ACX"},
@@ -333,12 +335,48 @@ static const SimpleProcessor::InstructionInfo instructions[256] =
         { 0xFF, 0, 0, 0, 0, 0, {}, "" },
 };
 
-SimpleProcessor::SimpleProcessor(IMemory<uint8_t> & memory, CharReader & reader, CharWriter & writer)
-    : registers()
+SimpleProcessor::Clock::Clock(picoseconds clockInterval)
+    : clockintervalPS(clockInterval)
+    , clock()
+    , lastClockCount()
+    , lastTime()
+{
+    lastClockCount = 0;
+    lastTime = clock.now();
+}
+
+SimpleProcessor::Clock::~Clock()
+{
+}
+
+void SimpleProcessor::Clock::Reset()
+{
+    lastClockCount = 0;
+    lastTime = clock.now();
+}
+
+void SimpleProcessor::Clock::Wait(uint64_t clockCount)
+{
+    chrono::high_resolution_clock::time_point deadline = lastTime + chrono::duration_cast<chrono::nanoseconds>((clockCount - lastClockCount) * clockintervalPS);
+    chrono::high_resolution_clock::time_point now = clock.now();
+    if (now < deadline)
+    {
+        this_thread::sleep_for(chrono::duration_cast<chrono::nanoseconds>(deadline - now));
+    }
+    lastTime = clock.now();
+    lastClockCount = clockCount;
+}
+
+SimpleProcessor::SimpleProcessor(double clockFreq,
+                                 IMemory<uint8_t> & memory, 
+                                 CharReader & reader, 
+                                 CharWriter & writer)
+    : clock(picoseconds(int64_t(tera::num / clockFreq + 0.5)))
+    , registers()
     , memory(memory)
     , reader(reader)
     , writer(writer)
-    , tracing()
+    , debugMode(DebugMode::None)
 {
 }
 
@@ -362,7 +400,8 @@ void SimpleProcessor::Registers::Reset()
 void SimpleProcessor::Reset()
 {
     registers.Reset();
-    if (tracing)
+    clock.Reset();
+    if ((debugMode & DebugMode::Trace) != 0)
     {
         for (auto observer : observers)
         {
@@ -371,7 +410,7 @@ void SimpleProcessor::Reset()
     }
 }
 
-SimpleProcessor::Opcode SimpleProcessor::LookupOpcode(std::string const & str)
+SimpleProcessor::Opcode SimpleProcessor::LookupOpcode(string const & str)
 {
     for (auto entry : mnemonics)
     {
@@ -533,7 +572,7 @@ uint8_t SimpleProcessor::GetNumber(int radix)
         return 0;
     }
     char ch = '\0';
-    std::string str;
+    string str;
     while (!reader.NoMoreData() && IsValidCharacterForBase(ch = reader.ReadChar(), radix))
     {
         str += ch;
@@ -560,7 +599,7 @@ uint8_t SimpleProcessor::GetChar()
 
 void SimpleProcessor::OutputNumber(int value, int radix)
 {
-    std::string str = Core::Util::ToString(value, radix);
+    string str = Core::Util::ToString(value, radix);
     for (auto ch : str)
     {
         writer.WriteChar(ch);
@@ -569,7 +608,7 @@ void SimpleProcessor::OutputNumber(int value, int radix)
 
 void SimpleProcessor::OutputNumber(uint8_t value, int radix)
 {
-    std::string str = Core::Util::ToString(value, radix);
+    string str = Core::Util::ToString(value, radix);
     for (auto ch : str)
     {
         writer.WriteChar(ch);
@@ -804,12 +843,16 @@ void SimpleProcessor::Execute(uint8_t opcodeByte)
         throw IllegalInstructionException(opcodeByte);
     }
     registers.totalClockCount += (condition ? info.cycleCount : info.cycleCountConditionFailed);
-    if (tracing)
+    if ((debugMode & DebugMode::Trace) != 0)
     {
         for (auto observer : observers)
         {
-            observer->Trace();
+            observer->Trace(info, registers);
         }
+    }
+    if ((debugMode & DebugMode::NonRealTime) == 0)
+    {
+        clock.Wait(registers.totalClockCount);
     }
 }
 

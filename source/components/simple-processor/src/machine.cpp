@@ -8,10 +8,13 @@
 using namespace Simulate;
 using namespace std;
 
-SimpleProcessorMachine::SimpleProcessorMachine(std::vector<uint8_t> const & machineCode, CharReader & reader, CharWriter & writer)
+SimpleProcessorMachine::SimpleProcessorMachine(double clockFreq,
+                                               std::vector<uint8_t> const & machineCode, 
+                                               CharReader & reader, 
+                                               CharWriter & writer)
     : machineCode(machineCode)
     , memory(0, 256)
-    , SimpleProcessor(memory, reader, writer)
+    , SimpleProcessor(clockFreq, memory, reader, writer)
 {
     for (size_t address = 0; address < machineCode.size(); ++address)
     {

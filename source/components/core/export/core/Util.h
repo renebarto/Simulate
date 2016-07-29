@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <sstream>
+#include <vector>
 #include "osal.h"
 #include "core/Nullable.h"
 

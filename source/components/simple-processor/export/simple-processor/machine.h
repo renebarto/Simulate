@@ -10,7 +10,10 @@ namespace Simulate
 class SimpleProcessorMachine : public SimpleProcessor
 {
 public:
-    SimpleProcessorMachine(std::vector<uint8_t> const & code, CharReader & reader, CharWriter & writer);
+    SimpleProcessorMachine(double clockFreq,
+                           std::vector<uint8_t> const & code, 
+                           CharReader & reader, 
+                           CharWriter & writer);
     virtual ~SimpleProcessorMachine();
 
     void Run();

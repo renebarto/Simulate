@@ -23,6 +23,7 @@ public:
     StringWriter writer;
 };
 
+static const double ClockFreq = 1000;
 static const std::vector<uint8_t> MachineCode =
 {
     0x0A, 0x16, 0x3A, 0x0D, 0x1E, 0x13, 0x19, 0x14,
@@ -40,12 +41,12 @@ void SimpleProcessorMachineTest::TearDown()
 
 TEST_FIXTURE(SimpleProcessorMachineTest, Construct)
 {
-    SimpleProcessorMachine machine(MachineCode, reader, writer);
+    SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
 }
 
 TEST_FIXTURE(SimpleProcessorMachineTest, ListCode)
 {
-    SimpleProcessorMachine machine(MachineCode, reader, writer);
+    SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
 
     std::string expected = "00000000    INI\n"
                            "00000001    SHR\n"
@@ -67,7 +68,7 @@ TEST_FIXTURE(SimpleProcessorMachineTest, ListCode)
 
 TEST_FIXTURE(SimpleProcessorMachineTest, Run)
 {
-    SimpleProcessorMachine machine(MachineCode, reader, writer);
+    SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
     AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, Flags::None, State::Uninitialized, 0);
     machine.Run();
     // As input is empty, a=0, which means there BCC EVEN occurs immediately. So only 7 instructions are executed, of which 3 with length 2, so clockcount=10, and memory stays at 0
@@ -79,7 +80,7 @@ TEST_FIXTURE(SimpleProcessorMachineTest, Run)
 
 TEST_FIXTURE(SimpleProcessorMachineTest, RunWithInput)
 {
-    SimpleProcessorMachine machine(MachineCode, reader, writer);
+    SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
     reader.SetContents("65");
     AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, Flags::None, State::Uninitialized, 0);
     machine.Run();

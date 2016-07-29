@@ -13,6 +13,27 @@ namespace Simulate
 namespace Test
 {
 
+class SimpleProcessorEmulatorOverride : public SimpleProcessorEmulator
+{
+public:
+    SimpleProcessorEmulatorOverride(SimpleProcessorMachine & machine, ostream & stream)
+        : SimpleProcessorEmulator(machine)
+        , stream(stream)
+    {
+    }
+    void Reset() override
+    {
+        stream << "Reset" << endl;
+    }
+    void Trace(SimpleProcessor::InstructionInfo const & info, SimpleProcessor::Registers const & registers) override
+    {
+        stream << "Trace " << info.instructionMnemonic << endl;
+    }
+
+private:
+    ostream & stream;
+};
+
 class SimpleProcessorEmulatorTest : public UnitTestCpp::TestFixture
 {
 public:
@@ -31,6 +52,7 @@ void SimpleProcessorEmulatorTest::TearDown()
 {
 }
 
+static const double ClockFreq = 1000000;
 static const std::vector<uint8_t> MachineCode =
 {
     // Read integer, counts bits, output as integer
@@ -52,27 +74,32 @@ static const std::vector<uint8_t> MachineCode =
 
 TEST_FIXTURE(SimpleProcessorEmulatorTest, Construct)
 {
-    SimpleProcessorMachine machine(MachineCode, reader, writer);
+    SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
     SimpleProcessorEmulator emulator(machine);
     AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, Flags::None, State::Uninitialized, 0);
 }
 
 TEST_FIXTURE(SimpleProcessorEmulatorTest, Run)
 {
-    SimpleProcessorMachine machine(MachineCode, reader, writer);
+    chrono::high_resolution_clock clock;
+
+    SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
     SimpleProcessorEmulator emulator(machine);
     AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, Flags::None, State::Uninitialized, 0);
+    chrono::high_resolution_clock::time_point start = clock.now();
     emulator.Run();
+    chrono::high_resolution_clock::time_point end = clock.now();
     // As input is empty, a=0, which means there BCC EVEN occurs immediately. So only 7 instructions are executed, of which 3 with length 2, so clockcount=10, and memory stays at 0
     AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0x13, 0x18, Flags::Z, State::Halted, 10);
     AssertMemory(__FILE__, __LINE__, machine.GetMemory(), 0x13, 0x00);
     AssertMemory(__FILE__, __LINE__, machine.GetMemory(), 0x14, 0x00);
     EXPECT_EQ("0", writer.GetContents());
+    cout << chrono::duration_cast<chrono::nanoseconds>(end - start).count() << endl;
 }
 
 TEST_FIXTURE(SimpleProcessorEmulatorTest, RunWithInput)
 {
-    SimpleProcessorMachine machine(MachineCode, reader, writer);
+    SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
     SimpleProcessorEmulator emulator(machine);
     reader.SetContents("65");
     AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, Flags::None, State::Uninitialized, 0);
@@ -93,8 +120,9 @@ TEST_FIXTURE(SimpleProcessorEmulatorTest, RunWithInput)
 
 TEST_FIXTURE(SimpleProcessorEmulatorTest, RunWithTracing)
 {
-    SimpleProcessorMachine machine(MachineCode, reader, writer);
-    SimpleProcessorEmulator emulator(machine);
+    SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
+    ostringstream stream;
+    SimpleProcessorEmulatorOverride emulator(machine, stream);
     AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, Flags::None, State::Uninitialized, 0);
     emulator.Run(true);
     // As input is empty, a=0, which means there BCC EVEN occurs immediately. So only 7 instructions are executed, of which 3 with length 2, so clockcount=10, and memory stays at 0
@@ -102,6 +130,16 @@ TEST_FIXTURE(SimpleProcessorEmulatorTest, RunWithTracing)
     AssertMemory(__FILE__, __LINE__, machine.GetMemory(), 0x13, 0x00);
     AssertMemory(__FILE__, __LINE__, machine.GetMemory(), 0x14, 0x00);
     EXPECT_EQ("0", writer.GetContents());
+    ostringstream streamExpected;
+    streamExpected << "Reset" << endl
+                   << "Trace INI" << endl
+                   << "Trace SHR" << endl
+                   << "Trace BCC" << endl
+                   << "Trace BNZ" << endl
+                   << "Trace LDA" << endl
+                   << "Trace OTI" << endl
+                   << "Trace HLT" << endl;
+    EXPECT_EQ(streamExpected.str(), stream.str());
 }
 
 } // namespace Test

@@ -18,7 +18,7 @@ class ProcessorAccessor : public SimpleProcessor
 {
 public:
     ProcessorAccessor(IMemory<uint8_t> & memory, CharReader & reader, CharWriter & writer)
-        : SimpleProcessor(memory, reader, writer)
+        : SimpleProcessor(1000, memory, reader, writer)
     {
     }
     SimpleProcessor::Registers & GetRegisters() { return registers; }

@@ -20,7 +20,7 @@ SimpleProcessorEmulator::~SimpleProcessorEmulator()
 
 void SimpleProcessorEmulator::Run(bool tracing)
 {
-    machine.SetTracing(tracing);
+    machine.SetDebugMode(DebugMode::None);
     machine.Run();
 }
 
@@ -38,7 +38,7 @@ void SimpleProcessorEmulator::Reset()
     cout << "Reset" << endl;
 }
 
-void SimpleProcessorEmulator::Trace()
+void SimpleProcessorEmulator::Trace(SimpleProcessor::InstructionInfo const & info, SimpleProcessor::Registers const & registers)
 {
-    cout << "Trace" << endl;
+    cout << "Trace" << info.instructionMnemonic << "(" << info.instructionSize << ")" << endl;
 }

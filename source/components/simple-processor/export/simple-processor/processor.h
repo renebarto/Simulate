@@ -40,6 +40,14 @@ enum class Flags : uint8_t
 };
 DEFINE_FLAG_OPERATORS(Flags, uint8_t);
 
+enum class DebugMode : uint8_t
+{
+    None = 0x00,
+    Trace = 0x01,
+    NonRealTime = 0x02,
+};
+DEFINE_FLAG_OPERATORS(DebugMode, uint8_t);
+
 enum class State : uint8_t
 {
     Uninitialized,
@@ -66,13 +74,7 @@ public:
     virtual void WriteChar(char data) = 0;
 };
 
-class IDebugger
-{
-public:
-    virtual ~IDebugger() {}
-    virtual void Reset() = 0;
-    virtual void Trace() = 0;
-};
+class IDebugger;
 
 class SimpleProcessor : public Core::Observable<IDebugger>
 {
@@ -196,7 +198,29 @@ public:
                    (instructionMnemonic == other.instructionMnemonic);
         }
     };
-    SimpleProcessor(IMemory<uint8_t> & memory, CharReader & reader, CharWriter & writer);
+
+    using picoseconds = std::chrono::duration<int64_t, std::pico>;
+
+    class Clock
+    {
+    public:
+        Clock() = delete;
+        Clock(picoseconds clockInterval);
+        virtual ~Clock();
+        void Reset();
+        void Wait(uint64_t clockCount);
+
+    protected:
+        picoseconds clockintervalPS;
+        uint64_t lastClockCount;
+        std::chrono::high_resolution_clock clock;
+        std::chrono::high_resolution_clock::time_point lastTime;
+    };
+
+    SimpleProcessor(double clockFreq,
+                    IMemory<uint8_t> & memory, 
+                    CharReader & reader, 
+                    CharWriter & writer);
     virtual ~SimpleProcessor();
 
     static const uint8_t InitialPC;
@@ -209,7 +233,7 @@ public:
     void FetchAndExecute();
     void FetchInstruction();
     void Execute(uint8_t opcodeByte);
-    void SetTracing(bool tracingOn) { tracing = tracingOn; }
+    void SetDebugMode(DebugMode value) { debugMode = value; }
 
     void SetFlags(uint8_t value);
     void ClearMemory();
@@ -233,11 +257,12 @@ public:
     void OutputChar(char value);
 
 protected:
+    Clock clock;
     Registers registers;
     IMemory<uint8_t> & memory;
     CharReader & reader;
     CharWriter & writer;
-    bool tracing;
+    DebugMode debugMode;
 };
 
 static std::ostream & operator << (std::ostream & stream, Flags flags)
@@ -279,5 +304,14 @@ static std::ostream & operator << (std::ostream & stream, SimpleProcessor::Instr
     }
     return stream;
 }
+
+class IDebugger
+{
+public:
+    virtual ~IDebugger() {}
+    virtual void Reset() = 0;
+    virtual void Trace(SimpleProcessor::InstructionInfo const & info, SimpleProcessor::Registers const & registers) = 0;
+};
+
 
 } // namespace Simulate

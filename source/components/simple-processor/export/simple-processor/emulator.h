@@ -25,7 +25,7 @@ protected:
     SimpleProcessorMachine & machine;
 
     void Reset() override;
-    void Trace() override;
+    void Trace(SimpleProcessor::InstructionInfo const & info, SimpleProcessor::Registers const & registers) override;
 };
 
 } // namespace Simulate
