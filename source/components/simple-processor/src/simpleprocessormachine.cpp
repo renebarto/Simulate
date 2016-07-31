@@ -1,4 +1,4 @@
-#include "simple-processor/machine.h"
+#include "simple-processor/simpleprocessormachine.h"
 
 #include <algorithm>
 #include <iomanip>
@@ -12,10 +12,11 @@ SimpleProcessorMachine::SimpleProcessorMachine(double clockFreq,
                                                std::vector<uint8_t> const & machineCode, 
                                                CharReader & reader, 
                                                CharWriter & writer)
-    : machineCode(machineCode)
+    : SimpleProcessor(clockFreq, reader, writer)
+    , machineCode(machineCode)
     , memory(0, 256)
-    , SimpleProcessor(clockFreq, memory, reader, writer)
 {
+    SetMemory(&memory);
     for (size_t address = 0; address < machineCode.size(); ++address)
     {
         memory.Store(address, machineCode[address]);

@@ -1,4 +1,4 @@
-#include "simple-processor/processor.h"
+#include "simple-processor/simpleprocessor.h"
 
 #include <map>
 #include <thread>
@@ -335,48 +335,10 @@ static const SimpleProcessor::InstructionInfo instructions[256] =
         { 0xFF, 0, 0, 0, 0, 0, {}, "" },
 };
 
-SimpleProcessor::Clock::Clock(picoseconds clockInterval)
-    : clockintervalPS(clockInterval)
-    , clock()
-    , lastClockCount()
-    , lastTime()
-{
-    lastClockCount = 0;
-    lastTime = clock.now();
-}
-
-SimpleProcessor::Clock::~Clock()
-{
-}
-
-void SimpleProcessor::Clock::Reset()
-{
-    lastClockCount = 0;
-    lastTime = clock.now();
-}
-
-void SimpleProcessor::Clock::Wait(uint64_t clockCount)
-{
-    chrono::high_resolution_clock::time_point deadline = lastTime + chrono::duration_cast<chrono::nanoseconds>((clockCount - lastClockCount) * clockintervalPS);
-    chrono::high_resolution_clock::time_point now = clock.now();
-    if (now < deadline)
-    {
-        this_thread::sleep_for(chrono::duration_cast<chrono::nanoseconds>(deadline - now));
-    }
-    lastTime = clock.now();
-    lastClockCount = clockCount;
-}
-
 SimpleProcessor::SimpleProcessor(double clockFreq,
-                                 IMemory<uint8_t> & memory, 
                                  CharReader & reader, 
                                  CharWriter & writer)
-    : clock(picoseconds(int64_t(tera::num / clockFreq + 0.5)))
-    , registers()
-    , memory(memory)
-    , reader(reader)
-    , writer(writer)
-    , debugMode(DebugMode::None)
+    : Processor<AddressType, Opcode, Registers, InstructionInfo>(clockFreq, reader, writer)
 {
 }
 
@@ -441,7 +403,9 @@ void SimpleProcessor::FetchAndExecute()
 
 void SimpleProcessor::FetchInstruction()
 {
-    registers.ir = memory.Fetch(registers.pc++);
+    if (memory == nullptr)
+        throw UnassignedMemoryException();
+    registers.ir = memory->Fetch(registers.pc++);
 }
 
 void Increment(uint8_t & value)
@@ -461,21 +425,6 @@ void SimpleProcessor::SetFlags(uint8_t value)
                       (((value == 0) || (value & 0x80)) ? Flags::None : Flags::P);
 }
 
-void SimpleProcessor::ClearMemory()
-{
-    return memory.Clear();
-}
-
-uint8_t SimpleProcessor::Fetch(uint8_t address) const
-{
-    return memory.Fetch(address);
-}
-
-void SimpleProcessor::Store(uint8_t address, uint8_t value)
-{
-    memory.Store(address, value);
-}
-
 void SimpleProcessor::Load(uint8_t value)
 {
     registers.a = value;
@@ -484,7 +433,9 @@ void SimpleProcessor::Load(uint8_t value)
 
 void SimpleProcessor::Store(uint8_t value)
 {
-    memory.Store(value, registers.a);
+    if (memory == nullptr)
+        throw UnassignedMemoryException();
+    memory->Store(value, registers.a);
 }
 
 void SimpleProcessor::Add(uint8_t value)
@@ -622,12 +573,14 @@ void SimpleProcessor::OutputChar(char value)
 
 void SimpleProcessor::Execute(uint8_t opcodeByte)
 {
+    if (memory == nullptr)
+        throw UnassignedMemoryException();
     InstructionInfo info = LookupOpcode(opcodeByte);
     uint8_t byte2{};
     uint8_t value{};
     if (info.instructionSize > 1)
     {
-        byte2 = memory.Fetch(registers.pc++);
+        byte2 = memory->Fetch(registers.pc++);
     }
     SimpleProcessor::Opcode opcode = SimpleProcessor::Opcode(opcodeByte);
     bool condition = true;
@@ -699,10 +652,10 @@ void SimpleProcessor::Execute(uint8_t opcodeByte)
         break;
     case SimpleProcessor::Opcode::PSH:
         Decrement(registers.sp);
-        memory.Store(registers.sp, registers.a);
+        memory->Store(registers.sp, registers.a);
         break;
     case SimpleProcessor::Opcode::POP:
-        registers.a = memory.Fetch(registers.sp);
+        registers.a = memory->Fetch(registers.sp);
         Increment(registers.sp);
         SetFlags(registers.a);
         break;
@@ -717,23 +670,23 @@ void SimpleProcessor::Execute(uint8_t opcodeByte)
         SetFlags(registers.a);
         break;
     case SimpleProcessor::Opcode::RET:
-        registers.pc = memory.Fetch(registers.sp);
+        registers.pc = memory->Fetch(registers.sp);
         Increment(registers.sp);
         break;
     case SimpleProcessor::Opcode::HLT:
         registers.state = State::Halted;
         break;
     case SimpleProcessor::Opcode::LDA:
-        Load(memory.Fetch(byte2));
+        Load(memory->Fetch(byte2));
         break;
     case SimpleProcessor::Opcode::LDX:
-        Load(memory.Fetch(Index(byte2)));
+        Load(memory->Fetch(Index(byte2)));
         break;
     case SimpleProcessor::Opcode::LDI:
         Load(byte2);
         break;
     case SimpleProcessor::Opcode::LSP:
-        registers.sp = memory.Fetch(byte2);
+        registers.sp = memory->Fetch(byte2);
         break;
     case SimpleProcessor::Opcode::LSI:
         registers.sp = byte2;
@@ -745,64 +698,64 @@ void SimpleProcessor::Execute(uint8_t opcodeByte)
         Store(Index(byte2));
         break;
     case SimpleProcessor::Opcode::ADD:
-        Add(memory.Fetch(byte2));
+        Add(memory->Fetch(byte2));
         break;
     case SimpleProcessor::Opcode::ADX:
-        Add(memory.Fetch(Index(byte2)));
+        Add(memory->Fetch(Index(byte2)));
         break;
     case SimpleProcessor::Opcode::ADI:
         Add(byte2);
         break;
     case SimpleProcessor::Opcode::ADC:
-        AddC(memory.Fetch(byte2));
+        AddC(memory->Fetch(byte2));
         break;
     case SimpleProcessor::Opcode::ACX:
-        AddC(memory.Fetch(Index(byte2)));
+        AddC(memory->Fetch(Index(byte2)));
         break;
     case SimpleProcessor::Opcode::ACI:
         AddC(byte2);
         break;
     case SimpleProcessor::Opcode::SUB:
-        Sub(memory.Fetch(byte2));
+        Sub(memory->Fetch(byte2));
         break;
     case SimpleProcessor::Opcode::SBX:
-        Sub(memory.Fetch(Index(byte2)));
+        Sub(memory->Fetch(Index(byte2)));
         break;
     case SimpleProcessor::Opcode::SBI:
         Sub(byte2);
         break;
     case SimpleProcessor::Opcode::SBC:
-        SubC(memory.Fetch(byte2));
+        SubC(memory->Fetch(byte2));
         break;
     case SimpleProcessor::Opcode::SCX:
-        SubC(memory.Fetch(Index(byte2)));
+        SubC(memory->Fetch(Index(byte2)));
         break;
     case SimpleProcessor::Opcode::SCI:
         SubC(byte2);
         break;
     case SimpleProcessor::Opcode::CMP:
-        Cmp(memory.Fetch(byte2));
+        Cmp(memory->Fetch(byte2));
         break;
     case SimpleProcessor::Opcode::CPX:
-        Cmp(memory.Fetch(Index(byte2)));
+        Cmp(memory->Fetch(Index(byte2)));
         break;
     case SimpleProcessor::Opcode::CPI:
         Cmp(byte2);
         break;
     case SimpleProcessor::Opcode::ANA:
-        And(memory.Fetch(byte2));
+        And(memory->Fetch(byte2));
         break;
     case SimpleProcessor::Opcode::ANX:
-        And(memory.Fetch(Index(byte2)));
+        And(memory->Fetch(Index(byte2)));
         break;
     case SimpleProcessor::Opcode::ANI:
         And(byte2);
         break;
     case SimpleProcessor::Opcode::ORA:
-        Or(memory.Fetch(byte2));
+        Or(memory->Fetch(byte2));
         break;
     case SimpleProcessor::Opcode::ORX:
-        Or(memory.Fetch(Index(byte2)));
+        Or(memory->Fetch(Index(byte2)));
         break;
     case SimpleProcessor::Opcode::ORI:
         Or(byte2);
@@ -836,7 +789,7 @@ void SimpleProcessor::Execute(uint8_t opcodeByte)
         break;
     case SimpleProcessor::Opcode::JSR:
         Decrement(registers.sp);
-        memory.Store(registers.sp, registers.pc);
+        memory->Store(registers.sp, registers.pc);
         registers.pc = byte2;
         break;
     default:

@@ -20,7 +20,7 @@ SimpleProcessorEmulator::~SimpleProcessorEmulator()
 
 void SimpleProcessorEmulator::Run(bool tracing)
 {
-    machine.SetDebugMode(DebugMode::None);
+    machine.SetDebugMode(tracing ? DebugMode::Trace : DebugMode::None);
     machine.Run();
 }
 

@@ -1,12 +1,12 @@
 #pragma once
 
 #include <iostream>
-#include "simple-processor/machine.h"
+#include "simple-processor/simpleprocessormachine.h"
 
 namespace Simulate
 {
 
-class SimpleProcessorEmulator : public IDebugger
+class SimpleProcessorEmulator : public IDebugger<SimpleProcessor::InstructionInfo, SimpleProcessor::Registers>
 {
 public:
     SimpleProcessorEmulator(SimpleProcessorMachine & machine);

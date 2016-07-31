@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include "simple-processor/processor.h"
+#include "simple-processor/simpleprocessor.h"
 #include "simple-processor/ram.h"
 
 namespace Simulate

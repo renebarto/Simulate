@@ -22,19 +22,20 @@
     <ClInclude Include="export\simple-processor\AbstractSyntaxTree.h" />
     <ClInclude Include="export\simple-processor\emulator.h" />
     <ClInclude Include="export\simple-processor\imemory.h" />
-    <ClInclude Include="export\simple-processor\machine.h" />
+    <ClInclude Include="export\simple-processor\simpleprocessormachine.h" />
     <ClInclude Include="export\simple-processor\ram.h" />
     <ClInclude Include="export\simple-processor\processor.h" />
     <ClInclude Include="export\simple-processor\rom.h" />
+    <ClInclude Include="export\simple-processor\simpleprocessor.h" />
     <ClInclude Include="export\simple-processor\stringreader.h" />
     <ClInclude Include="export\simple-processor\stringwriter.h" />
     <ClInclude Include="export\simple-processor\Translator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AbstractSyntaxTree.cpp" />
-    <ClCompile Include="src\machine.cpp" />
-    <ClCompile Include="src\processor.cpp" />
+    <ClCompile Include="src\simpleprocessormachine.cpp" />
     <ClCompile Include="src\emulator.cpp" />
+    <ClCompile Include="src\simpleprocessor.cpp" />
     <ClCompile Include="src\Translator.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

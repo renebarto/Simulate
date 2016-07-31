@@ -76,21 +76,19 @@ TEST_FIXTURE(SimpleProcessorEmulatorTest, Construct)
 {
     SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
     SimpleProcessorEmulator emulator(machine);
-    AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, Flags::None, State::Uninitialized, 0);
+    AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, SimpleProcessor::Flags::None, State::Uninitialized, 0);
 }
 
 TEST_FIXTURE(SimpleProcessorEmulatorTest, Run)
 {
-    chrono::high_resolution_clock clock;
-
     SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
     SimpleProcessorEmulator emulator(machine);
-    AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, Flags::None, State::Uninitialized, 0);
-    chrono::high_resolution_clock::time_point start = clock.now();
+    AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, SimpleProcessor::Flags::None, State::Uninitialized, 0);
+    chrono::high_resolution_clock::time_point start = chrono::high_resolution_clock::now();
     emulator.Run();
-    chrono::high_resolution_clock::time_point end = clock.now();
+    chrono::high_resolution_clock::time_point end = chrono::high_resolution_clock::now();
     // As input is empty, a=0, which means there BCC EVEN occurs immediately. So only 7 instructions are executed, of which 3 with length 2, so clockcount=10, and memory stays at 0
-    AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0x13, 0x18, Flags::Z, State::Halted, 10);
+    AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0x13, 0x18, SimpleProcessor::Flags::Z, State::Halted, 10);
     AssertMemory(__FILE__, __LINE__, machine.GetMemory(), 0x13, 0x00);
     AssertMemory(__FILE__, __LINE__, machine.GetMemory(), 0x14, 0x00);
     EXPECT_EQ("0", writer.GetContents());
@@ -102,7 +100,7 @@ TEST_FIXTURE(SimpleProcessorEmulatorTest, RunWithInput)
     SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
     SimpleProcessorEmulator emulator(machine);
     reader.SetContents("65");
-    AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, Flags::None, State::Uninitialized, 0);
+    AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, SimpleProcessor::Flags::None, State::Uninitialized, 0);
     emulator.Run();
     // Startup: a = 65->32, C=1, BCC EVEN fails, instructions=3, clockcount=4
     // Run 1: a=32, C=1, temp=32, bits=0->1, BNZ LOOP, instructions=6, clockcount=11
@@ -112,7 +110,7 @@ TEST_FIXTURE(SimpleProcessorEmulatorTest, RunWithInput)
     // Run 3: a=4->2, C=0, BCC EVEN, BNZ LOOP, instructions=3, clockcount=5
     // Run 3: a=2->1, C=0, BCC EVEN, BNZ LOOP, instructions=3, clockcount=5
     // Run 3: a=1->0, C=1, temp=0, bits=1->2, BNZ LOOP fails, output=2, instructions=11, clockcount=18
-    AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 2, 0, 0, 0x13, 0x18, Flags::C | Flags::P, State::Halted, 58);
+    AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 2, 0, 0, 0x13, 0x18, SimpleProcessor::Flags::C | SimpleProcessor::Flags::P, State::Halted, 58);
     AssertMemory(__FILE__, __LINE__, machine.GetMemory(), 0x13, 0x00);
     AssertMemory(__FILE__, __LINE__, machine.GetMemory(), 0x14, 0x02);
     EXPECT_EQ("2", writer.GetContents());
@@ -123,10 +121,10 @@ TEST_FIXTURE(SimpleProcessorEmulatorTest, RunWithTracing)
     SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
     ostringstream stream;
     SimpleProcessorEmulatorOverride emulator(machine, stream);
-    AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, Flags::None, State::Uninitialized, 0);
+    AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, SimpleProcessor::Flags::None, State::Uninitialized, 0);
     emulator.Run(true);
     // As input is empty, a=0, which means there BCC EVEN occurs immediately. So only 7 instructions are executed, of which 3 with length 2, so clockcount=10, and memory stays at 0
-    AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0x13, 0x18, Flags::Z, State::Halted, 10);
+    AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0x13, 0x18, SimpleProcessor::Flags::Z, State::Halted, 10);
     AssertMemory(__FILE__, __LINE__, machine.GetMemory(), 0x13, 0x00);
     AssertMemory(__FILE__, __LINE__, machine.GetMemory(), 0x14, 0x00);
     EXPECT_EQ("0", writer.GetContents());

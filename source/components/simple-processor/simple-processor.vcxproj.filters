@@ -30,9 +30,6 @@
     <ClInclude Include="export\simple-processor\imemory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="export\simple-processor\machine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="export\simple-processor\ram.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -45,6 +42,12 @@
     <ClInclude Include="export\simple-processor\stringwriter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="export\simple-processor\simpleprocessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="export\simple-processor\simpleprocessormachine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AbstractSyntaxTree.cpp">
@@ -53,13 +56,13 @@
     <ClCompile Include="src\Translator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\processor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\emulator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\machine.cpp">
+    <ClCompile Include="src\simpleprocessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\simpleprocessormachine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
