@@ -120,7 +120,7 @@ template <class T>
 void RAM<T>::DisplayContents(std::ostream & stream)
 {
     size_t base = Base();
-    stream << "Base: " << Base() << " Size: " << Size() << endl;
+    stream << "Base: " << Base() << " Size: " << Size() << std::endl;
     size_t maxValuesToDisplay = std::min(Size(), MaxBytesToDisplay);
 
     stream << std::left << std::setw(10) << "Address" << std::right;

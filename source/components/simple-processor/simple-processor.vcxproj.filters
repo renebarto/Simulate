@@ -45,7 +45,13 @@
     <ClInclude Include="export\simple-processor\simpleprocessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="export\simple-processor\simpleprocessormachine.h">
+    <ClInclude Include="export\simple-processor\simplemachine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="export\simple-processor\simpleemulator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="export\simple-processor\assembler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -56,13 +62,13 @@
     <ClCompile Include="src\Translator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\emulator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\simpleprocessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\simpleprocessormachine.cpp">
+    <ClCompile Include="src\simpleemulator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\assembler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

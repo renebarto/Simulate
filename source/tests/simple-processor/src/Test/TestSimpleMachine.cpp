@@ -1,6 +1,6 @@
 #include "unit-test-c++/UnitTestC++.h"
 
-#include "simple-processor/simpleprocessormachine.h"
+#include "simple-processor/simplemachine.h"
 #include "simple-processor/stringreader.h"
 #include "simple-processor/stringwriter.h"
 #include "simple-processor/Assertions.h"
@@ -13,7 +13,7 @@ namespace Simulate
 namespace Test
 {
 
-class SimpleProcessorMachineTest : public UnitTestCpp::TestFixture
+class SimpleMachineTest : public UnitTestCpp::TestFixture
 {
 public:
 	virtual void SetUp();
@@ -31,22 +31,22 @@ static const std::vector<uint8_t> MachineCode =
     0x14, 0x0E, 0x18, 0x00, 0x00
 };
 
-void SimpleProcessorMachineTest::SetUp()
+void SimpleMachineTest::SetUp()
 {
 }
 
-void SimpleProcessorMachineTest::TearDown()
+void SimpleMachineTest::TearDown()
 {
 }
 
-TEST_FIXTURE(SimpleProcessorMachineTest, Construct)
+TEST_FIXTURE(SimpleMachineTest, Construct)
 {
-    SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
+    SimpleMachine machine(ClockFreq, MachineCode, reader, writer);
 }
 
-TEST_FIXTURE(SimpleProcessorMachineTest, ListCode)
+TEST_FIXTURE(SimpleMachineTest, ListCode)
 {
-    SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
+    SimpleMachine machine(ClockFreq, MachineCode, reader, writer);
 
     std::string expected = "00000000    INI\n"
                            "00000001    SHR\n"
@@ -66,9 +66,9 @@ TEST_FIXTURE(SimpleProcessorMachineTest, ListCode)
     EXPECT_EQ(expected, actual);
 }
 
-TEST_FIXTURE(SimpleProcessorMachineTest, Run)
+TEST_FIXTURE(SimpleMachineTest, Run)
 {
-    SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
+    SimpleMachine machine(ClockFreq, MachineCode, reader, writer);
     AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, SimpleProcessor::Flags::None, State::Uninitialized, 0);
     machine.Run();
     // As input is empty, a=0, which means there BCC EVEN occurs immediately. So only 7 instructions are executed, of which 3 with length 2, so clockcount=10, and memory stays at 0
@@ -78,9 +78,9 @@ TEST_FIXTURE(SimpleProcessorMachineTest, Run)
     EXPECT_EQ("0", writer.GetContents());
 }
 
-TEST_FIXTURE(SimpleProcessorMachineTest, RunWithInput)
+TEST_FIXTURE(SimpleMachineTest, RunWithInput)
 {
-    SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
+    SimpleMachine machine(ClockFreq, MachineCode, reader, writer);
     reader.SetContents("65");
     AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, SimpleProcessor::Flags::None, State::Uninitialized, 0);
     machine.Run();

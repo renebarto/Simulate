@@ -22,11 +22,12 @@
     <ClCompile Include="src\CommandLineOptionsParser.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Test\Assertions.cpp" />
+    <ClCompile Include="src\Test\TestAssembler.cpp" />
     <ClCompile Include="src\Test\TestRAM.cpp" />
     <ClCompile Include="src\Test\TestROM.cpp" />
+    <ClCompile Include="src\Test\TestSimpleEmulator.cpp" />
+    <ClCompile Include="src\Test\TestSimpleMachine.cpp" />
     <ClCompile Include="src\Test\TestSimpleProcessor.cpp" />
-    <ClCompile Include="src\Test\TestSimpleProcessorEmulator.cpp" />
-    <ClCompile Include="src\Test\TestSimpleProcessorMachine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\CommandLineOptionsParser.h" />

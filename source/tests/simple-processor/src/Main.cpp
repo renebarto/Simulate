@@ -7,11 +7,13 @@
 #include "core/DefaultLogger.h"
 #include "CommandLineOptionsParser.h"
 
+#include "simple-processor/AbstractSyntaxTree.h"
+
 int main(int argc, char* argv[])
 {
     OSAL::Console console;
 
-    const std::string moduleName = "osal";
+    const std::string moduleName = "simple-processor";
     console << fgcolor(OSAL::ConsoleColor::Magenta | OSAL::ConsoleColor::Intensity);
     console << "Running tests for: " << moduleName << std::endl;
     console << fgcolor(OSAL::ConsoleColor::Default);

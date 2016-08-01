@@ -1,6 +1,6 @@
 #include "unit-test-c++/UnitTestC++.h"
 
-#include "simple-processor/emulator.h"
+#include "simple-processor/simpleemulator.h"
 #include "simple-processor/stringreader.h"
 #include "simple-processor/stringwriter.h"
 #include "simple-processor/Assertions.h"
@@ -13,11 +13,11 @@ namespace Simulate
 namespace Test
 {
 
-class SimpleProcessorEmulatorOverride : public SimpleProcessorEmulator
+class SimpleEmulatorOverride : public SimpleEmulator
 {
 public:
-    SimpleProcessorEmulatorOverride(SimpleProcessorMachine & machine, ostream & stream)
-        : SimpleProcessorEmulator(machine)
+    SimpleEmulatorOverride(SimpleMachine & machine, ostream & stream)
+        : SimpleEmulator(machine)
         , stream(stream)
     {
     }
@@ -34,7 +34,7 @@ private:
     ostream & stream;
 };
 
-class SimpleProcessorEmulatorTest : public UnitTestCpp::TestFixture
+class SimpleEmulatorTest : public UnitTestCpp::TestFixture
 {
 public:
 	virtual void SetUp();
@@ -44,11 +44,11 @@ public:
     StringWriter writer;
 };
 
-void SimpleProcessorEmulatorTest::SetUp()
+void SimpleEmulatorTest::SetUp()
 {
 }
 
-void SimpleProcessorEmulatorTest::TearDown()
+void SimpleEmulatorTest::TearDown()
 {
 }
 
@@ -72,17 +72,17 @@ static const std::vector<uint8_t> MachineCode =
     /* 00000013 BITS            */ 0x00,
 };
 
-TEST_FIXTURE(SimpleProcessorEmulatorTest, Construct)
+TEST_FIXTURE(SimpleEmulatorTest, Construct)
 {
-    SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
-    SimpleProcessorEmulator emulator(machine);
+    SimpleMachine machine(ClockFreq, MachineCode, reader, writer);
+    SimpleEmulator emulator(machine);
     AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, SimpleProcessor::Flags::None, State::Uninitialized, 0);
 }
 
-TEST_FIXTURE(SimpleProcessorEmulatorTest, Run)
+TEST_FIXTURE(SimpleEmulatorTest, Run)
 {
-    SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
-    SimpleProcessorEmulator emulator(machine);
+    SimpleMachine machine(ClockFreq, MachineCode, reader, writer);
+    SimpleEmulator emulator(machine);
     AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, SimpleProcessor::Flags::None, State::Uninitialized, 0);
     chrono::high_resolution_clock::time_point start = chrono::high_resolution_clock::now();
     emulator.Run();
@@ -92,13 +92,13 @@ TEST_FIXTURE(SimpleProcessorEmulatorTest, Run)
     AssertMemory(__FILE__, __LINE__, machine.GetMemory(), 0x13, 0x00);
     AssertMemory(__FILE__, __LINE__, machine.GetMemory(), 0x14, 0x00);
     EXPECT_EQ("0", writer.GetContents());
-    cout << chrono::duration_cast<chrono::nanoseconds>(end - start).count() << endl;
+    cout << dec << chrono::duration_cast<chrono::nanoseconds>(end - start).count() << endl;
 }
 
-TEST_FIXTURE(SimpleProcessorEmulatorTest, RunWithInput)
+TEST_FIXTURE(SimpleEmulatorTest, RunWithInput)
 {
-    SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
-    SimpleProcessorEmulator emulator(machine);
+    SimpleMachine machine(ClockFreq, MachineCode, reader, writer);
+    SimpleEmulator emulator(machine);
     reader.SetContents("65");
     AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, SimpleProcessor::Flags::None, State::Uninitialized, 0);
     emulator.Run();
@@ -116,11 +116,11 @@ TEST_FIXTURE(SimpleProcessorEmulatorTest, RunWithInput)
     EXPECT_EQ("2", writer.GetContents());
 }
 
-TEST_FIXTURE(SimpleProcessorEmulatorTest, RunWithTracing)
+TEST_FIXTURE(SimpleEmulatorTest, RunWithTracing)
 {
-    SimpleProcessorMachine machine(ClockFreq, MachineCode, reader, writer);
+    SimpleMachine machine(ClockFreq, MachineCode, reader, writer);
     ostringstream stream;
-    SimpleProcessorEmulatorOverride emulator(machine, stream);
+    SimpleEmulatorOverride emulator(machine, stream);
     AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, SimpleProcessor::Flags::None, State::Uninitialized, 0);
     emulator.Run(true);
     // As input is empty, a=0, which means there BCC EVEN occurs immediately. So only 7 instructions are executed, of which 3 with length 2, so clockcount=10, and memory stays at 0
