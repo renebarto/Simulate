@@ -16,23 +16,38 @@ Assembler::~Assembler()
 {
 }
 
-void Assembler::Assemble(std::vector<uint8_t> machineCode, bool & errors)
+bool Assembler::Assemble(std::vector<uint8_t> & machineCode)
 {
     machineCode.clear();
+    messages.clear();
     std::string mnemonic;   // mnemonic for matching
     uint8_t lc = 0;         // location counter
     SimpleProcessor::Opcode op; // assembled opcode
     int number;             // assembled number
     char ch;                // general character for input
     bool ok;                // error checking on reading numbers
+    size_t sourceLine = 1;
+    bool failures = false;
 
-    printf("Assembling code ... \n");
-    lc = 0;                                     // initialize location counter
-    errors = false;
     do
     {
         do
+        {
             ch = toupper(source.get());
+            if (ch == '\r')
+            {
+                ch = toupper(source.get());
+                if (ch == '\n')
+                {
+                    ch = toupper(source.get());
+                }
+                sourceLine++;
+            }
+            else if (ch == '\n')
+            {
+                sourceLine++;
+            }
+        }
         while (ch <= ' ' && !source.eof());     // skip spaces and blank lines
     
         if (!source.eof())                      // there should be a line to assemble
@@ -43,8 +58,10 @@ void Assembler::Assemble(std::vector<uint8_t> machineCode, bool & errors)
                 op = machine.LookupOpcode(mnemonic);   // look it up
                 if (op == SimpleProcessor::Opcode::BAD_OPCODE) // the opcode was unrecognizable
                 {
-                    cout << mnemonic << " - Bad mnemonic at " << lc << std::endl; 
-                    errors = true;
+                    std::ostringstream stream;
+                    stream << mnemonic << " - Bad mnemonic at " << lc;
+                    messages.push_back(AssemblerMessage(sourceLine, stream.str()));
+                    failures = true;
                 }
                 machineCode.push_back(uint8_t(op)); // store numerical equivalent
             }
@@ -53,8 +70,10 @@ void Assembler::Assemble(std::vector<uint8_t> machineCode, bool & errors)
                 ReadInt(ch, number, ok);        // unpack it
                 if (!ok)
                 {
-                    cout << "Bad number at " << lc << std::endl;
-                    errors = true;
+                    std::ostringstream stream;
+                    stream << "Bad number at " << lc;
+                    messages.push_back(AssemblerMessage(sourceLine, stream.str()));
+                    failures = true;
                 }
                 if (number >= 0)                // convert to proper byte value
                     machineCode.push_back(number % 256);
@@ -65,6 +84,7 @@ void Assembler::Assemble(std::vector<uint8_t> machineCode, bool & errors)
         }
     }
     while (!source.eof());
+    return !failures;
 }
 
 void Assembler::ReadMnemonic(char & ch, std::string & mnemonic)

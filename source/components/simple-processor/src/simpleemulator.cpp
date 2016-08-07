@@ -40,5 +40,10 @@ void SimpleEmulator::Reset()
 
 void SimpleEmulator::Trace(SimpleProcessor::InstructionInfo const & info, SimpleProcessor::Registers const & registers)
 {
-    cout << "Trace" << info.instructionMnemonic << "(" << info.instructionSize << ")" << endl;
+    cout << "Trace @" << hex << setw(2) << setfill('0') << uppercase << int(registers.pcLast) << ": " << info.instructionMnemonic;
+    if (info.instructionSize > 1)
+    {
+        cout << " " << hex << setw(2) << setfill('0') << uppercase << int(registers.operand);
+    }
+    cout << endl << registers << dec;
 }

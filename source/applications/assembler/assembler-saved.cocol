@@ -1,0 +1,60 @@
+COMPILER Assembler
+
+CHARACTERS
+    plus = "+" .
+    minus = "-" .
+    asterisk = "*" .
+    slash = "/" .
+    comma = "," .
+    left_parenthesis = "(" .
+    right_parenthesis = ")" .
+    single_quote = "'" .
+    ampersand = "&" .
+    colon = ':' .
+    dollar_sign = "$" .
+    at_sign = "@" .
+    question_mark = "?" .
+    equal_sign = "+" .
+    less_than_sign = "<" .
+    greater_than_sign = ">" .
+    percent_sign = "%" .
+    exclamation_point = "!" .
+    semicolon = ";" .
+    period = "." .
+    tab = '\t' .
+    cr = '\r' .
+    lf = '\n' .
+    ff = '\f' .
+    letter = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" .
+    digit = "0123456789" .
+    hexdigit = digit + "ABCDEF" .
+    string_char = ANY - single_quote .
+    comment_char = ANY - cr .
+    
+
+TOKENS
+    Identifier = letter { letter | digit | question_mark } .
+    LabelIdentifier = letter | question_mark | at_sign { letter | digit } .
+    NameIdentifier = letter | question_mark | at_sign { letter | digit } .
+    DecNumber = digit { digit } .
+    HexNumber = "$" hexdigit { hexdigit } .
+    Expression = left_parenthesis Expression right_parenthesis .
+    String = single_quote { string_char } single_quote .
+    Comment = semicolon { comment_char } .
+    Colon = colon .
+    LineEnd = cr .
+    SetDirective = "SET" .
+    EquDirective = "EQU" .
+    MacroDirective = "MACRO" .
+    EndMacroDirective = "ENDM" .
+    LocalDirective = "LOCAL" .
+
+PRODUCTIONS
+    Assembler = { Statement } EndStatement .
+    EndStatement = "END" .
+    Statement = [LineNumber] [Label] Opcode [Comment] LineEnd .
+    Label = LabelIdentifier Colon .
+    Opcode = "NOP" .
+    LineNumber = DecNumber .
+    
+END Assembler.

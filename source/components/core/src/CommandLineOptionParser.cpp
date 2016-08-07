@@ -20,8 +20,8 @@ struct OptionDefinition
     int val;
 };
 
-CommandLineParser::CommandLineParser(const string & name /* = DefaultMainOptionsGroupName*/,
-                                     const string & description /* = ""*/)
+CommandLineParser::CommandLineParser(string const & name /* = DefaultMainOptionsGroupName*/,
+                                     string const & description /* = ""*/)
     : groups()
     , mainGroup()
     , name(name)
@@ -40,7 +40,7 @@ CommandLineParser::~CommandLineParser()
 {
 }
 
-void CommandLineParser::Parse(int argc, char * const * argv)
+void CommandLineParser::Parse(int argc, char const * const * argv)
 {
     try
     {
@@ -61,7 +61,7 @@ void CommandLineParser::Parse(int argc, char * const * argv)
     }
 }
 
-void CommandLineParser::InternalParse(int argc, char * const * argv)
+void CommandLineParser::InternalParse(int argc, char const * const * argv)
 {
     currentArgumentIndex = 1;
 
@@ -108,7 +108,7 @@ void CommandLineParser::InternalParse(int argc, char * const * argv)
     }
 }
 
-void CommandLineParser::HandleLongOption(int argc, char * const * argv)
+void CommandLineParser::HandleLongOption(int argc, char const * const * argv)
 {
     const char *positionEquals = strchr(currentArgumentPtr, '=');
     const char *positionArgument = nullptr;
@@ -174,7 +174,7 @@ void CommandLineParser::HandleLongOption(int argc, char * const * argv)
     }
 }
 
-void CommandLineParser::HandleShortOption(int argc, char * const * argv)
+void CommandLineParser::HandleShortOption(int argc, char const * const * argv)
 {
     char optionName = *currentArgumentPtr;
     string optionNameString = string(1, optionName);
@@ -251,7 +251,7 @@ void CommandLineParser::FillOptionList()
     }
 }
 
-void CommandLineParser::GetNextArgument(char * const * argv)
+void CommandLineParser::GetNextArgument(char const * const * argv)
 {
     currentArgumentPtr = argv[currentArgumentIndex];
     currentArgumentIndex++;
@@ -275,16 +275,17 @@ void CommandLineParser::SelectOption(CommandLineOptionPtr option, const char * v
     OnParseOption(option);
 }
 
-void CommandLineParser::AddParameter(const string & parameter)
+void CommandLineParser::AddParameter(string const & parameter)
 {
     nonOptions.push_back(parameter);
+    OnParseParameter(parameter);
 }
 
-void CommandLineParser::OnParseOption(const CommandLineOptionPtr UNUSED(option))
+void CommandLineParser::OnParseOption(CommandLineOptionPtr const UNUSED(option))
 {
 }
 
-void CommandLineParser::OnParseParameter(const std::string UNUSED(parameter))
+void CommandLineParser::OnParseParameter(std::string const & UNUSED(parameter))
 {
 }
 

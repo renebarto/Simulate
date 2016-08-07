@@ -397,6 +397,7 @@ SimpleProcessor::InstructionInfo SimpleProcessor::LookupOpcode(uint8_t opcode)
 void SimpleProcessor::FetchAndExecute()
 {
     registers.state = State::Running;
+    registers.pcLast = registers.pc;
     FetchInstruction();
     Execute(registers.ir);
 }
@@ -576,11 +577,10 @@ void SimpleProcessor::Execute(uint8_t opcodeByte)
     if (memory == nullptr)
         throw UnassignedMemoryException();
     InstructionInfo info = LookupOpcode(opcodeByte);
-    uint8_t byte2{};
     uint8_t value{};
     if (info.instructionSize > 1)
     {
-        byte2 = memory->Fetch(registers.pc++);
+        registers.operand = memory->Fetch(registers.pc++);
     }
     SimpleProcessor::Opcode opcode = SimpleProcessor::Opcode(opcodeByte);
     bool condition = true;
@@ -677,120 +677,120 @@ void SimpleProcessor::Execute(uint8_t opcodeByte)
         registers.state = State::Halted;
         break;
     case SimpleProcessor::Opcode::LDA:
-        Load(memory->Fetch(byte2));
+        Load(memory->Fetch(registers.operand));
         break;
     case SimpleProcessor::Opcode::LDX:
-        Load(memory->Fetch(Index(byte2)));
+        Load(memory->Fetch(Index(registers.operand)));
         break;
     case SimpleProcessor::Opcode::LDI:
-        Load(byte2);
+        Load(registers.operand);
         break;
     case SimpleProcessor::Opcode::LSP:
-        registers.sp = memory->Fetch(byte2);
+        registers.sp = memory->Fetch(registers.operand);
         break;
     case SimpleProcessor::Opcode::LSI:
-        registers.sp = byte2;
+        registers.sp = registers.operand;
         break;
     case SimpleProcessor::Opcode::STA:
-        Store(byte2);
+        Store(registers.operand);
         break;
     case SimpleProcessor::Opcode::STX:
-        Store(Index(byte2));
+        Store(Index(registers.operand));
         break;
     case SimpleProcessor::Opcode::ADD:
-        Add(memory->Fetch(byte2));
+        Add(memory->Fetch(registers.operand));
         break;
     case SimpleProcessor::Opcode::ADX:
-        Add(memory->Fetch(Index(byte2)));
+        Add(memory->Fetch(Index(registers.operand)));
         break;
     case SimpleProcessor::Opcode::ADI:
-        Add(byte2);
+        Add(registers.operand);
         break;
     case SimpleProcessor::Opcode::ADC:
-        AddC(memory->Fetch(byte2));
+        AddC(memory->Fetch(registers.operand));
         break;
     case SimpleProcessor::Opcode::ACX:
-        AddC(memory->Fetch(Index(byte2)));
+        AddC(memory->Fetch(Index(registers.operand)));
         break;
     case SimpleProcessor::Opcode::ACI:
-        AddC(byte2);
+        AddC(registers.operand);
         break;
     case SimpleProcessor::Opcode::SUB:
-        Sub(memory->Fetch(byte2));
+        Sub(memory->Fetch(registers.operand));
         break;
     case SimpleProcessor::Opcode::SBX:
-        Sub(memory->Fetch(Index(byte2)));
+        Sub(memory->Fetch(Index(registers.operand)));
         break;
     case SimpleProcessor::Opcode::SBI:
-        Sub(byte2);
+        Sub(registers.operand);
         break;
     case SimpleProcessor::Opcode::SBC:
-        SubC(memory->Fetch(byte2));
+        SubC(memory->Fetch(registers.operand));
         break;
     case SimpleProcessor::Opcode::SCX:
-        SubC(memory->Fetch(Index(byte2)));
+        SubC(memory->Fetch(Index(registers.operand)));
         break;
     case SimpleProcessor::Opcode::SCI:
-        SubC(byte2);
+        SubC(registers.operand);
         break;
     case SimpleProcessor::Opcode::CMP:
-        Cmp(memory->Fetch(byte2));
+        Cmp(memory->Fetch(registers.operand));
         break;
     case SimpleProcessor::Opcode::CPX:
-        Cmp(memory->Fetch(Index(byte2)));
+        Cmp(memory->Fetch(Index(registers.operand)));
         break;
     case SimpleProcessor::Opcode::CPI:
-        Cmp(byte2);
+        Cmp(registers.operand);
         break;
     case SimpleProcessor::Opcode::ANA:
-        And(memory->Fetch(byte2));
+        And(memory->Fetch(registers.operand));
         break;
     case SimpleProcessor::Opcode::ANX:
-        And(memory->Fetch(Index(byte2)));
+        And(memory->Fetch(Index(registers.operand)));
         break;
     case SimpleProcessor::Opcode::ANI:
-        And(byte2);
+        And(registers.operand);
         break;
     case SimpleProcessor::Opcode::ORA:
-        Or(memory->Fetch(byte2));
+        Or(memory->Fetch(registers.operand));
         break;
     case SimpleProcessor::Opcode::ORX:
-        Or(memory->Fetch(Index(byte2)));
+        Or(memory->Fetch(Index(registers.operand)));
         break;
     case SimpleProcessor::Opcode::ORI:
-        Or(byte2);
+        Or(registers.operand);
         break;
     case SimpleProcessor::Opcode::BRN:
-        registers.pc = byte2;
+        registers.pc = registers.operand;
         break;
     case SimpleProcessor::Opcode::BZE:
         if ((registers.flags & Flags::Z) != Flags::None)
-            registers.pc = byte2;
+            registers.pc = registers.operand;
         break;
     case SimpleProcessor::Opcode::BNZ:
         if ((registers.flags & Flags::Z) == Flags::None)
-            registers.pc = byte2;
+            registers.pc = registers.operand;
         break;
     case SimpleProcessor::Opcode::BPZ:
         if ((registers.flags & Flags::P) != Flags::None)
-            registers.pc = byte2;
+            registers.pc = registers.operand;
         break;
     case SimpleProcessor::Opcode::BNG:
         if ((registers.flags & Flags::P) == Flags::None)
-            registers.pc = byte2;
+            registers.pc = registers.operand;
         break;
     case SimpleProcessor::Opcode::BCC:
         if ((registers.flags & Flags::C) == Flags::None)
-            registers.pc = byte2;
+            registers.pc = registers.operand;
         break;
     case SimpleProcessor::Opcode::BCS:
         if ((registers.flags & Flags::C) != Flags::None)
-            registers.pc = byte2;
+            registers.pc = registers.operand;
         break;
     case SimpleProcessor::Opcode::JSR:
         Decrement(registers.sp);
         memory->Store(registers.sp, registers.pc);
-        registers.pc = byte2;
+        registers.pc = registers.operand;
         break;
     default:
         throw IllegalInstructionException(opcodeByte);

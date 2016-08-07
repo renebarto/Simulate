@@ -40,12 +40,12 @@ class CommandLineParserArgumentException : public CommandLineParserException
 {
 protected:
     int argc;
-    char * const * argv;
+    char const * const * argv;
     const std::string optionName;
 public:
     CommandLineParserArgumentException(char const * functionName, char const * fileName, int line,
-                                       int argc, char * const * argv,
-                                       const std::string & optionName)
+                                       int argc, char const * const * argv,
+                                       std::string const & optionName)
         : CommandLineParserException(functionName, fileName, line)
         , argc(argc)
         , argv(argv)
@@ -69,8 +69,8 @@ class CommandLineParserUnexpectedArgumentException : public CommandLineParserArg
 {
 public:
     CommandLineParserUnexpectedArgumentException(char const * functionName, char const * fileName,
-                                                 int line, int argc, char * const * argv,
-                                                 const std::string & optionName)
+                                                 int line, int argc, char const * const * argv,
+                                                 std::string const & optionName)
         : CommandLineParserArgumentException(functionName, fileName, line, argc, argv, optionName)
     {
     }
@@ -87,8 +87,8 @@ class CommandLineParserExpectedArgumentException : public CommandLineParserArgum
 {
 public:
     CommandLineParserExpectedArgumentException(char const * functionName, char const * fileName,
-                                               int line, int argc, char * const * argv,
-                                               const std::string & optionName) :
+                                               int line, int argc, char const * const * argv,
+                                               std::string const & optionName) :
         CommandLineParserArgumentException(functionName, fileName, line, argc, argv, optionName)
     {
     }
@@ -105,8 +105,8 @@ class CommandLineParserUnknownOptionException : public CommandLineParserArgument
 {
 public:
     CommandLineParserUnknownOptionException(char const * functionName, char const * fileName, int line,
-                                            int argc, char * const * argv,
-                                            const std::string & optionName) :
+                                            int argc, char const * const * argv,
+                                            std::string const & optionName) :
         CommandLineParserArgumentException(functionName, fileName, line, argc, argv, optionName)
     {
     }
@@ -123,8 +123,8 @@ class CommandLineParserCannotGroupException : public CommandLineParserArgumentEx
 {
 public:
     CommandLineParserCannotGroupException(char const * functionName, char const * fileName,
-                                          int line, int argc, char * const * argv,
-                                          const std::string & optionName) :
+                                          int line, int argc, char const * const * argv,
+                                          std::string const & optionName) :
         CommandLineParserArgumentException(functionName, fileName, line, argc, argv, optionName)
     {
     }
@@ -156,14 +156,14 @@ public:
     static const std::string DefaultMainOptionsGroupName;
     static const std::string HelpOptionsGroupName;
 
-    CommandLineParser(const std::string & name = DefaultMainOptionsGroupName,
-                      const std::string & description = "");
+    CommandLineParser(std::string const & name = DefaultMainOptionsGroupName,
+                      std::string const & description = "");
     CommandLineParser(const CommandLineParser &) = delete;
     virtual ~CommandLineParser();
 
     CommandLineParser & operator = (const CommandLineParser &) = delete;
 
-    void Parse(int argc, char * const * argv);
+    void Parse(int argc, char const * const * argv);
     int NumNonOptions()
     {
         return (int)nonOptions.size();
@@ -173,46 +173,46 @@ public:
         return nonOptions;
     }
 
-    void AddOptionNoArgument(const std::string & name, char shortName,
-                             const std::string & description)
+    void AddOptionNoArgument(std::string const & name, char shortName,
+                             std::string const & description)
     {
         MainGroup()->AddOptionNoArgument(name, shortName, description);
     }
 
-    void AddOptionNoArgument(const std::string & name, char shortName,
-                             const std::string & description, bool * optionFound)
+    void AddOptionNoArgument(std::string const & name, char shortName,
+                             std::string const & description, bool * optionFound)
     {
         MainGroup()->AddOptionNoArgument(name, shortName, description, optionFound);
     }
 
-    template <class T> void AddOptionRequiredArgument(const std::string & name, char shortName,
-            const std::string & description, T * argument)
+    template <class T> void AddOptionRequiredArgument(std::string const & name, char shortName,
+            std::string const & description, T * argument)
     {
         MainGroup()->AddOptionRequiredArgument(name, shortName, description, argument);
     }
 
-    template <class T> void AddOptionRequiredArgument(const std::string & name, char shortName,
-            const std::string & description,
+    template <class T> void AddOptionRequiredArgument(std::string const & name, char shortName,
+            std::string const & description,
             bool * optionFound, T * argument)
     {
         MainGroup()->AddOptionRequiredArgument(name, shortName, description, optionFound, argument);
     }
 
-    template <class T> void AddOptionOptionalArgument(const std::string & name, char shortName,
-            const std::string & description, T * argument)
+    template <class T> void AddOptionOptionalArgument(std::string const & name, char shortName,
+            std::string const & description, T * argument)
     {
         MainGroup()->AddOptionOptionalArgument(name, shortName, description, argument);
     }
 
-    template <class T> void AddOptionOptionalArgument(const std::string & name, char shortName,
-            const std::string & description,
+    template <class T> void AddOptionOptionalArgument(std::string const & name, char shortName,
+            std::string const & description,
             bool * optionFound, T * argument)
     {
         MainGroup()->AddOptionOptionalArgument(name, shortName, description, optionFound, argument);
     }
 
-    virtual void OnParseOption(const CommandLineOptionPtr option);
-    virtual void OnParseParameter(const std::string parameter);
+    virtual void OnParseOption(CommandLineOptionPtr const option);
+    virtual void OnParseParameter(std::string const & parameter);
 
     void AddGroup(const CommandLineOptionGroupPtr group);
     const CommandLineOptionGroupPtr MainGroup() const;
@@ -234,8 +234,8 @@ public:
     {
         return showHelp;
     }
-    std::string GetHelp(const std::string & applicationName, bool mainHelp = true);
-    std::string GetHelp(const std::string & applicationName, bool mainHelp,
+    std::string GetHelp(std::string const & applicationName, bool mainHelp = true);
+    std::string GetHelp(std::string const & applicationName, bool mainHelp,
                         const CommandLineOptionGroupPtr group);
 
 protected:
@@ -252,19 +252,19 @@ private:
     bool IsInGroups(const CommandLineOptionGroupPtr group);
     void SetupStandardGroups();
 
-    void InternalParse(int argc, char * const * argv);
-    void HandleLongOption(int argc, char * const * argv);
-    void HandleShortOption(int argc, char * const * argv);
+    void InternalParse(int argc, char const * const * argv);
+    void HandleLongOption(int argc, char const * const * argv);
+    void HandleShortOption(int argc, char const * const * argv);
 
     void FillOptionList();
-    void GetNextArgument(char * const * argv);
+    void GetNextArgument(char const * const * argv);
     void SelectOption(CommandLineOptionPtr option, char const * value);
-    void AddParameter(const std::string & parameter);
+    void AddParameter(std::string const & parameter);
 
     int MatchShortOption(char name);
     int MatchLongOption(char const * name, size_t nameLength, bool allowShortOptions);
 
-    char * currentArgumentPtr;
+    char const * currentArgumentPtr;
     int currentArgumentIndex;
     std::vector<CommandLineOptionPtr> optionList;
 };

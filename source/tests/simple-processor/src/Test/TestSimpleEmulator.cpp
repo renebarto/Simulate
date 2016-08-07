@@ -140,6 +140,19 @@ TEST_FIXTURE(SimpleEmulatorTest, RunWithTracing)
     EXPECT_EQ(streamExpected.str(), stream.str());
 }
 
+TEST_FIXTURE(SimpleEmulatorTest, RunWithTracingExtended)
+{
+    SimpleMachine machine(ClockFreq, MachineCode, reader, writer);
+    SimpleEmulator emulator(machine);
+    reader.SetContents("65");
+    AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0, 0, 0, 0, 0, SimpleProcessor::Flags::None, State::Uninitialized, 0);
+    emulator.Run(true);
+    AssertRegisters(__FILE__, __LINE__, machine.GetRegisters(), 0x02, 0, 0, 0x13, 0x18, SimpleProcessor::Flags::C | SimpleProcessor::Flags::P, State::Halted, 58);
+    AssertMemory(__FILE__, __LINE__, machine.GetMemory(), 0x13, 0x00);
+    AssertMemory(__FILE__, __LINE__, machine.GetMemory(), 0x14, 0x02);
+    EXPECT_EQ("2", writer.GetContents());
+}
+
 } // namespace Test
 
 } // namespace Simulate

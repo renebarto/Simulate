@@ -101,7 +101,9 @@ public:
     SimpleProcessorAddressType x;
     uint8_t ir;
     SimpleProcessorAddressType pc;
+    SimpleProcessorAddressType pcLast;
     SimpleProcessorFlags flags;
+    uint8_t operand;
 
     SimpleProcessorRegisters()
         : a()
@@ -109,7 +111,9 @@ public:
         , x()
         , ir()
         , pc()
+        , pcLast()
         , flags()
+        , operand()
     {
     }
     void Reset() override;
@@ -198,6 +202,19 @@ static std::ostream & operator << (std::ostream & stream, SimpleProcessorInstruc
         stream << "address8";
         break;
     }
+    return stream;
+}
+
+static std::ostream & operator << (std::ostream & stream, SimpleProcessor::Registers const & registers)
+{
+    stream << "  A    =" << std::hex << std::setw(2) << std::setfill('0') << std::uppercase << int(registers.a) << std::endl
+           << "  X    =" << std::hex << std::setw(2) << std::setfill('0') << std::uppercase << int(registers.x) << std::endl
+           << "  IR   =" << std::hex << std::setw(2) << std::setfill('0') << std::uppercase << int(registers.ir) << std::endl
+           << "  PC   =" << std::hex << std::setw(2) << std::setfill('0') << std::uppercase << int(registers.pc) << std::endl
+           << "  SP   =" << std::hex << std::setw(2) << std::setfill('0') << std::uppercase << int(registers.sp) << std::endl
+           << "  F    =" << registers.flags << std::endl
+           << "  State=" << registers.state << std::endl
+           << "  Clk  =" << std::dec << registers.totalClockCount << std::endl;
     return stream;
 }
 

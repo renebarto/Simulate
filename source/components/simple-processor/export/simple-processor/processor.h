@@ -278,4 +278,31 @@ void Processor<AddressType, Opcode, Registers, InstructionInfo>::Reset()
     }
 }
 
+static std::ostream & operator << (std::ostream & stream, State state)
+{
+    std::string str;
+    switch (state)
+    {
+    case State::Uninitialized:
+        stream << "Uninitialized";
+        break;
+    case State::Running:
+        stream << "Running";
+        break;
+    case State::Halted:
+        stream << "Halted";
+        break;
+    case State::BadData:
+        stream << "Bad data";
+        break;
+    case State::BadOpcode:
+        stream << "Bad opcode";
+        break;
+    case State::NoData:
+        stream << "No data";
+        break;
+    }
+    return stream;
+}
+
 } // namespace Simulate

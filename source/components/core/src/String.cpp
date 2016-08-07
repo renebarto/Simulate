@@ -105,5 +105,57 @@ std::string Trim(const std::string & text)
     return TrimStart(TrimEnd(text));
 }
 
+std::string ToString(std::wstring const & str)
+{
+    size_t sz = str.length();
+    #if defined(_MSC_VER)
+        int nd = WideCharToMultiByte(CP_UTF8, 0, &str[0], int(sz), NULL, 0, NULL, NULL);
+        std::string ret(nd, 0);
+        int w = WideCharToMultiByte(CP_UTF8, 0, &str[0], int(sz), &ret[0], nd, NULL, NULL);
+        if (w != sz)
+            throw std::runtime_error("Invalid size written");
+        return ret;
+    #else
+        const wchar_t* p = str.c_str();
+        char* tp = new char[sz];
+        size_t w = wcstombs(tp, p, sz);
+        if (w != sz)
+        {
+            delete[] tp;
+            throw std::runtime_error("Invalid size written");
+        }
+        std::string ret(tp);
+        delete[] tp;
+        return ret;
+    #endif
+}
+
+std::wstring ToWString(std::string const & str)
+{
+    #if defined(_MSC_VER)
+        size_t sz = str.length();
+        int nd = MultiByteToWideChar(CP_UTF8, 0, &str[0], int(sz), NULL, 0);
+        std::wstring ret(nd, 0);
+        int w = MultiByteToWideChar(CP_UTF8, 0, &str[0], int(sz), &ret[0], nd);
+        if (w != sz)
+            throw std::runtime_error("Invalid size written");
+        return ret;
+    #else
+        const char* p = str.c_str();
+        size_t len = str.length();
+        size_t sz = len * sizeof(wchar_t);
+        wchar_t* tp = new wchar_t[sz];
+        size_t w = mbstowcs(tp, p, sz);
+        if (w != len) 
+        {
+            delete[] tp;
+            throw std::runtime_error("Invalid size written");
+        }
+        std::wstring ret(tp);
+        delete[] tp;
+        return ret;
+    #endif
+}
+
 } // namespace String
 } // namespace Core

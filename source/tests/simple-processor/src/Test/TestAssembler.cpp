@@ -51,19 +51,59 @@ static const std::vector<uint8_t> MachineCode =
     /* 00000013 TEMP            */ 0x00, 
     /* 00000013 BITS            */ 0x00,
 };
+static const std::string SourceCode = "INI\n"
+                                      "SHR\n" 
+                                      "BCC 13\n" 
+                                      "STA 19\n" 
+                                      "LDA 20\n" 
+                                      "INC\n" 
+                                      "STA 20\n" 
+                                      "LDA 19\n" 
+                                      "BNZ 1\n" 
+                                      "LDA 20\n" 
+                                      "OTI\n" 
+                                      "HLT\n" 
+                                      "NOP\n" 
+                                      "NOP\n";
 
 TEST_FIXTURE(AssemblerTest, Construct)
 {
     std::istringstream stream("");
     SimpleMachine machine(ClockFreq, MachineCode, reader, writer);
     Assembler assembler(machine, stream);
+}
+
+TEST_FIXTURE(AssemblerTest, AssembleEmpty)
+{
+    std::istringstream stream("");
+    SimpleMachine machine(ClockFreq, MachineCode, reader, writer);
+    Assembler assembler(machine, stream);
 
     std::vector<uint8_t> machineCode;
-    bool errors;
-    assembler.Assemble(machineCode, errors);
+    EXPECT_TRUE(assembler.Assemble(machineCode));
 
-    EXPECT_FALSE(errors);
+    std::vector<uint8_t> expected;
+    EXPECT_EQ(expected, machineCode);
+}
+
+TEST_FIXTURE(AssemblerTest, Assemble)
+{
+    std::istringstream stream(SourceCode);
+    SimpleMachine machine(ClockFreq, MachineCode, reader, writer);
+    Assembler assembler(machine, stream);
+
+    std::vector<uint8_t> machineCode;
+    EXPECT_TRUE(assembler.Assemble(machineCode));
+
     EXPECT_EQ(MachineCode, machineCode);
+    if (MachineCode != machineCode)
+    {
+        cout << "Expected:" << endl;
+        machine.DisplayMemory(cout);
+        cout << "Actual:" << endl;
+        RAM<uint8_t> ram(0, 256, machineCode);
+        ram.DisplayContents(cout);
+    }
 }
 
 } // namespace Test
