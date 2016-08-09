@@ -40,127 +40,222 @@ Copyright (c) 2016 Rene Barto
 using namespace Coco;
 using namespace String;
 
-wchar_t * Coco::String::Create(const wchar_t *value)
+//wchar_t * Coco::String::Create(const wchar_t *value)
+//{
+//    return coco_string_create(value);
+//}
+//
+//wchar_t * Coco::String::Create(const wchar_t *value, int startIndex)
+//{
+//    return coco_string_create(value, startIndex);
+//}
+//
+//wchar_t * Coco::String::Create(const wchar_t *value, int startIndex, int length)
+//{
+//    return coco_string_create(value, startIndex, length);
+//}
+
+std::string Coco::String::Create(std::string const & value)
 {
-    return coco_string_create(value);
+    return value;
 }
 
-wchar_t * Coco::String::Create(const wchar_t *value, int startIndex)
+std::string Coco::String::Create(std::string const & value, size_t startIndex)
 {
-    return coco_string_create(value, startIndex);
+    return value.substr(startIndex);
 }
 
-wchar_t * Coco::String::Create(const wchar_t *value, int startIndex, int length)
+std::string Coco::String::Create(std::string const & value, size_t startIndex, size_t length)
 {
-    return coco_string_create(value, startIndex, length);
+    return value.substr(startIndex, length);
 }
 
-wchar_t * Coco::String::Create(std::string const & value)
+std::wstring Coco::String::Create(std::wstring const & value)
 {
-    std::wstring valueW = Core::String::ToWString(value);
-    return coco_string_create(valueW.c_str());
+    return value;
 }
 
-wchar_t * Coco::String::Create(std::string const & value, int startIndex)
+std::wstring Coco::String::Create(std::wstring const & value, size_t startIndex)
 {
-    std::wstring valueW = Core::String::ToWString(value);
-    return coco_string_create(valueW.c_str(), startIndex);
+    return value.substr(startIndex);
 }
 
-wchar_t * Coco::String::Create(std::string const & value, int startIndex, int length)
+std::wstring Coco::String::Create(std::wstring const & value, size_t startIndex, size_t length)
 {
-    std::wstring valueW = Core::String::ToWString(value);
-    return coco_string_create(valueW.c_str(), startIndex, length);
+    return value.substr(startIndex, length);
 }
 
-wchar_t * Coco::String::Create(std::wstring const & value)
+//wchar_t * Coco::String::CreateAppend(wchar_t const * data1, wchar_t const * data2)
+//{
+//    return coco_string_create_append(data1, data2);
+//}
+//
+//wchar_t * Coco::String::CreateAppend(wchar_t const * data, wchar_t const value)
+//{
+//    return coco_string_create_append(data, value);
+//}
+//
+std::string Coco::String::CreateAppend(std::string const & data1, std::string const & data2)
 {
-    return coco_string_create(value.c_str());
+    return data1 + data2;
 }
 
-wchar_t * Coco::String::Create(std::wstring const & value, int startIndex)
+std::string Coco::String::CreateAppend(std::string const & data, char const value)
 {
-    return coco_string_create(value.c_str(), startIndex);
+    return data + value;
 }
 
-wchar_t * Coco::String::Create(std::wstring const & value, int startIndex, int length)
+std::wstring Coco::String::CreateAppend(std::wstring const & data1, std::wstring const & data2)
 {
-    return coco_string_create(value.c_str(), startIndex, length);
+    return data1 + data2;
 }
 
-wchar_t * Coco::String::CreateAppend(wchar_t const * data1, wchar_t const * data2)
+std::wstring Coco::String::CreateAppend(std::wstring const & data, wchar_t const value)
 {
-    return coco_string_create_append(data1, data2);
+    return data + value;
 }
 
-wchar_t * Coco::String::CreateAppend(wchar_t const * data, wchar_t const value)
+std::wstring Coco::String::CreateUpper(std::wstring const & data)
 {
-    return coco_string_create_append(data, value);
+	if (data.empty())
+        return data;
+
+    size_t dataLen = data.length();
+
+	std::wstring newData;
+
+	for (int i = 0; i < dataLen; i++)
+    {
+		wchar_t ch = data[i];
+		if ((L'a' <= ch) && (ch <= L'z'))
+        {
+			ch = ch - (L'a' - L'A');
+		}
+        newData += ch;
+	}
+
+	return newData;
 }
 
-wchar_t * Coco::String::CreateAppend(std::string const & data1, std::string const & data2)
+std::wstring Coco::String::CreateLower(std::wstring const & data)
 {
-    std::wstring data1W = Core::String::ToWString(data1);
-    std::wstring data2W = Core::String::ToWString(data2);
-    return coco_string_create_append(data1W.c_str(), data2W.c_str());
+	if (data.empty())
+        return data;
+
+	return Coco::String::CreateLower(data, 0, data.length());
 }
 
-wchar_t * Coco::String::CreateAppend(std::string const & data, char const value)
+std::wstring Coco::String::CreateLower(std::wstring const & data, size_t startIndex, size_t dataLen)
 {
-    std::wstring dataW = Core::String::ToWString(data);
-    return coco_string_create_append(dataW.c_str(), wchar_t(value));
+	if (data.empty())
+        return data;
+
+	std::wstring newData;
+
+	for (int i = 0; i < dataLen; i++)
+    {
+		wchar_t ch = data[startIndex + i];
+		if ((L'A' <= ch) && (ch <= L'Z'))
+        {
+			ch = ch - (L'A' - L'a');
+		}
+        newData += ch;
+	}
+	return newData;
 }
 
-wchar_t * Coco::String::CreateAppend(std::wstring const & data1, std::wstring const & data2)
-{
-    return coco_string_create_append(data1.c_str(), data2.c_str());
-}
-
-wchar_t * Coco::String::CreateAppend(std::wstring const & data, wchar_t const value)
-{
-    return coco_string_create_append(data.c_str(), value);
-}
-
-size_t Coco::String::LastIndexOf(wchar_t const * data, wchar_t const value)
-{
-    return coco_string_lastindexof(data, value);
-}
+//size_t Coco::String::LastIndexOf(wchar_t const * data, wchar_t const value)
+//{
+//    return coco_string_lastindexof(data, value);
+//}
 
 size_t Coco::String::LastIndexOf(std::string const & data, char const value)
 {
-    std::wstring dataW = Core::String::ToWString(data);
-    return coco_string_lastindexof(dataW.c_str(), wchar_t(value));
+    return data.find_last_of(value);
 }
 
 size_t Coco::String::LastIndexOf(std::wstring const & data, wchar_t const value)
 {
-    return coco_string_lastindexof(data.c_str(), value);
+    return data.find_last_of(value);
 }
 
-char * Coco::String::CreateChar(wchar_t const * value)
+size_t Coco::String::IndexOf(std::string const & data, char const value)
 {
-    return coco_string_create_char(value);
+    return data.find_first_of(value);
 }
 
-char * Coco::String::CreateChar(std::string const & value)
+size_t Coco::String::IndexOf(std::wstring const & data, wchar_t const value)
 {
-    std::wstring valueW = Core::String::ToWString(value);
-    return coco_string_create_char(valueW.c_str());
+    return data.find_first_of(value);
 }
 
-char * Coco::String::CreateChar(std::wstring const & value)
+size_t Coco::String::IndexOf(std::string const & data, size_t startIndex, char const value)
 {
-    return coco_string_create_char(value.c_str());
+    return data.find_first_of(value, startIndex);
 }
 
-void  Coco::String::Delete(wchar_t * &data)
+size_t Coco::String::IndexOf(std::wstring const & data, size_t startIndex, wchar_t const value)
 {
-    delete[] data;
-    data = nullptr;
+    return data.find_first_of(value, startIndex);
 }
 
-void  Coco::String::Delete(char * &data)
+//char * Coco::String::CreateChar(wchar_t const * value)
+//{
+//    return coco_string_create_char(value);
+//}
+//
+//char * Coco::String::CreateChar(std::string const & value)
+//{
+//    std::wstring valueW = Core::String::ToWString(value);
+//    return coco_string_create_char(valueW.c_str());
+//}
+//
+//char * Coco::String::CreateChar(std::wstring const & value)
+//{
+//    return coco_string_create_char(value.c_str());
+//}
+
+//void Coco::String::Delete(wchar_t * &data)
+//{
+//    delete[] data;
+//    data = nullptr;
+//}
+//
+//void Coco::String::Delete(char * &data)
+//{
+//    delete[] data;
+//    data = nullptr;
+//}
+//
+void Coco::String::Merge(std::wstring & target, std::wstring const & appendix)
 {
-    delete[] data;
-    data = nullptr;
+	if (appendix.empty())
+        return;
+    target = CreateAppend(target, appendix);
+}
+
+bool Coco::String::Equal(std::wstring const & data1, std::wstring const & data2)
+{
+	return data1 == data2;
+}
+
+int Coco::String::CompareTo(std::wstring const & data1, std::wstring const & data2)
+{
+	return data1.compare(data2);
+}
+
+int Coco::String::Hash(std::wstring const & data)
+{
+	int h = 0;
+	if (data.empty())
+        return 0;
+    wchar_t const * ptr = data.data();
+	while (*ptr != 0)
+    {
+		h = (h * 7) ^ *ptr;
+		++ptr;
+	}
+	if (h < 0)
+        h = -h;
+	return h;
 }

@@ -19,11 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{8184CBD5-685B-404F-8952-8D9C54E6EDB4}</ProjectGuid>
+    <ProjectGuid>{E326DF93-158D-4150-A922-B8FDC166B076}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>Coro-RTest</RootNamespace>
+    <RootNamespace>ASM8080Test</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>coco-r.test</ProjectName>
+    <ProjectName>asm-8080.test</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -98,12 +98,12 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../../applications/coco-r/include;$(ProjectDir)/../../components/unit-test-c++/export;$(ProjectDir)/../../components/osal/export;$(ProjectDir)/../../components/core/export</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/include;../include;$(ProjectDir)/../../../components/unit-test-c++/export;$(ProjectDir)/../../../components/osal/export;$(ProjectDir)/../../../components/core/export</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>processor.lib;unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -115,12 +115,12 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../../applications/coco-r/include;$(ProjectDir)/../../components/unit-test-c++/export;$(ProjectDir)/../../components/osal/export;$(ProjectDir)/../../components/core/export</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/include;../include;$(ProjectDir)/../../../components/unit-test-c++/export;$(ProjectDir)/../../../components/osal/export;$(ProjectDir)/../../../components/core/export</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>processor.lib;unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -134,14 +134,14 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../../applications/coco-r/include;$(ProjectDir)/../../components/unit-test-c++/export;$(ProjectDir)/../../components/osal/export;$(ProjectDir)/../../components/core/export</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/include;../include;$(ProjectDir)/../../../components/unit-test-c++/export;$(ProjectDir)/../../../components/osal/export;$(ProjectDir)/../../../components/core/export</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>processor.lib;unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -155,24 +155,31 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)/include;$(ProjectDir)/../../applications/coco-r/include;$(ProjectDir)/../../components/unit-test-c++/export;$(ProjectDir)/../../components/osal/export;$(ProjectDir)/../../components/core/export</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/include;../include;$(ProjectDir)/../../../components/unit-test-c++/export;$(ProjectDir)/../../../components/osal/export;$(ProjectDir)/../../../components/core/export</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>processor.lib;unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\asm-8080\TestData.h" />
     <ClInclude Include="include\CommandLineOptionsParser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\Assembler.cpp" />
+    <ClCompile Include="..\src\LineParser8080.cpp" />
+    <ClCompile Include="..\src\LineParserToken.cpp" />
+    <ClCompile Include="..\src\Reader.cpp" />
     <ClCompile Include="src\CommandLineOptionsParser.cpp" />
     <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\Test\TestToken.cpp" />
+    <ClCompile Include="src\Test\TestLineParser8080.cpp" />
+    <ClCompile Include="src\Test\TestAssembler.cpp" />
+    <ClCompile Include="src\Test\TestReader.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

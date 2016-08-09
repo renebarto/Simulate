@@ -89,19 +89,18 @@ int wmain(int argc, wchar_t const * const argv[])
 
     int result = 0;
 
-	int pos = Coco::String::LastIndexOf(cmdLineParser.inputFile, '/');
-	if (pos < 0) pos = Coco::String::LastIndexOf(cmdLineParser.inputFile, '\\');
-	wchar_t * file = Coco::String::Create(cmdLineParser.inputFile);
-	wchar_t * srcDir = Coco::String::Create(cmdLineParser.inputFile, 0, pos + 1);
+	size_t pos = Coco::String::LastIndexOf(cmdLineParser.inputFile, '/');
+	if (pos == std::string::npos) pos = Coco::String::LastIndexOf(cmdLineParser.inputFile, '\\');
+	std::string file = Coco::String::Create(cmdLineParser.inputFile);
+	std::string srcDir = Coco::String::Create(cmdLineParser.inputFile, 0, pos + 1);
 
 	Coco::Scanner *scanner = new Coco::Scanner(file);
 	Coco::Parser  *parser  = new Coco::Parser(scanner);
 
-	wchar_t * traceFileName = Coco::String::CreateAppend(srcDir, L"trace.txt");
-	char * chTrFileName = Coco::String::CreateChar(traceFileName);
+	std::string traceFileName = Coco::String::CreateAppend(srcDir, "trace.txt");
 
-	if ((parser->trace = fopen(chTrFileName, "w")) == NULL) {
-		wprintf(L"-- could not open %hs\n", chTrFileName);
+	if ((parser->trace = fopen(traceFileName.c_str(), "w")) == nullptr) {
+		std::cout << "-- could not open " << traceFileName << std::endl;
 		exit(1);
 	}
 
@@ -109,32 +108,36 @@ int wmain(int argc, wchar_t const * const argv[])
 	parser->dfa  = new Coco::DFA(parser);
 	parser->pgen = new Coco::ParserGen(parser);
 
-	parser->tab->srcName  = Coco::String::Create(cmdLineParser.inputFile);
-	parser->tab->srcDir   = Coco::String::Create(srcDir);
-	parser->tab->nsName   = !cmdLineParser.namespaceName.empty() ? Coco::String::Create(cmdLineParser.namespaceName) : NULL;
-	parser->tab->frameDir = Coco::String::Create(cmdLineParser.frameFilesDirectory);
-	parser->tab->outDir   = Coco::String::Create(!cmdLineParser.outputDirectory.empty() ? cmdLineParser.outputDirectory : cmdLineParser.inputFile);
+	parser->tab->srcName  = Core::String::ToWString(cmdLineParser.inputFile);
+	parser->tab->srcDir   = Core::String::ToWString(srcDir);
+	parser->tab->nsName   = !cmdLineParser.namespaceName.empty() ? Core::String::ToWString(cmdLineParser.namespaceName) : L"";
+	parser->tab->frameDir = Core::String::ToWString(cmdLineParser.frameFilesDirectory);
+	parser->tab->outDir   = Core::String::ToWString(!cmdLineParser.outputDirectory.empty() ? cmdLineParser.outputDirectory : cmdLineParser.inputFile);
 	parser->tab->emitLines = cmdLineParser.emitLineNumbers;
 
-	if (!cmdLineParser.traceString.empty()) parser->tab->SetDDT(Coco::String::Create(cmdLineParser.traceString));
+	if (!cmdLineParser.traceString.empty()) parser->tab->SetDDT(Core::String::ToWString(cmdLineParser.traceString));
 
 	parser->Parse();
 
 	fclose(parser->trace);
 
 	// obtain the FileSize
-	parser->trace = fopen(chTrFileName, "r");
+	parser->trace = fopen(traceFileName.c_str(), "r");
 	fseek(parser->trace, 0, SEEK_END);
 	long fileSize = ftell(parser->trace);
 	fclose(parser->trace);
-	if (fileSize == 0) {
-		remove(chTrFileName);
-	} else {
-		wprintf(L"trace output is in %hs\n", chTrFileName);
+	if (fileSize == 0)
+    {
+		remove(traceFileName.c_str());
+	}
+    else
+    {
+		std::cout << "trace output is in " << traceFileName << std::endl;
 	}
 
-	wprintf(L"%d errors detected\n", parser->errors->count);
-	if (parser->errors->count != 0) {
+	std::cout << parser->errors->count << " errors detected" << std::endl;
+	if (parser->errors->count != 0)
+    {
 		exit(1);
 	}
 
@@ -143,8 +146,6 @@ int wmain(int argc, wchar_t const * const argv[])
 	delete parser->tab;
 	delete parser;
 	delete scanner;
-	Coco::String::Delete(file);
-	Coco::String::Delete(srcDir);
 
     return result;
 }

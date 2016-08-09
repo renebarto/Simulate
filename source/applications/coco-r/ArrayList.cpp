@@ -73,7 +73,7 @@ void* ArrayList::operator[]( int index )
 {
 	if (0<=index && index<Count)
 		return Data[index];
-	return NULL;
+	return nullptr;
 }
 
 }; // namespace

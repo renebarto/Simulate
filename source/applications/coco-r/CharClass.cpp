@@ -29,14 +29,13 @@ Coco/R itself) does not fall under the GNU General Public License.
 #include "CharClass.h"
 #include "Scanner.h"
 
-namespace Coco {
+namespace Coco
+{
 
-CharClass::CharClass(const wchar_t* name, CharSet *s) {
-	this->name = coco_string_create(name); this->set = s;
+CharClass::CharClass(std::wstring const & name, CharSet * s)
+{
+	this->name = name; 
+    this->set = s;
 }
 
-CharClass::~CharClass() {
-	coco_string_delete(name);
-}
-
-}; // namespace
+} // namespace Coco

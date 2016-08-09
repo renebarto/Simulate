@@ -27,8 +27,8 @@ Coco/R itself) does not fall under the GNU General Public License.
 -----------------------------------------------------------------------*/
 
 
-#if !defined(Coco_COCO_SCANNER_H__)
-#define Coco_COCO_SCANNER_H__
+#if !defined(Assembler_COCO_SCANNER_H__)
+#define Assembler_COCO_SCANNER_H__
 
 #include <limits.h>
 #include <stdio.h>
@@ -59,7 +59,7 @@ Coco/R itself) does not fall under the GNU General Public License.
 #define COCO_HEAP_BLOCK_SIZE (64*1024)
 #define COCO_CPP_NAMESPACE_SEPARATOR L':'
 
-namespace Coco {
+namespace Assembler {
 
 
 // string handling, wide character

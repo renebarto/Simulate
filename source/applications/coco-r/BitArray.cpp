@@ -30,9 +30,10 @@ Coco/R itself) does not fall under the GNU General Public License.
 #include <stdio.h>
 #include "BitArray.h"
 
-namespace Coco {
+namespace Coco
+{
 
-BitArray::BitArray(const int length, const bool defaultValue)
+BitArray::BitArray(size_t length, const bool defaultValue)
 {
 	Count = length;
 	Data = new unsigned char[ (length+7)>>3 ];
@@ -42,7 +43,8 @@ BitArray::BitArray(const int length, const bool defaultValue)
 		memset(Data, 0x00, (length+7)>>3);
 }
 
-BitArray::BitArray(const BitArray &copy) {
+BitArray::BitArray(const BitArray &copy) 
+{
 	Count  = copy.Count;
 	Data = new unsigned char[ (copy.Count+7)>>3 ];
 	memcpy(Data, copy.Data, (copy.Count+7)>>3);
@@ -51,23 +53,27 @@ BitArray::BitArray(const BitArray &copy) {
 BitArray::~BitArray()
 {
 	delete [] Data;
-	Data = NULL;
+	Data = nullptr;
 }
 
-int BitArray::getCount() {
+size_t BitArray::GetCount()
+{
 	return Count;
 }
 
-bool BitArray::Get(const int index) const
+bool BitArray::Get(size_t index) const
 {
 	return (Data[(index>>3)] & (1<<(index&7))) != 0;
 }
 
-void BitArray::Set(const int index, const bool value)
+void BitArray::Set(size_t index, const bool value)
 {
-	if (value){
+	if (value)
+    {
 		Data[(index>>3)] |= (1 << (index&7));
-	} else {
+	} 
+    else 
+    {
 		unsigned char mask = 0xFF;
 		mask ^= (1 << (index&7));
 		Data[(index>>3)] &= mask;
@@ -85,28 +91,32 @@ void BitArray::SetAll(const bool value)
 
 void BitArray::Not()
 {
-	for (int i=0; i<(Count+7)>>3; i++) {
+	for (int i=0; i<(Count+7)>>3; i++)
+    {
 		Data[i] ^= 0xFF;
 	}
 }
 
 void BitArray::And(const BitArray *value)
 {
-	for (int i=0; (i<(Count+7)>>3) && (i<(value->Count+7)>>3); i++) {
+	for (int i=0; (i<(Count+7)>>3) && (i<(value->Count+7)>>3); i++)
+    {
 		Data[i] = (Data[i] & value->Data[i]);
 	}
 }
 
 void BitArray::Or(const BitArray *value)
 {
-	for (int i=0; (i<(Count+7)>>3) && (i<(value->Count+7)>>3); i++) {
+	for (int i=0; (i<(Count+7)>>3) && (i<(value->Count+7)>>3); i++)
+    {
 		Data[i] = (Data[i] | value->Data[i]);
 	}
 }
 
 void BitArray::Xor(const BitArray *value)
 {
-	for (int i=0; (i<(Count+7)>>3) && (i<(value->Count+7)>>3); i++) {
+	for (int i=0; (i<(Count+7)>>3) && (i<(value->Count+7)>>3); i++)
+    {
 		Data[i] = (Data[i] ^ value->Data[i]);
 	}
 }
@@ -124,8 +134,10 @@ bool BitArray::Equal(const BitArray *right) const
 	if (Count != right->Count) {
 		return false;
 	}
-	for(int index = 0; index < Count; index++) {
-		if (Get(index) != right->Get(index)) {
+	for(int index = 0; index < Count; index++)
+    {
+		if (Get(index) != right->Get(index))
+        {
 			return false;
 		}
 	}
@@ -134,8 +146,10 @@ bool BitArray::Equal(const BitArray *right) const
 
 bool BitArray::Overlaps(const BitArray *right) const
 {
-	for (int index = 0; index < Count; ++index) {
-		if (Get(index) && right->Get(index)) {
+	for (int index = 0; index < Count; ++index) 
+    {
+		if (Get(index) && right->Get(index))
+        {
 			return true;
 		}
 	}
@@ -144,7 +158,8 @@ bool BitArray::Overlaps(const BitArray *right) const
 
 const BitArray &BitArray::operator=(const BitArray &right)
 {
-	if ( &right != this ) {         // avoid self assignment
+	if ( &right != this )
+    {         // avoid self assignment
 		delete [] Data;              // prevents memory leak
 		Count  = right.Count;
 		Data = new unsigned char[ (Count+7)>>3 ];
@@ -153,4 +168,4 @@ const BitArray &BitArray::operator=(const BitArray &right)
 	return *this;   // enables cascaded assignments
 }
 
-} // namespace
+} // namespace Coco

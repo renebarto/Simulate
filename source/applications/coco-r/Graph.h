@@ -39,7 +39,7 @@ public:
 	Node *r;	// right end of graph = list of nodes to be linked to successor graph
 
 	Graph() {
-		l = NULL; r = NULL;
+		l = nullptr; r = nullptr;
 	}
 
 	Graph(Node *left, Node *right) {

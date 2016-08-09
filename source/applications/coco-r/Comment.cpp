@@ -29,17 +29,14 @@ Coco/R itself) does not fall under the GNU General Public License.
 #include "Comment.h"
 #include "Scanner.h"
 
-namespace Coco {
+namespace Coco
+{
 
-Comment::Comment(wchar_t* start, wchar_t* stop, bool nested) {
-	this->start = coco_string_create(start);
-	this->stop = coco_string_create(stop);
+Comment::Comment(std::wstring const & start, std::wstring const & stop, bool nested)
+{
+	this->start = start;
+	this->stop = stop;
 	this->nested = nested;
 }
 
-Comment::~Comment() {
-	coco_string_delete(start);
-	coco_string_delete(stop);
-}
-
-}; // namespace
+} // namespace Coco

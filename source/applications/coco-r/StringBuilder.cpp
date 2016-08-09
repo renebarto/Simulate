@@ -32,57 +32,56 @@ Coco/R itself) does not fall under the GNU General Public License.
 
 namespace Coco {
 
-void StringBuilder::Init(int capacity) {
+void StringBuilder::Init(size_t capacity) {
 	length = 0;
 	this->capacity = capacity;
-	data = new wchar_t[capacity + 1];
-	data[0] = 0;	
+    data = {};
 }
 
-StringBuilder::StringBuilder(int capacity) {
+StringBuilder::StringBuilder(size_t capacity)
+{
 	Init(capacity);
 }
 
-StringBuilder::StringBuilder(const wchar_t *val) {
-	capacity = length = wcslen(val);
+StringBuilder::StringBuilder(std::wstring const & val)
+{
+	capacity = length = val.length();
 	Init(capacity);
-	wcscpy(data, val);
+	data = val;
 }
 
-StringBuilder::~StringBuilder() {
-	if (data != NULL) {
-		delete [] data;
-		data = NULL;
-		length = 0;
-		capacity = 0;
-	}
+StringBuilder::~StringBuilder()
+{
+    data = {};
+    length = 0;
+	capacity = 0;
 }
 
-void StringBuilder::Append(const wchar_t value) {
-	if (length == capacity) {
-		int oldCap = capacity;
+void StringBuilder::Append(const wchar_t value)
+{
+	if (length == capacity)
+    {
 		capacity = capacity * 2;
-		wchar_t *nData = new wchar_t[capacity + 1];
-		memcpy(nData, data, oldCap * sizeof(int));
-		delete [] data;
-		data = nData;
 	}
 	
-	data[length] = value;
+	data += value;
 	length++;
-	data[length] = '\0';
 }
 
-void StringBuilder::Append(const wchar_t *value) {
-	if (length + (int)wcslen(value) < capacity) {
-		wcscpy(data + length, value);
-		length += wcslen(value);
+void StringBuilder::Append(std::wstring const & value)
+{
+	if (length == capacity)
+    {
+		capacity = capacity * 2;
 	}
+    data += value;
+    length += value.length();
 }
 
 
-wchar_t* StringBuilder::ToString() {
-	return coco_string_create(data);
+std::wstring StringBuilder::ToString()
+{
+	return data;
 }
 
 }; // namespace

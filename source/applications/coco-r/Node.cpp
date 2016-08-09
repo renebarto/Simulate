@@ -50,20 +50,22 @@ int Node::normalTrans  = 0;		// transition codes
 int Node::contextTrans = 1;
 
 
-Node::Node(int typ, Symbol *sym, int line) {
+Node::Node(int typ, Symbol *sym, size_t line) {
 	this->n     = 0;
-	this->next  = NULL;
-	this->down  = NULL;
-	this->sub   = NULL;
+	this->next  = nullptr;
+	this->down  = nullptr;
+	this->sub   = nullptr;
 	this->up    = false;
 	this->val   = 0;
 	this->code  = 0;
-	this->set   = NULL;
-	this->pos   = NULL;
-	this->state = NULL;
+	this->set   = nullptr;
+	this->pos   = nullptr;
+	this->state = nullptr;
 	this->state = 0;
 
-	this->typ = typ; this->sym = sym; this->line = line;
+	this->typ = typ; 
+    this->sym = sym; 
+    this->line = line;
 }
 
 }; // namespace

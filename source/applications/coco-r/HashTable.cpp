@@ -31,85 +31,104 @@ Coco/R itself) does not fall under the GNU General Public License.
 #include "HashTable.h"
 #include "Scanner.h"
 
-namespace Coco {
+namespace Coco
+{
 
-HashTable::HashTable(int size) {
+HashTable::HashTable(size_t size)
+{
 	this->size = size;
-	data = new Obj*[size];
-	memset(data, 0, size * sizeof(Obj*));
+	data = new Obj *[size];
+	memset(data, 0, size * sizeof(Obj *));
 }
 
-HashTable::~HashTable() {
-	for (int i = 0; i < size; ++i) {
+HashTable::~HashTable()
+{
+	for (int i = 0; i < size; ++i)
+    {
 		Obj *o = data[i];
-		while (o != NULL) {
+		while (o != nullptr)
+        {
 			Obj *del = o;
 			o = o->next;
 			delete del;
 		}
 	}
 	delete[] data;
-	data = NULL;
+	data = nullptr;
 };
 
-HashTable::Obj* HashTable::Get0(wchar_t *key) const {
-	int k = coco_string_hash(key) % size;
-	HashTable::Obj *o = data[k];
-	while (o != NULL && !coco_string_equal(key, o->key)) {
+HashTable::Obj * HashTable::Get0(std::wstring const & key) const
+{
+	int k = String::Hash(key) % size;
+	HashTable::Obj * o = data[k];
+	while (o != nullptr && !String::Equal(key, o->key))
+    {
 		o = o->next;
 	}
 	return o;
 }
 
-void HashTable::Set(wchar_t *key, void *val) {
+void HashTable::Set(std::wstring const & key, void *val)
+{
 	HashTable::Obj *o = Get0(key);
-	if (o == NULL) {
+	if (o == nullptr)
+    {
 		// new entry
-		int k = coco_string_hash(key) % size;
+		int k = String::Hash(key) % size;
 		o = new Obj();
 		o->key = key;
 		o->val = val;
 		o->next = data[k];
 		data[k] = o;		
-	} else {
+	} 
+    else
+    {
 		// exist entry - overwrite
 		o->val = val;
 	}
 }
 
-void* HashTable::Get(wchar_t *key) const {
+void * HashTable::Get(std::wstring const & key) const
+{
 	HashTable::Obj *o = Get0(key);
-	if (o != NULL) {
+	if (o != nullptr)
+    {
 		return o->val;
 	}
-	return NULL;
+	return nullptr;
 }
 
-Iterator* HashTable::GetIterator() {
+Iterator * HashTable::GetIterator()
+{
 	return new HashTable::Iter(this);
 }
 
-HashTable::Iter::Iter(HashTable *ht) {
+HashTable::Iter::Iter(HashTable *ht)
+{
 	this->ht = ht;
 	this->pos = 0;
-	this->cur = NULL;
+	this->cur = nullptr;
 }
 
-bool HashTable::Iter::HasNext() {
-	while (cur == NULL && pos < ht->size) {
+bool HashTable::Iter::HasNext()
+{
+	while (cur == nullptr && pos < ht->size)
+    {
 		cur = ht->data[pos];
 		++pos;
 	}
-	return cur != NULL;
+	return cur != nullptr;
 }
 
-DictionaryEntry* HashTable::Iter::Next() {
-	if (!HasNext()) {
-		return NULL;
+DictionaryEntry * HashTable::Iter::Next()
+{
+	if (!HasNext())
+    {
+		return nullptr;
 	}
-	Obj *next = cur;
+	Obj * next = cur;
 	cur = cur->next;
 	return next;
 }
 
-}; // namespace
+} // namespace Coco

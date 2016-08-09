@@ -32,28 +32,22 @@
     <ClCompile Include="src\Test\TestReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\applications\asm-8080\src\Reader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\applications\asm-8080\src\LineParser8080.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Test\TestLineParser8080.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\applications\asm-8080\src\LineParserToken.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\applications\asm-8080\src\Assembler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Test\TestAssembler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Test\TestTranslator.cpp">
+    <ClCompile Include="..\src\Assembler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\applications\asm-8080\src\Translator.cpp">
+    <ClCompile Include="..\src\LineParser8080.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\LineParserToken.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Reader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

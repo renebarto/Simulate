@@ -29,33 +29,42 @@ Coco/R itself) does not fall under the GNU General Public License.
 #include <stdio.h>
 #include "SortedList.h"
 #include "Tab.h"
+#include "coco.h"
 
-namespace Coco {
+namespace Coco
+{
 
-int Compare(Symbol *x, Symbol *y) {
-	return coco_string_compareto(x->name, y->name);
+int Compare(Symbol *x, Symbol *y)
+{
+	return String::CompareTo(x->name, y->name);
 }
 
-SortedEntry::SortedEntry(Symbol* Key, void* Value) {
+SortedEntry::SortedEntry(Symbol* Key, void* Value)
+{
 	this->Key   = Key;
 	this->Value = Value;
-	this->next = NULL;
+	this->next = nullptr;
 }
 
-SortedEntry::~SortedEntry() {
+SortedEntry::~SortedEntry()
+{
 };
 
-SortedList::SortedList() {
+SortedList::SortedList()
+{
 	Count = 0;
-	Data = NULL;
+	Data = nullptr;
 }
 
-SortedList::~SortedList() {
+SortedList::~SortedList()
+{
 }
 
-bool SortedList::Find(Symbol* key) {
+bool SortedList::Find(Symbol* key)
+{
 	SortedEntry* pSortedEntry = Data;
-	while (pSortedEntry) {
+	while (pSortedEntry)
+    {
 		if (!Compare(pSortedEntry->Key, key))
 			return true;
 		pSortedEntry = pSortedEntry->next;
@@ -63,38 +72,52 @@ bool SortedList::Find(Symbol* key) {
 	return false;
 }
 
-void SortedList::Set(Symbol *key, void *value) {
-	if (!Find(key)) {
+void SortedList::Set(Symbol *key, void *value)
+{
+	if (!Find(key))
+    {
 		// new entry
 		SortedEntry* pSortedEntry = Data;
-		SortedEntry* pSortedEntryPrev = NULL;
+		SortedEntry* pSortedEntryPrev = nullptr;
 		SortedEntry* newSortedEntry = new SortedEntry(key, value);
-		if (pSortedEntry) {
+		if (pSortedEntry)
+        {
 			// insert
 
 			if (Compare(pSortedEntry->Key, key) > 0) {	// before the first
 				newSortedEntry->next = Data;
 				Data = newSortedEntry;
-			} else {
-				while (pSortedEntry) {
-					if (Compare(pSortedEntry->Key, key) < 0) {
+			}
+            else
+            {
+				while (pSortedEntry)
+                {
+					if (Compare(pSortedEntry->Key, key) < 0)
+                    {
 						pSortedEntryPrev = pSortedEntry;
 						pSortedEntry = pSortedEntry->next;
-					} else {
+					} 
+                    else
+                    {
 						break;
 					}
 				}
 				pSortedEntryPrev->next = newSortedEntry;
 				newSortedEntry->next = pSortedEntry;
 			}
-		} else {
+		} 
+        else
+        {
 			Data = newSortedEntry;			// first entry
 		}
 		Count++;
-	} else {
+	} 
+    else
+    {
 		// exist entry - overwrite
 		SortedEntry* pSortedEntry = Data;
-		while (Compare(pSortedEntry->Key, key)) {
+		while (Compare(pSortedEntry->Key, key))
+        {
 			pSortedEntry = pSortedEntry->next;
 		}
 		pSortedEntry->Value = value;
@@ -104,38 +127,48 @@ void SortedList::Set(Symbol *key, void *value) {
 void* SortedList::Get( Symbol* key ) const // Value
 {
 	SortedEntry* pSortedEntry = Data;
-	while (pSortedEntry) {
+	while (pSortedEntry)
+    {
 		if (!Compare(pSortedEntry->Key, key))
 			return pSortedEntry->Value;
 		pSortedEntry = pSortedEntry->next;
 	}
-	return NULL;
+	return nullptr;
 }
 
 
 void* SortedList::GetKey( int index ) const // Key
 {
-	if (0 <= index && index < Count) {
+	if (0 <= index && index < Count)
+    {
 		SortedEntry* pSortedEntry = Data;
-		for (int i=0; i<index; i++) {
+		for (int i=0; i<index; i++)
+        {
 			pSortedEntry = pSortedEntry->next;
 		}
 		return pSortedEntry->Key;
-	} else {
-		return NULL;
+	} 
+    else
+    {
+		return nullptr;
 	}
 }
 
-SortedEntry* SortedList::operator[]( int index ) const {
-	if (0 <= index && index < Count) {
+SortedEntry* SortedList::operator[]( int index ) const
+{
+	if (0 <= index && index < Count)
+    {
 		SortedEntry* pSortedEntry = Data;
-		for (int i=0; i<index; i++) {
+		for (int i=0; i<index; i++)
+        {
 			pSortedEntry = pSortedEntry->next;
 		}
 		return pSortedEntry;
-	} else {
-		return NULL;
+	} 
+    else
+    {
+		return nullptr;
 	}
 }
 
-}; // namespace
+} // namespace Coco

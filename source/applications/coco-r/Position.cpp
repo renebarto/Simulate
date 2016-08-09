@@ -28,10 +28,15 @@ Coco/R itself) does not fall under the GNU General Public License.
 
 #include "Position.h"
 
-namespace Coco {
+namespace Coco
+{
 
-Position::Position(int beg, int end, int col, int line) {
-	this->beg = beg; this->end = end; this->col = col; this->line = line;
+Position::Position(size_t beg, size_t end, size_t col, size_t line)
+    : beg(beg)
+    , end(end)
+    , col(col)
+    , line(line)
+{
 }
 
-}; // namespace
+} // namespace Coco

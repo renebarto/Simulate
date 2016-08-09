@@ -27,8 +27,7 @@ Coco/R itself) does not fall under the GNU General Public License.
 -----------------------------------------------------------------------*/
 
 
-#if !defined(Coco_COCO_PARSER_H__)
-#define Coco_COCO_PARSER_H__
+#pragma once
 
 #include "Tab.h"
 #include "DFA.h"
@@ -37,23 +36,25 @@ Coco/R itself) does not fall under the GNU General Public License.
 
 #include "Scanner.h"
 
-namespace Coco {
+namespace Coco
+{
 
-
-class Errors {
+class Errors
+{
 public:
 	int count;			// number of errors detected
 
 	Errors();
-	void SynErr(int line, int col, int n);
-	void Error(int line, int col, const wchar_t *s);
-	void Warning(int line, int col, const wchar_t *s);
-	void Warning(const wchar_t *s);
-	void Exception(const wchar_t *s);
+	void SynErr(size_t line, size_t col, int n);
+	void Error(size_t line, size_t col, std::wstring const & s);
+	void Warning(size_t line, size_t col, std::wstring const & s);
+	void Warning(std::wstring const & s);
+	void Exception(std::wstring const & s);
 
 }; // Errors
 
-class Parser {
+class Parser
+{
 private:
 	enum {
 		_EOF=0,
@@ -94,19 +95,20 @@ int id;
 	ParserGen *pgen;
 
 	bool genScanner;
-	wchar_t* tokenString;  // used in declarations of literal tokens
-	wchar_t* noString;     // used in declarations of literal tokens
+	std::wstring tokenString;  // used in declarations of literal tokens
+	std::wstring noString;     // used in declarations of literal tokens
 
 	// This method will be called by the contructor if it exits.
 	// This support is specific to the C++ version of Coco/R.
-	void Init() {
-		tab = NULL;
-		dfa = NULL;
-		pgen = NULL;
+	void Init()
+    {
+		tab = nullptr;
+		dfa = nullptr;
+		pgen = nullptr;
 		id  = 0;
 		str = 1;
-		tokenString = NULL;
-		noString = coco_string_create(L"-none-");
+        tokenString = {};
+		noString = L"-none-";
 	}
 
 	// Uncomment this method if cleanup is necessary,
@@ -121,7 +123,7 @@ int id;
 
 	Parser(Scanner *scanner);
 	~Parser();
-	void SemErr(const wchar_t* msg);
+	void SemErr(std::wstring const & msg);
 
 	void Coco();
 	void SetDecl();
@@ -133,7 +135,7 @@ int id;
 	void Expression(Graph* &g);
 	void SimSet(CharSet* &s);
 	void Char(int &n);
-	void Sym(wchar_t* &name, int &kind);
+	void Sym(std::wstring & name, int &kind);
 	void Term(Graph* &g);
 	void Resolver(Position* &pos);
 	void Factor(Graph* &g);
@@ -146,8 +148,4 @@ int id;
 
 }; // end Parser
 
-} // namespace
-
-
-#endif
-
+} // namespace Coco

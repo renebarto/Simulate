@@ -33,16 +33,16 @@ Coco/R itself) does not fall under the GNU General Public License.
 namespace Coco {
 
 Action::Action(int typ, int sym, int tc) {
-	this->target = NULL;
-	this->next   = NULL;
+	this->target = nullptr;
+	this->next   = nullptr;
 
 	this->typ = typ; this->sym = sym; this->tc = tc;
 }
 
 void Action::AddTarget(Target *t) { // add t to the action.targets
-	Target *last = NULL;
+	Target *last = nullptr;
 	Target *p = target;
-	while (p != NULL && t->state->nr >= p->state->nr) {
+	while (p != nullptr && t->state->nr >= p->state->nr) {
 		if (t->state == p->state) return;
 		last = p; p = p->next;
 	}
@@ -51,7 +51,7 @@ void Action::AddTarget(Target *t) { // add t to the action.targets
 }
 
 void Action::AddTargets(Action *a) {// add copy of a.targets to action.targets
-	for (Target *p = a->target; p != NULL; p = p->next) {
+	for (Target *p = a->target; p != nullptr; p = p->next) {
 		Target *t = new Target(p->state);
 		AddTarget(t);
 	}
@@ -73,7 +73,7 @@ void Action::ShiftWith(CharSet *s, Tab *tab) {
 		typ = Node::chr; sym = s->First();
 	} else {
 		CharClass *c = tab->FindCharClass(s);
-		if (c == NULL) c = tab->NewCharClass(L"#", s); // class with dummy name
+		if (c == nullptr) c = tab->NewCharClass(L"#", s); // class with dummy name
 		typ = Node::clas; sym = c->n;
 	}
 }

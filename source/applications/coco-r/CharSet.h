@@ -40,12 +40,12 @@ public:
 		int from;
 		int to;
 		Range *next;
-		Range(int from, int to) { this->from = from; this->to = to; next = NULL; };
+		Range(int from, int to) { this->from = from; this->to = to; next = nullptr; };
 	};
 
 	Range *head;
 	
-	CharSet() { head = NULL; };
+	CharSet() { head = nullptr; };
 	virtual ~CharSet();
 	
 	bool Get(int i) const;

@@ -32,15 +32,15 @@ Coco/R itself) does not fall under the GNU General Public License.
 namespace Coco {
 
 State::State() {
-	this->firstAction = NULL;
-	this->endOf       = NULL;
+	this->firstAction = nullptr;
+	this->endOf       = nullptr;
 	this->ctx         = false;
-	this->next        = NULL;
+	this->next        = nullptr;
 }
 
 void State::AddAction(Action *act) {
-	Action *lasta = NULL, *a = firstAction;
-	while (a != NULL && act->typ >= a->typ) {lasta = a; a = a->next;}
+	Action *lasta = nullptr, *a = firstAction;
+	while (a != nullptr && act->typ >= a->typ) {lasta = a; a = a->next;}
 	// collecting classes at the beginning gives better performance
 	act->next = a;
 	if (a==firstAction) {
@@ -52,9 +52,9 @@ void State::AddAction(Action *act) {
 }	
 
 void State::DetachAction(Action *act) {
-	Action *lasta = NULL, *a = firstAction;
-	while (a != NULL && a != act) {lasta = a; a = a->next;}
-	if (a != NULL) {
+	Action *lasta = nullptr, *a = firstAction;
+	while (a != nullptr && a != act) {lasta = a; a = a->next;}
+	if (a != nullptr) {
 		if (a == firstAction) {
 			firstAction = a->next;
 		}
@@ -67,7 +67,7 @@ void State::DetachAction(Action *act) {
 
 void State::MeltWith(State *s) { // copy actions of s to state
 	Action *a;
-	for (Action *action = s->firstAction; action != NULL; action = action->next) {
+	for (Action *action = s->firstAction; action != nullptr; action = action->next) {
 		a = new Action(action->typ, action->sym, action->tc);
 		a->AddTargets(action);
 		AddAction(a);
