@@ -167,11 +167,35 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\coco-r\TestData.h" />
     <ClInclude Include="include\CommandLineOptionsParser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\Action.cpp" />
+    <ClCompile Include="..\src\ArrayList.cpp" />
+    <ClCompile Include="..\src\BitArray.cpp" />
+    <ClCompile Include="..\src\CharClass.cpp" />
+    <ClCompile Include="..\src\CharSet.cpp" />
+    <ClCompile Include="..\src\coco.cpp" />
+    <ClCompile Include="..\src\Comment.cpp" />
+    <ClCompile Include="..\src\DFA.cpp" />
+    <ClCompile Include="..\src\Generator.cpp" />
+    <ClCompile Include="..\src\HashTable.cpp" />
+    <ClCompile Include="..\src\Melted.cpp" />
+    <ClCompile Include="..\src\Node.cpp" />
+    <ClCompile Include="..\src\Parser.cpp" />
+    <ClCompile Include="..\src\ParserGen.cpp" />
+    <ClCompile Include="..\src\Position.cpp" />
+    <ClCompile Include="..\src\Scanner.cpp" />
+    <ClCompile Include="..\src\SortedList.cpp" />
+    <ClCompile Include="..\src\State.cpp" />
+    <ClCompile Include="..\src\StringBuilder.cpp" />
+    <ClCompile Include="..\src\Symbol.cpp" />
+    <ClCompile Include="..\src\Tab.cpp" />
+    <ClCompile Include="..\src\Target.cpp" />
     <ClCompile Include="src\CommandLineOptionsParser.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Test\TestCocor.cpp" />
     <ClCompile Include="src\Test\TestToken.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

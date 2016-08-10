@@ -319,12 +319,12 @@ void DFA::MatchLiteral(std::wstring & s, Symbol *sym)
 {
 	std::wstring subS = String::Create(s, 1, s.length()-2);
 	std::wstring sUnescaped = tab->Unescape(subS);
-	size_t i, len = s.length();
+	size_t i, len = sUnescaped.length();
 	State *state = firstState;
 	Action *a = nullptr;
 	for (i = 0; i < len; i++)
     { // try to match s against existing DFA
-		a = FindAction(state, s[i]);
+		a = FindAction(state, sUnescaped[i]);
 		if (a == nullptr) 
             break;
 		state = a->target->state;
@@ -338,10 +338,9 @@ void DFA::MatchLiteral(std::wstring & s, Symbol *sym)
 	for (; i < len; i++)
     { // make new DFA for s[i..len-1]
 		State *to = NewState();
-		NewTransition(state, to, Node::chr, s[i], Node::normalTrans);
+		NewTransition(state, to, Node::chr, sUnescaped[i], Node::normalTrans);
 		state = to;
 	}
-    s = {};
 	Symbol *matchedSym = state->endOf;
 	if (state->endOf == nullptr)
     {
@@ -1077,7 +1076,7 @@ void DFA::WriteScanner()
 	g.CopyFramePart(L"-->namespace_close");
 	GenNamespaceClose(nrOfNs);
 
-	g.CopyFramePart(nullptr);
+	g.CopyFramePart(L"");
 	fclose(gen);
 }
 

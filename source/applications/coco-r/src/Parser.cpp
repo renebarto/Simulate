@@ -587,7 +587,7 @@ void Parser::Sym(std::wstring &name, int &kind)
         {
     		name = String::CreateLower(name);
 		}
-		if (String::IndexOf(name, ' ') >= 0)
+		if (String::IndexOf(name, ' ') != std::wstring::npos)
 			SemErr(L"literal tokens must not contain blanks"); 
 	}
     else 
@@ -1009,7 +1009,7 @@ void Parser::Parse()
 {
 	t = nullptr;
 	la = dummyToken = new Token();
-	la->val = L"Dummy Token";
+	la->val = _wcsdup(L"Dummy Token");
 	Get();
 	Coco();
 	Expect(0);

@@ -583,7 +583,7 @@ void ParserGen::WriteParser() {
 	g.CopyFramePart(L"-->errors"); fwprintf(gen, L"%ls", err.c_str());
 	g.CopyFramePart(L"-->namespace_close");
 	GenNamespaceClose(nrOfNs);
-	g.CopyFramePart(nullptr);
+	g.CopyFramePart(L"");
 	fclose(gen);
 	buffer->SetPos(oldPos);
 }

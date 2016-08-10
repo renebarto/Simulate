@@ -1,0 +1,145 @@
+Graph nodes:
+----------------------------------------------------
+   n type name          next  down   sub   pos  line
+                               val  code
+----------------------------------------------------
+   0 eps                   0                       0
+   1 nt   StatementLin    -2                      44
+   2 iter                  3     0     1           0
+   3 nt   EndStatement     0                      44
+   4 nt   LineNumber      -7                      45
+   5 opt                   7     0     4           0
+   6 nt   Statement        0                      45
+   7 opt                   0     0     6           0
+   8 t    Identifier       0                      46
+   9 opt                   0     0     8           0
+  10 t    "END"            0                      47
+  11 t    DecNumber        0                      48
+
+
+First: node = 2
+DecNumber Identifier "END" 
+
+First: node = 5
+DecNumber Identifier 
+
+First: node = 10
+"END" 
+
+First: node = 11
+DecNumber 
+
+First: node = 9
+Identifier 
+
+First: node = 2
+DecNumber Identifier "END" 
+
+First: node = null
+-- empty set --
+
+First: node = 7
+Identifier 
+
+First: node = null
+-- empty set --
+
+Cross reference list:
+--------------------
+
+  "END"          47
+  Assembler     -44
+  DecNumber      48
+  EndStatement  -47   44
+  Identifier     46
+  LineNumber    -48   45
+  Statement     -46   45
+  StatementLin  -45   44
+
+
+
+First: node = 4
+DecNumber 
+
+First: node = 7
+Identifier 
+
+First: node = 8
+Identifier 
+
+First: node = null
+-- empty set --
+
+First: node = 1
+DecNumber Identifier "END" 
+
+First: node = 4
+DecNumber 
+
+First: node = 6
+Identifier 
+
+First: node = 8
+Identifier 
+
+---------- states ----------
+                 0: digit  1
+                    letter  2
+E(DecNumber   )  1: digit  1
+E(Identifier  )  2: #A  2
+
+---------- character classes ----------
+plus      : '+' 
+minus     : '-' 
+asterisk  : '*' 
+slash     : '/' 
+comma     : ',' 
+left_paren: '(' 
+right_pare: ')' 
+single_quo: 39 
+ampersand : '&' 
+colon     : ':' 
+dollar_sig: '$' 
+at_sign   : '@' 
+question_m: '?' 
+equal_sign: '+' 
+less_than_: '<' 
+greater_th: '>' 
+percent_si: '%' 
+exclamatio: '!' 
+semicolon : ';' 
+period    : '.' 
+tab       : 9 
+cr        : 13 
+lf        : 10 
+ff        : 12 
+letter    : 'A' .. 'Z' 'a' .. 'z' 
+digit     : '0' .. '9' 
+hexdigit  : '0' .. '9' 'A' .. 'F' 
+string_cha: 0 .. '&' '(' .. 65535 
+comment_ch: 0 .. 12 14 .. 65535 
+#A        : '0' .. '9' 'A' .. 'Z' 'a' .. 'z' 
+
+
+5 terminals
+10 symbols
+12 nodes
+1 sets
+Symbol Table:
+------------
+
+ nr name          typ  hasAt graph  del    line tokenKind
+  0   EOF          t    false                 0 fixedToken
+  1   DecNumber    t    false                35 classToken
+  2   Identifier   t    false                36 classLitToken
+  3   "END"        t    false                47 litToken
+  4   ???          t    false                 0 fixedToken
+  0   Assembler    nt   false     2 false    44 fixedToken
+  1   StatementLin nt   false     5 true     45 fixedToken
+  2   EndStatement nt   false    10 false    47 fixedToken
+  3   LineNumber   nt   false    11 false    48 fixedToken
+  4   Statement    nt   false     9 true     46 fixedToken
+
+Literal Tokens:
+--------------
+

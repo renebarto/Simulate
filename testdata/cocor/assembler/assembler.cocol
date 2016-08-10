@@ -1,0 +1,50 @@
+COMPILER Assembler
+
+CHARACTERS
+    plus = "+" .
+    minus = "-" .
+    asterisk = "*" .
+    slash = "/" .
+    comma = "," .
+    left_parenthesis = "(" .
+    right_parenthesis = ")" .
+    single_quote = "'" .
+    ampersand = "&" .
+    colon = ':' .
+    dollar_sign = "$" .
+    at_sign = "@" .
+    question_mark = "?" .
+    equal_sign = "+" .
+    less_than_sign = "<" .
+    greater_than_sign = ">" .
+    percent_sign = "%" .
+    exclamation_point = "!" .
+    semicolon = ";" .
+    period = "." .
+    tab = '\t' .
+    cr = '\r' .
+    lf = '\n' .
+    ff = '\f' .
+    letter = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" .
+    digit = "0123456789" .
+    hexdigit = digit + "ABCDEF" .
+    string_char = ANY - single_quote .
+    comment_char = ANY - cr .
+
+TOKENS    
+    DecNumber = digit { digit } .
+    Identifier = letter { letter | digit } .
+
+COMMENTS FROM ";" TO cr lf
+COMMENTS FROM ";" TO lf
+
+IGNORE cr + lf + tab
+
+PRODUCTIONS
+    Assembler = { StatementLine } EndStatement .
+    StatementLine = [LineNumber] [Statement] .
+    Statement = [Identifier] .
+    EndStatement = "END" .
+    LineNumber = DecNumber .
+    
+END Assembler.

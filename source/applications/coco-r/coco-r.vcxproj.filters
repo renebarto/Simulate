@@ -15,153 +15,153 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\main.cpp">
+    <ClCompile Include="src\Action.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\CommandLineOptionsParser.cpp">
+    <ClCompile Include="src\ArrayList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Action.cpp">
+    <ClCompile Include="src\BitArray.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ArrayList.cpp">
+    <ClCompile Include="src\CharClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BitArray.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CharClass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CharSet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Comment.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DFA.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Generator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HashTable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Melted.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Node.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Parser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ParserGen.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Position.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Scanner.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SortedList.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="State.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="StringBuilder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Symbol.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tab.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Target.cpp">
+    <ClCompile Include="src\CharSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\coco.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\CommandLineOptionsParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Comment.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DFA.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Generator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\HashTable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Melted.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Node.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ParserGen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Position.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scanner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SortedList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\State.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StringBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Symbol.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Tab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Target.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\CommandLineOptionsParser.h">
+    <ClInclude Include="include\Action.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Action.h">
+    <ClInclude Include="include\ArrayList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ArrayList.h">
+    <ClInclude Include="include\BitArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BitArray.h">
+    <ClInclude Include="include\CharClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CharClass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CharSet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Comment.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DFA.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Generator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Graph.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HashTable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Melted.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Node.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Parser.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ParserGen.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Position.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Scanner.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Sets.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SortedList.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="State.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="StringBuilder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Symbol.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Tab.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Target.h">
+    <ClInclude Include="include\CharSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\coco.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\CommandLineOptionsParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Comment.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DFA.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Generator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\HashTable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Melted.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Node.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ParserGen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Position.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Scanner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Sets.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SortedList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\State.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\StringBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Symbol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Tab.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Target.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

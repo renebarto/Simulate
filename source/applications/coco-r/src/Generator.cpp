@@ -40,7 +40,7 @@ Generator::Generator(Tab *tab, Errors *errors)
 	this->tab = tab;
 	fram = nullptr;
 	gen = nullptr;
-	frameFile = nullptr;
+    frameFile = {};
 }
 
 FILE* Generator::OpenFrame(std::wstring const & frame)

@@ -27,17 +27,14 @@ Coco/R itself) does not fall under the GNU General Public License.
 -----------------------------------------------------------------------*/
 
 
-#if !defined(Coco_COCO_PARSER_H__)
-#define Coco_COCO_PARSER_H__
+#if !defined(Assembler_COCO_PARSER_H__)
+#define Assembler_COCO_PARSER_H__
 
-#include "Tab.h"
-#include "DFA.h"
-#include "ParserGen.h"
 
 
 #include "Scanner.h"
 
-namespace Coco {
+namespace Assembler {
 
 
 class Errors {
@@ -57,13 +54,8 @@ class Parser {
 private:
 	enum {
 		_EOF=0,
-		_ident=1,
-		_number=2,
-		_string=3,
-		_badString=4,
-		_char=5,
-		_ddtSym=42,
-		_optionSym=43
+		_DecNumber=1,
+		_Identifier=2
 	};
 	int maxT;
 
@@ -85,62 +77,17 @@ public:
 	Token *t;			// last recognized token
 	Token *la;			// lookahead token
 
-int id;
-	int str;
-
-	FILE* trace;		// other Coco objects referenced in this ATG
-	Tab *tab;
-	DFA *dfa;
-	ParserGen *pgen;
-
-	bool genScanner;
-	wchar_t* tokenString;  // used in declarations of literal tokens
-	wchar_t* noString;     // used in declarations of literal tokens
-
-	// This method will be called by the contructor if it exits.
-	// This support is specific to the C++ version of Coco/R.
-	void Init() {
-		tab = NULL;
-		dfa = NULL;
-		pgen = NULL;
-		id  = 0;
-		str = 1;
-		tokenString = NULL;
-		noString = coco_string_create(L"-none-");
-	}
-
-	// Uncomment this method if cleanup is necessary,
-	// this method will be called by the destructor if it exists.
-	// This support is specific to the C++ version of Coco/R.
-	// void Destroy() {
-		// nothing to do
-	// }
-/*-------------------------------------------------------------------------*/
-
 
 
 	Parser(Scanner *scanner);
 	~Parser();
 	void SemErr(const wchar_t* msg);
 
-	void Coco();
-	void SetDecl();
-	void TokenDecl(int typ);
-	void TokenExpr(Graph* &g);
-	void Set(CharSet* &s);
-	void AttrDecl(Symbol *sym);
-	void SemText(Position* &pos);
-	void Expression(Graph* &g);
-	void SimSet(CharSet* &s);
-	void Char(int &n);
-	void Sym(wchar_t* &name, int &kind);
-	void Term(Graph* &g);
-	void Resolver(Position* &pos);
-	void Factor(Graph* &g);
-	void Attribs(Node *p);
-	void Condition();
-	void TokenTerm(Graph* &g);
-	void TokenFactor(Graph* &g);
+	void Assembler();
+	void StatementLine();
+	void EndStatement();
+	void LineNumber();
+	void Statement();
 
 	void Parse();
 

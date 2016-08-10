@@ -18,65 +18,12 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\Action.cpp" />
-    <ClCompile Include="src\ArrayList.cpp" />
-    <ClCompile Include="src\BitArray.cpp" />
-    <ClCompile Include="src\CharClass.cpp" />
-    <ClCompile Include="src\CharSet.cpp" />
-    <ClCompile Include="src\coco.cpp" />
-    <ClCompile Include="src\CommandLineOptionsParser.cpp" />
-    <ClCompile Include="src\Comment.cpp" />
-    <ClCompile Include="src\DFA.cpp" />
-    <ClCompile Include="src\Generator.cpp" />
-    <ClCompile Include="src\HashTable.cpp" />
-    <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\Melted.cpp" />
-    <ClCompile Include="src\Node.cpp" />
-    <ClCompile Include="src\Parser.cpp" />
-    <ClCompile Include="src\ParserGen.cpp" />
-    <ClCompile Include="src\Position.cpp" />
-    <ClCompile Include="src\Scanner.cpp" />
-    <ClCompile Include="src\SortedList.cpp" />
-    <ClCompile Include="src\State.cpp" />
-    <ClCompile Include="src\StringBuilder.cpp" />
-    <ClCompile Include="src\Symbol.cpp" />
-    <ClCompile Include="src\Tab.cpp" />
-    <ClCompile Include="src\Target.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\Action.h" />
-    <ClInclude Include="include\ArrayList.h" />
-    <ClInclude Include="include\BitArray.h" />
-    <ClInclude Include="include\CharClass.h" />
-    <ClInclude Include="include\CharSet.h" />
-    <ClInclude Include="include\coco.h" />
-    <ClInclude Include="include\CommandLineOptionsParser.h" />
-    <ClInclude Include="include\Comment.h" />
-    <ClInclude Include="include\DFA.h" />
-    <ClInclude Include="include\Generator.h" />
-    <ClInclude Include="include\Graph.h" />
-    <ClInclude Include="include\HashTable.h" />
-    <ClInclude Include="include\Melted.h" />
-    <ClInclude Include="include\Node.h" />
-    <ClInclude Include="include\Parser.h" />
-    <ClInclude Include="include\ParserGen.h" />
-    <ClInclude Include="include\Position.h" />
-    <ClInclude Include="include\Scanner.h" />
-    <ClInclude Include="include\Sets.h" />
-    <ClInclude Include="include\SortedList.h" />
-    <ClInclude Include="include\State.h" />
-    <ClInclude Include="include\StringBuilder.h" />
-    <ClInclude Include="include\Symbol.h" />
-    <ClInclude Include="include\Tab.h" />
-    <ClInclude Include="include\Target.h" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{0C1D4767-7BA0-4C99-8852-9E0FE5F2E424}</ProjectGuid>
+    <ProjectGuid>{6251FABE-D178-49EB-B958-ACDFAF849C78}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>calculator</RootNamespace>
+    <RootNamespace>CororTest</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>coco-r</ProjectName>
+    <ProjectName>cocor.test</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -149,14 +96,15 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;include;../../components/osal/export;../../components/core/export</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <AdditionalIncludeDirectories>$(ProjectDir)/include;..;$(ProjectDir)/../../../components/unit-test-c++/export;$(ProjectDir)/../../../components/osal/export;$(ProjectDir)/../../../components/core/export</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>osal.lib;core.lib;Dbghelp.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -165,14 +113,15 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;include;../../components/osal/export;../../components/core/export</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <AdditionalIncludeDirectories>$(ProjectDir)/include;..;$(ProjectDir)/../../../components/unit-test-c++/export;$(ProjectDir)/../../../components/osal/export;$(ProjectDir)/../../../components/core/export</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>osal.lib;core.lib;Dbghelp.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -183,16 +132,17 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;include;../../components/osal/export;../../components/core/export</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <AdditionalIncludeDirectories>$(ProjectDir)/include;..;$(ProjectDir)/../../../components/unit-test-c++/export;$(ProjectDir)/../../../components/osal/export;$(ProjectDir)/../../../components/core/export</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>osal.lib;core.lib;Dbghelp.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -203,18 +153,50 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;include;../../components/osal/export;../../components/core/export</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <AdditionalIncludeDirectories>$(ProjectDir)/include;..;$(ProjectDir)/../../../components/unit-test-c++/export;$(ProjectDir)/../../../components/osal/export;$(ProjectDir)/../../../components/core/export</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>unit-test-c++.lib;osal.lib;core.lib;Dbghelp.lib;Ws2_32.lib;Mswsock.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>osal.lib;core.lib;Dbghelp.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="include\cocor\TestData.h" />
+    <ClInclude Include="include\CommandLineOptionsParser.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Action.cpp" />
+    <ClCompile Include="..\ArrayList.cpp" />
+    <ClCompile Include="..\BitArray.cpp" />
+    <ClCompile Include="..\CharClass.cpp" />
+    <ClCompile Include="..\CharSet.cpp" />
+    <ClCompile Include="..\Comment.cpp" />
+    <ClCompile Include="..\DFA.cpp" />
+    <ClCompile Include="..\Generator.cpp" />
+    <ClCompile Include="..\HashTable.cpp" />
+    <ClCompile Include="..\Melted.cpp" />
+    <ClCompile Include="..\Node.cpp" />
+    <ClCompile Include="..\Parser.cpp" />
+    <ClCompile Include="..\ParserGen.cpp" />
+    <ClCompile Include="..\Position.cpp" />
+    <ClCompile Include="..\Scanner.cpp" />
+    <ClCompile Include="..\SortedList.cpp" />
+    <ClCompile Include="..\State.cpp" />
+    <ClCompile Include="..\StringBuilder.cpp" />
+    <ClCompile Include="..\Symbol.cpp" />
+    <ClCompile Include="..\Tab.cpp" />
+    <ClCompile Include="..\Target.cpp" />
+    <ClCompile Include="src\CommandLineOptionsParser.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Test\TestCocor.cpp" />
+    <ClCompile Include="src\Test\TestToken.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

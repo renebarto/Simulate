@@ -31,7 +31,7 @@ Coco/R itself) does not fall under the GNU General Public License.
 #include <string.h>
 #include "Scanner.h"
 
-namespace Coco {
+namespace Assembler {
 
 
 
@@ -47,7 +47,7 @@ wchar_t* coco_string_create(const wchar_t *value, int startIndex) {
 	int len = 0;
 
 	if (value) {
-		valueLen = int(wcslen(value));
+		valueLen = wcslen(value);
 		len = valueLen - startIndex;
 	}
 
@@ -70,7 +70,7 @@ wchar_t* coco_string_create_upper(const wchar_t* data) {
 	if (!data) { return NULL; }
 
 	int dataLen = 0;
-	if (data) { dataLen = int(wcslen(data)); }
+	if (data) { dataLen = wcslen(data); }
 
 	wchar_t *newData = new wchar_t[dataLen + 1];
 
@@ -87,7 +87,7 @@ wchar_t* coco_string_create_upper(const wchar_t* data) {
 
 wchar_t* coco_string_create_lower(const wchar_t* data) {
 	if (!data) { return NULL; }
-	int dataLen = int(wcslen(data));
+	int dataLen = wcslen(data);
 	return coco_string_create_lower(data, 0, dataLen);
 }
 
@@ -112,8 +112,8 @@ wchar_t* coco_string_create_append(const wchar_t* data1, const wchar_t* data2) {
 	int data1Len = 0;
 	int data2Len = 0;
 
-	if (data1) { data1Len = int(wcslen(data1)); }
-	if (data2) {data2Len = int(wcslen(data2)); }
+	if (data1) { data1Len = wcslen(data1); }
+	if (data2) {data2Len = wcslen(data2); }
 
 	data = new wchar_t[data1Len + data2Len + 1];
 
@@ -140,27 +140,27 @@ void coco_string_delete(wchar_t* &data) {
 }
 
 int coco_string_length(const wchar_t* data) {
-	if (data) { return int(wcslen(data)); }
+	if (data) { return wcslen(data); }
 	return 0;
 }
 
 bool coco_string_endswith(const wchar_t* data, const wchar_t *end) {
-	int dataLen = int(wcslen(data));
-	int endLen = int(wcslen(end));
+	int dataLen = wcslen(data);
+	int endLen = wcslen(end);
 	return (endLen <= dataLen) && (wcscmp(data + dataLen - endLen, end) == 0);
 }
 
 int coco_string_indexof(const wchar_t* data, const wchar_t value) {
 	const wchar_t* chr = wcschr(data, value);
 
-	if (chr) { return int(chr-data); }
+	if (chr) { return (chr-data); }
 	return -1;
 }
 
 int coco_string_lastindexof(const wchar_t* data, const wchar_t value) {
 	const wchar_t* chr = wcsrchr(data, value);
 
-	if (chr) { return int(chr-data); }
+	if (chr) { return (chr-data); }
 	return -1;
 }
 
@@ -194,7 +194,7 @@ int coco_string_hash(const wchar_t *data) {
 
 wchar_t* coco_string_create(const char* value) {
 	int len = 0;
-	if (value) { len = int(strlen(value)); }
+	if (value) { len = strlen(value); }
 	wchar_t* data = new wchar_t[len + 1];
 	for (int i = 0; i < len; ++i) { data[i] = (wchar_t) value[i]; }
 	data[len] = 0;
@@ -344,7 +344,7 @@ void Buffer::SetPos(int value) {
 		bufPos = value - bufStart;
 	} else if (stream != NULL) { // must be swapped in
 		fseek(stream, value, SEEK_SET);
-		bufLen = int(fread(buf, sizeof(unsigned char), bufCapacity, stream));
+		bufLen = fread(buf, sizeof(unsigned char), bufCapacity, stream);
 		bufStart = value; bufPos = 0;
 	} else {
 		bufPos = fileLen - bufStart; // make Pos return fileLen
@@ -368,7 +368,7 @@ int Buffer::ReadNextStreamChunk() {
 		buf = newBuf;
 		free = bufLen;
 	}
-	int read = int(fread(buf + bufLen, sizeof(unsigned char), free, stream));
+	int read = fread(buf + bufLen, sizeof(unsigned char), free, stream);
 	if (read > 0) {
 		fileLen = bufLen = (bufLen + read);
 		return read;
@@ -449,47 +449,14 @@ Scanner::~Scanner() {
 void Scanner::Init() {
 	EOL    = '\n';
 	eofSym = 0;
-	maxT = 41;
-	noSym = 41;
+	maxT = 4;
+	noSym = 4;
 	int i;
-	for (i = 65; i <= 90; ++i) start.set(i, 1);
-	for (i = 95; i <= 95; ++i) start.set(i, 1);
-	for (i = 97; i <= 122; ++i) start.set(i, 1);
-	for (i = 48; i <= 57; ++i) start.set(i, 2);
-	start.set(34, 12);
-	start.set(39, 5);
-	start.set(36, 13);
-	start.set(61, 16);
-	start.set(46, 31);
-	start.set(43, 17);
-	start.set(45, 18);
-	start.set(60, 32);
-	start.set(62, 20);
-	start.set(124, 23);
-	start.set(40, 33);
-	start.set(41, 24);
-	start.set(91, 25);
-	start.set(93, 26);
-	start.set(123, 27);
-	start.set(125, 28);
+	for (i = 48; i <= 57; ++i) start.set(i, 1);
+	for (i = 65; i <= 90; ++i) start.set(i, 2);
+	for (i = 97; i <= 122; ++i) start.set(i, 2);
 		start.set(Buffer::EoF, -1);
-	keywords.set(L"COMPILER", 6);
-	keywords.set(L"IGNORECASE", 7);
-	keywords.set(L"CHARACTERS", 8);
-	keywords.set(L"TOKENS", 9);
-	keywords.set(L"PRAGMAS", 10);
-	keywords.set(L"COMMENTS", 11);
-	keywords.set(L"FROM", 12);
-	keywords.set(L"TO", 13);
-	keywords.set(L"NESTED", 14);
-	keywords.set(L"IGNORE", 15);
-	keywords.set(L"PRODUCTIONS", 16);
-	keywords.set(L"END", 19);
-	keywords.set(L"ANY", 23);
-	keywords.set(L"WEAK", 29);
-	keywords.set(L"SYNC", 36);
-	keywords.set(L"IF", 37);
-	keywords.set(L"CONTEXT", 38);
+	keywords.set(L"END", 3);
 
 
 	tvalLength = 128;
@@ -558,8 +525,6 @@ void Scanner::AddCh() {
 bool Scanner::Comment0() {
 	int level = 1, pos0 = pos, line0 = line, col0 = col, charPos0 = charPos;
 	NextCh();
-	if (ch == L'/') {
-		NextCh();
 		for(;;) {
 			if (ch == 10) {
 				level--;
@@ -568,37 +533,22 @@ bool Scanner::Comment0() {
 			} else if (ch == buffer->EoF) return false;
 			else NextCh();
 		}
-	} else {
-		buffer->SetPos(pos0); NextCh(); line = line0; col = col0; charPos = charPos0;
-	}
-	return false;
 }
 
 bool Scanner::Comment1() {
 	int level = 1, pos0 = pos, line0 = line, col0 = col, charPos0 = charPos;
 	NextCh();
-	if (ch == L'*') {
-		NextCh();
 		for(;;) {
-			if (ch == L'*') {
+			if (ch == 13) {
 				NextCh();
-				if (ch == L'/') {
+				if (ch == 10) {
 					level--;
 					if (level == 0) { oldEols = line - line0; NextCh(); return true; }
 					NextCh();
 				}
-			} else if (ch == L'/') {
-				NextCh();
-				if (ch == L'*') {
-					level++; NextCh();
-				}
 			} else if (ch == buffer->EoF) return false;
 			else NextCh();
 		}
-	} else {
-		buffer->SetPos(pos0); NextCh(); line = line0; col = col0; charPos = charPos0;
-	}
-	return false;
 }
 
 
@@ -653,7 +603,7 @@ Token* Scanner::NextToken() {
 	while (ch == ' ' ||
 			(ch >= 9 && ch <= 10) || ch == 13
 	) NextCh();
-	if ((ch == L'/' && Comment0()) || (ch == L'/' && Comment1())) return NextToken();
+	if ((ch == L';' && Comment0()) || (ch == L';' && Comment1())) return NextToken();
 	int recKind = noSym;
 	int recEnd = pos;
 	t = CreateToken();
@@ -674,121 +624,13 @@ Token* Scanner::NextToken() {
 		case 1:
 			case_1:
 			recEnd = pos; recKind = 1;
-			if ((ch >= L'0' && ch <= L'9') || (ch >= L'A' && ch <= L'Z') || ch == L'_' || (ch >= L'a' && ch <= L'z')) {AddCh(); goto case_1;}
-			else {t->kind = 1; wchar_t *literal = coco_string_create(tval, 0, tlen); t->kind = keywords.get(literal, t->kind); coco_string_delete(literal); break;}
+			if ((ch >= L'0' && ch <= L'9')) {AddCh(); goto case_1;}
+			else {t->kind = 1; break;}
 		case 2:
 			case_2:
 			recEnd = pos; recKind = 2;
-			if ((ch >= L'0' && ch <= L'9')) {AddCh(); goto case_2;}
-			else {t->kind = 2; break;}
-		case 3:
-			case_3:
-			{t->kind = 3; break;}
-		case 4:
-			case_4:
-			{t->kind = 4; break;}
-		case 5:
-			if (ch <= 9 || (ch >= 11 && ch <= 12) || (ch >= 14 && ch <= L'&') || (ch >= L'(' && ch <= L'[') || (ch >= L']' && ch <= 65535)) {AddCh(); goto case_6;}
-			else if (ch == 92) {AddCh(); goto case_7;}
-			else {goto case_0;}
-		case 6:
-			case_6:
-			if (ch == 39) {AddCh(); goto case_9;}
-			else {goto case_0;}
-		case 7:
-			case_7:
-			if ((ch >= L' ' && ch <= L'~')) {AddCh(); goto case_8;}
-			else {goto case_0;}
-		case 8:
-			case_8:
-			if ((ch >= L'0' && ch <= L'9') || (ch >= L'a' && ch <= L'f')) {AddCh(); goto case_8;}
-			else if (ch == 39) {AddCh(); goto case_9;}
-			else {goto case_0;}
-		case 9:
-			case_9:
-			{t->kind = 5; break;}
-		case 10:
-			case_10:
-			recEnd = pos; recKind = 42;
-			if ((ch >= L'0' && ch <= L'9') || (ch >= L'A' && ch <= L'Z') || ch == L'_' || (ch >= L'a' && ch <= L'z')) {AddCh(); goto case_10;}
-			else {t->kind = 42; break;}
-		case 11:
-			case_11:
-			recEnd = pos; recKind = 43;
-			if ((ch >= L'-' && ch <= L'.') || (ch >= L'0' && ch <= L':') || (ch >= L'A' && ch <= L'Z') || ch == L'_' || (ch >= L'a' && ch <= L'z')) {AddCh(); goto case_11;}
-			else {t->kind = 43; break;}
-		case 12:
-			case_12:
-			if (ch <= 9 || (ch >= 11 && ch <= 12) || (ch >= 14 && ch <= L'!') || (ch >= L'#' && ch <= L'[') || (ch >= L']' && ch <= 65535)) {AddCh(); goto case_12;}
-			else if (ch == 10 || ch == 13) {AddCh(); goto case_4;}
-			else if (ch == L'"') {AddCh(); goto case_3;}
-			else if (ch == 92) {AddCh(); goto case_14;}
-			else {goto case_0;}
-		case 13:
-			recEnd = pos; recKind = 42;
-			if ((ch >= L'0' && ch <= L'9')) {AddCh(); goto case_10;}
-			else if ((ch >= L'A' && ch <= L'Z') || ch == L'_' || (ch >= L'a' && ch <= L'z')) {AddCh(); goto case_15;}
-			else {t->kind = 42; break;}
-		case 14:
-			case_14:
-			if ((ch >= L' ' && ch <= L'~')) {AddCh(); goto case_12;}
-			else {goto case_0;}
-		case 15:
-			case_15:
-			recEnd = pos; recKind = 42;
-			if ((ch >= L'0' && ch <= L'9')) {AddCh(); goto case_10;}
-			else if ((ch >= L'A' && ch <= L'Z') || ch == L'_' || (ch >= L'a' && ch <= L'z')) {AddCh(); goto case_15;}
-			else if (ch == L'=') {AddCh(); goto case_11;}
-			else {t->kind = 42; break;}
-		case 16:
-			{t->kind = 17; break;}
-		case 17:
-			{t->kind = 20; break;}
-		case 18:
-			{t->kind = 21; break;}
-		case 19:
-			case_19:
-			{t->kind = 22; break;}
-		case 20:
-			{t->kind = 25; break;}
-		case 21:
-			case_21:
-			{t->kind = 26; break;}
-		case 22:
-			case_22:
-			{t->kind = 27; break;}
-		case 23:
-			{t->kind = 28; break;}
-		case 24:
-			{t->kind = 31; break;}
-		case 25:
-			{t->kind = 32; break;}
-		case 26:
-			{t->kind = 33; break;}
-		case 27:
-			{t->kind = 34; break;}
-		case 28:
-			{t->kind = 35; break;}
-		case 29:
-			case_29:
-			{t->kind = 39; break;}
-		case 30:
-			case_30:
-			{t->kind = 40; break;}
-		case 31:
-			recEnd = pos; recKind = 18;
-			if (ch == L'.') {AddCh(); goto case_19;}
-			else if (ch == L'>') {AddCh(); goto case_22;}
-			else if (ch == L')') {AddCh(); goto case_30;}
-			else {t->kind = 18; break;}
-		case 32:
-			recEnd = pos; recKind = 24;
-			if (ch == L'.') {AddCh(); goto case_21;}
-			else {t->kind = 24; break;}
-		case 33:
-			recEnd = pos; recKind = 30;
-			if (ch == L'.') {AddCh(); goto case_29;}
-			else {t->kind = 30; break;}
+			if ((ch >= L'0' && ch <= L'9') || (ch >= L'A' && ch <= L'Z') || (ch >= L'a' && ch <= L'z')) {AddCh(); goto case_2;}
+			else {t->kind = 2; wchar_t *literal = coco_string_create(tval, 0, tlen); t->kind = keywords.get(literal, t->kind); coco_string_delete(literal); break;}
 
 	}
 	AppendVal(t);
