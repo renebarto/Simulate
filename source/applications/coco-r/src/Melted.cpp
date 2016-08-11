@@ -30,10 +30,12 @@ Coco/R itself) does not fall under the GNU General Public License.
 
 namespace Coco {
 
-class BitArray;
+class BitSet;
 
-Melted::Melted(BitArray *set, State *state) {
-	this->set = set; this->state = state;
+Melted::Melted(BitSet const & set, State * state)
+    : set(set)
+    , state(state)
+{
 }
 
 }; // namespace

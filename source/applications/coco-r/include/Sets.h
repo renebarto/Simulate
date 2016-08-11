@@ -28,63 +28,54 @@ Coco/R itself) does not fall under the GNU General Public License.
 
 #pragma once
 
-#include "BitArray.h"
+#include "BitSet.h"
 
-namespace Coco {
+namespace Coco
+{
 
-class Sets {
+class Sets
+{
 public:
-	static size_t First(BitArray *s)
+	static size_t First(BitSet const & s)
     {
-		size_t max = s->GetCount();
+		size_t max = s.Count();
 		for (size_t i = 0; i < max; i++)
-			if ((*s)[i]) 
+			if (s[i]) 
                 return i;
 		return -1;
 	}
 
-	static size_t Elements(BitArray *s)
+	static size_t Elements(BitSet const & s)
     {
-		size_t max = s->GetCount();
+		size_t max = s.Count();
 		size_t n = 0;
 		for (size_t i = 0; i < max; i++)
-			if ((*s)[i]) n++;
+			if (s[i]) n++;
 		return n;
 	}
 	
-	static bool Equals(BitArray *a, BitArray *b)
+	static bool Equals(BitSet const & a, BitSet const & b)
     {
-		size_t max = a->GetCount();
-		for (size_t i = 0; i < max; i++)
-			if ((*a)[i] != (*b)[i]) 
-                return false;
-		return true;
+        return a == b;
 	}
 
-	static bool Includes(BitArray *a, BitArray *b)
+	static bool Includes(BitSet const & a, BitSet const & b)
     {	// a > b ?
-		size_t max = a->GetCount();
+		size_t max = a.Count();
 		for (size_t i = 0; i < max; i++)
-			if ((*b)[i] && ! (*a)[i])
+			if (b[i] && !a[i])
                 return false;
 		return true;
 	}
 	
-	static bool Intersect(BitArray *a, BitArray *b)
+	static bool Intersect(BitSet const & a, BitSet const & b)
     { // a * b != {}
-		size_t max = a->GetCount();
-		for (size_t i = 0; i < max; i++)
-			if ((*a)[i] && (*b)[i])
-                return true;
-		return false;
+        return a.Overlaps(b);
 	}
 	
-	static void Subtract(BitArray *a, BitArray *b)
+	static void Subtract(BitSet & a, BitSet const & b)
     { // a = a - b
-		BitArray *c = b->Clone();
-		c->Not();
-		a->And(c);
-		delete c;
+		a &= ~b;
 	}
 };
 

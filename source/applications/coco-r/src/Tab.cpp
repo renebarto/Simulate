@@ -30,7 +30,7 @@ Coco/R itself) does not fall under the GNU General Public License.
 #include <wchar.h>
 #include "Tab.h"
 #include "Parser.h"
-#include "BitArray.h"
+#include "BitSet.h"
 #include "Scanner.h"
 
 namespace Coco
@@ -110,7 +110,7 @@ Symbol* Tab::FindSym(std::wstring const & name)
 	return nullptr;
 }
 
-int Tab::Num(Node *p)
+int Tab::Num(Node * p)
 {
 	if (p == nullptr) 
         return 0; 
@@ -172,14 +172,14 @@ void Tab::PrintSymbolTable()
 	fwprintf(trace, L"\n");
 }
 
-void Tab::PrintSet(BitArray *s, int indent)
+void Tab::PrintSet(BitSet const & s, int indent)
 {
     size_t col = indent;
 	Symbol *sym;
 	for (int i = 0; i < terminals->Count; i++)
     {
 		sym = (Symbol*)((*terminals)[i]);
-		if ((*s)[sym->n])
+		if (s[sym->n])
         {
 			size_t len = sym->name.length();
 			if (col + len >= 80)
@@ -237,7 +237,7 @@ void Tab::MakeAlternative(Graph *g1, Graph *g2)
 	g2->l = NewNode(Node::alt, g2->l); g2->l->line = g2->l->sub->line;
 	g2->l->up = true;
 	g2->r->up = true;
-	Node *p = g1->l; 
+	Node * p = g1->l; 
     while (p->down != nullptr) 
         p = p->down;
 	p->down = g2->l;
@@ -253,7 +253,7 @@ void Tab::MakeAlternative(Graph *g1, Graph *g2)
 // The result will be in g1
 void Tab::MakeSequence(Graph *g1, Graph *g2)
 {
-	Node *p = g1->r->next; g1->r->next = g2->l; // link head node
+	Node * p = g1->r->next; g1->r->next = g2->l; // link head node
 	while (p != nullptr) {  // link substructure
 		Node *q = p->next; p->next = g2->l;
 		p = q;
@@ -265,7 +265,7 @@ void Tab::MakeIteration(Graph *g)
 {
 	g->l = NewNode(Node::iter, g->l);
 	g->r->up = true;
-	Node *p = g->r;
+	Node * p = g->r;
 	g->r = g->l;
 	while (p != nullptr)
     {
@@ -284,7 +284,7 @@ void Tab::MakeOption(Graph *g)
 
 void Tab::Finish(Graph *g)
 {
-	Node *p = g->r;
+	Node * p = g->r;
 	while (p != nullptr)
     {
 		Node *q = p->next; p->next = nullptr;
@@ -308,7 +308,7 @@ Graph* Tab::StrToGraph(std::wstring const & str)
 	g->r = dummyNode;
 	for (int i = 0; i < s.length(); i++)
     {
-		Node *p = NewNode(Node::chr, (int)s[i], 0);
+		Node * p = NewNode(Node::chr, (int)s[i], 0);
 		g->r->next = p; g->r = p;
 	}
 	g->l = dummyNode->next; dummyNode->next = nullptr;
@@ -316,7 +316,7 @@ Graph* Tab::StrToGraph(std::wstring const & str)
 }
 
 
-void Tab::SetContextTrans(Node *p)
+void Tab::SetContextTrans(Node * p)
 { // set transition code in the graph rooted at p
 	while (p != nullptr)
     {
@@ -369,7 +369,7 @@ bool Tab::DelNode(Node* p)
 
 //----------------- graph printing ----------------------
 
-int Tab::Ptr(Node *p, bool up)
+int Tab::Ptr(Node * p, bool up)
 {
 	if (p == nullptr) return 0;
 	else if (up) return -(p->n);
@@ -404,7 +404,7 @@ void Tab::PrintNodes()
 	fwprintf(trace, L"                               val  code\n");
 	fwprintf(trace, L"----------------------------------------------------\n");
 
-	Node *p;
+	Node * p;
 	for (int i=0; i<nodes->Count; i++)
     {
 		p = (Node*)((*nodes)[i]);
@@ -564,47 +564,39 @@ void Tab::WriteCharClasses()
 //---------------------------------------------------------------------
 
 /* Computes the first set for the given Node. */
-BitArray* Tab::First0(Node *p, BitArray *mark)
+BitSet Tab::First0(Node * p, BitSet & mark)
 {
-	BitArray *fs = new BitArray(terminals->Count);
-	while (p != nullptr && !((*mark)[p->n]))
+	BitSet fs(terminals->Count);
+	while (p != nullptr && !(mark[p->n]))
     {
-		mark->Set(p->n, true);
+		mark.Set(p->n, true);
 		if (p->typ == Node::nt)
         {
 			if (p->sym->firstReady)
             {
-				fs->Or(p->sym->first);
+				fs |= p->sym->first;
 			}
             else
             {
-				BitArray *fs0 = First0(p->sym->graph, mark);
-				fs->Or(fs0);
-				delete fs0;
+				fs |= First0(p->sym->graph, mark);
 			}
 		}
 		else if (p->typ == Node::t || p->typ == Node::wt)
         {
-			fs->Set(p->sym->n, true);
+			fs.Set(p->sym->n, true);
 		}
 		else if (p->typ == Node::any)
         {
-			fs->Or(p->set);
+			fs |= p->set;
 		}
 		else if (p->typ == Node::alt)
         {
-			BitArray *fs0 = First0(p->sub, mark);
-			fs->Or(fs0);
-			delete fs0;
-			fs0 = First0(p->down, mark);
-			fs->Or(fs0);
-			delete fs0;
+			fs |= First0(p->sub, mark);
+			fs |= First0(p->down, mark);
 		}
 		else if (p->typ == Node::iter || p->typ == Node::opt)
         {
-			BitArray *fs0 = First0(p->sub, mark);
-			fs->Or(fs0);
-			delete fs0;
+			fs |= First0(p->sub, mark);
 		}
 
 		if (!DelNode(p)) 
@@ -614,11 +606,10 @@ BitArray* Tab::First0(Node *p, BitArray *mark)
 	return fs;
 }
 
-BitArray* Tab::First(Node *p)
+BitSet Tab::First(Node * p)
 {
-	BitArray *mark = new BitArray(nodes->Count);
-	BitArray *fs = First0(p, mark);
-	delete mark;
+	BitSet mark(nodes->Count);
+	BitSet fs = First0(p, mark);
 	if (ddt[3])
     {
 		fwprintf(trace, L"\n");
@@ -637,7 +628,7 @@ void Tab::CompFirstSets()
 	for (i=0; i<nonterminals->Count; i++)
     {
 		sym = (Symbol*)((*nonterminals)[i]);
-		sym->first = new BitArray(terminals->Count);
+		sym->first = BitSet(terminals->Count);
 		sym->firstReady = false;
 	}
 	for (i=0; i<nonterminals->Count; i++)
@@ -648,17 +639,17 @@ void Tab::CompFirstSets()
 	}
 }
 
-void Tab::CompFollow(Node *p)
+void Tab::CompFollow(Node * p)
 {
 	while (p != nullptr && !((*visited)[p->n]))
     {
 		visited->Set(p->n, true);
 		if (p->typ == Node::nt)
         {
-			BitArray *s = First(p->next);
-			p->sym->follow->Or(s);
+			BitSet s = First(p->next);
+			p->sym->follow |= s;
 			if (DelGraph(p->next))
-				p->sym->nts->Set(curSy->n, true);
+				p->sym->nts.Set(curSy->n, true);
 		}
         else if (p->typ == Node::opt || p->typ == Node::iter)
         {
@@ -681,12 +672,12 @@ void Tab::Complete(Symbol *sym)
 		for (int i=0; i<nonterminals->Count; i++)
         {
 			s = (Symbol*)((*nonterminals)[i]);
-			if ((*(sym->nts))[s->n])
+			if (sym->nts[s->n])
             {
 				Complete(s);
-				sym->follow->Or(s->follow);
+				sym->follow |= s->follow;
 				if (sym == curSy) 
-                    sym->nts->Set(s->n, false);
+                    sym->nts.Set(s->n, false);
 			}
 		}
 	}
@@ -699,11 +690,11 @@ void Tab::CompFollowSets()
 	for (i=0; i<nonterminals->Count; i++)
     {
 		sym = (Symbol*)((*nonterminals)[i]);
-		sym->follow = new BitArray(terminals->Count);
-		sym->nts = new BitArray(nonterminals->Count);
+		sym->follow = BitSet(terminals->Count);
+		sym->nts = BitSet(nonterminals->Count);
 	}
-	gramSy->follow->Set(eofSy->n, true);
-	visited = new BitArray(nodes->Count);
+	gramSy->follow.Set(eofSy->n, true);
+	visited = new BitSet(nodes->Count);
 	for (i=0; i<nonterminals->Count; i++)
     {  // get direct successors of nonterminals
 		sym = (Symbol*)((*nonterminals)[i]);
@@ -714,13 +705,13 @@ void Tab::CompFollowSets()
 	for (i=0; i<nonterminals->Count; i++)
     {  // add indirect successors to followers
 		sym = (Symbol*)((*nonterminals)[i]);
-		visited = new BitArray(nonterminals->Count);
+		visited = new BitSet(nonterminals->Count);
 		curSy = sym;
 		Complete(sym);
 	}
 }
 
-Node* Tab::LeadingAny(Node *p)
+Node* Tab::LeadingAny(Node * p)
 {
 	if (p == nullptr) return nullptr;
 	Node *a = nullptr;
@@ -739,7 +730,7 @@ Node* Tab::LeadingAny(Node *p)
 	return a;
 }
 
-void Tab::FindAS(Node *p)
+void Tab::FindAS(Node * p)
 { // find ANY sets
 	Node *a;
 	while (p != nullptr)
@@ -753,7 +744,7 @@ void Tab::FindAS(Node *p)
 		}
         else if (p->typ == Node::alt)
         {
-			BitArray *s1 = new BitArray(terminals->Count);
+			BitSet s1(terminals->Count);
 			Node *q = p;
 			while (q != nullptr)
             {
@@ -761,15 +752,11 @@ void Tab::FindAS(Node *p)
 				a = LeadingAny(q->sub);
 				if (a != nullptr)
                 {
-					BitArray *tmp = First(q->down);
-					tmp->Or(s1);
-					Sets::Subtract(a->set, tmp);
+					Sets::Subtract(a->set, First(q->down) | s1);
 				}
                 else
                 {
-					BitArray *f = First(q->sub);
-					s1->Or(f);
-					delete f;
+					s1 |= First(q->sub);
 				}
 				q = q->down;
 			}
@@ -805,31 +792,33 @@ void Tab::CompAnySets()
 	}
 }
 
-BitArray* Tab::Expected(Node *p, Symbol *curSy)
+BitSet Tab::Expected(Node * p, Symbol * curSy)
 {
-	BitArray *s = First(p);
+	BitSet s = First(p);
 	if (DelGraph(p))
-		s->Or(curSy->follow);
+		s |= curSy->follow;
 	return s;
 }
 
 // does not look behind resolvers; only called during LL(1) test and in CheckRes
-BitArray* Tab::Expected0(Node *p, Symbol *curSy)
+BitSet Tab::Expected0(Node * p, Symbol * curSy)
 {
-	if (p->typ == Node::rslv) return new BitArray(terminals->Count);
-	else return Expected(p, curSy);
+	if (p->typ == Node::rslv) 
+        return BitSet(terminals->Count);
+	else 
+        return Expected(p, curSy);
 }
 
-void Tab::CompSync(Node *p)
+void Tab::CompSync(Node * p)
 {
 	while (p != nullptr && !(visited->Get(p->n)))
     {
 		visited->Set(p->n, true);
 		if (p->typ == Node::sync)
         {
-			BitArray *s = Expected(p->next, curSy);
-			s->Set(eofSy->n, true);
-			allSyncSets->Or(s);
+			BitSet s = Expected(p->next, curSy);
+			s.Set(eofSy->n, true);
+			*allSyncSets |= s;
 			p->set = s;
 		} 
         else if (p->typ == Node::alt)
@@ -844,9 +833,9 @@ void Tab::CompSync(Node *p)
 
 void Tab::CompSyncSets()
 {
-	allSyncSets = new BitArray(terminals->Count);
+	allSyncSets = new BitSet(terminals->Count);
 	allSyncSets->Set(eofSy->n, true);
-	visited = new BitArray(nodes->Count);
+	visited = new BitSet(nodes->Count);
 
 	Symbol *sym;
 	for (int i=0; i<nonterminals->Count; i++)
@@ -859,14 +848,14 @@ void Tab::CompSyncSets()
 
 void Tab::SetupAnys()
 {
-	Node *p;
+	Node * p;
 	for (int i=0; i<nodes->Count; i++)
     {
 		p = (Node*)((*nodes)[i]);
 		if (p->typ == Node::any)
         {
-			p->set = new BitArray(terminals->Count, true);
-			p->set->Set(eofSy->n, false);
+			p->set = BitSet(terminals->Count, true);
+			p->set.Set(eofSy->n, false);
 		}
 	}
 }
@@ -921,12 +910,14 @@ void Tab::CompSymbolSets()
 		fwprintf(trace, L"----------------------\n\n");
 
 		Symbol *sym;
-		for (int i=0; i<nonterminals->Count; i++)
+		for (int i=0; i < nonterminals->Count; i++)
         {
 			sym = (Symbol*)((*nonterminals)[i]);
 			fwprintf(trace, L"%ls\n", sym->name.c_str());
-			fwprintf(trace, L"first:   "); PrintSet(sym->first, 10);
-			fwprintf(trace, L"follow:  "); PrintSet(sym->follow, 10);
+			fwprintf(trace, L"first:   "); 
+            PrintSet(sym->first, 10);
+			fwprintf(trace, L"follow:  "); 
+            PrintSet(sym->follow, 10);
 			fwprintf(trace, L"\n");
 		}
 	}
@@ -936,8 +927,8 @@ void Tab::CompSymbolSets()
 		fwprintf(trace, L"ANY and SYNC sets:\n");
 		fwprintf(trace, L"-----------------\n");
 
-		Node *p;
-		for (int i=0; i<nodes->Count; i++)
+		Node * p;
+		for (int i=0; i < nodes->Count; i++)
         {
 			p = (Node*)((*nodes)[i]);
 			if (p->typ == Node::any || p->typ == Node::sync)
@@ -1081,7 +1072,7 @@ bool Tab::GrammarOk()
 
 //--------------- check for circular productions ----------------------
 
-void Tab::GetSingles(Node *p, ArrayList *singles)
+void Tab::GetSingles(Node * p, ArrayList * singles)
 {
 	if (p == nullptr) return;  // end of graph
 	if (p->typ == Node::nt)
@@ -1109,8 +1100,7 @@ bool Tab::NoCircularProductions()
 
 
 	Symbol *sym;
-	int i;
-	for (i=0; i<nonterminals->Count; i++)
+	for (int i = 0; i < nonterminals->Count; i++)
     {
 		sym = (Symbol*)((*nonterminals)[i]);
 		ArrayList *singles = new ArrayList();
@@ -1127,12 +1117,12 @@ bool Tab::NoCircularProductions()
 	do
     {
 		changed = false;
-		for (i = 0; i < list->Count; i++)
+		for (int i = 0; i < list->Count; i++)
         {
 			n = (CNode*)(*list)[i];
 			onLeftSide = false; onRightSide = false;
 			CNode *m;
-			for (int j=0; j<list->Count; j++)
+			for (int j = 0; j < list->Count; j++)
             {
 				m = (CNode*)((*list)[j]);
 				if (n->left == m->right) onRightSide = true;
@@ -1147,7 +1137,7 @@ bool Tab::NoCircularProductions()
     while(changed);
 	ok = true;
 
-	for (i=0; i<list->Count; i++)
+	for (int i = 0; i < list->Count; i++)
     {
 		n = (CNode*)((*list)[i]);
 		ok = false; errors->count++;
@@ -1159,7 +1149,7 @@ bool Tab::NoCircularProductions()
 
 //--------------- check for LL(1) errors ----------------------
 
-void Tab::LL1Error(int cond, Symbol *sym)
+void Tab::LL1Error(int cond, Symbol * sym)
 {
 	wprintf(L"  LL1 warning in %ls: ", curSy->name.c_str());
 	if (sym != nullptr) wprintf(L"%ls is ", sym->name.c_str());
@@ -1173,33 +1163,32 @@ void Tab::LL1Error(int cond, Symbol *sym)
 }
 
 
-void Tab::CheckOverlap(BitArray *s1, BitArray *s2, int cond)
+void Tab::CheckOverlap(BitSet const & s1, BitSet const & s2, int cond)
 {
 	Symbol *sym;
-	for (int i=0; i<terminals->Count; i++)
+	for (int i = 0; i < terminals->Count; i++)
     {
 		sym = (Symbol*)((*terminals)[i]);
-		if ((*s1)[sym->n] && (*s2)[sym->n])
+		if (s1[sym->n] && s2[sym->n])
         {
 			LL1Error(cond, sym);
 		}
 	}
 }
 
-void Tab::CheckAlts(Node *p)
+void Tab::CheckAlts(Node * p)
 {
-	BitArray *s1, *s2;
 	while (p != nullptr)
     {
 		if (p->typ == Node::alt)
         {
 			Node *q = p;
-			s1 = new BitArray(terminals->Count);
+			BitSet s1(terminals->Count);
 			while (q != nullptr)
             { // for all alternatives
-				s2 = Expected0(q->sub, curSy);
+				BitSet s2 = Expected0(q->sub, curSy);
 				CheckOverlap(s1, s2, 1);
-				s1->Or(s2);
+				s1 |= s2;
 				CheckAlts(q->sub);
 				q = q->down;
 			}
@@ -1210,12 +1199,13 @@ void Tab::CheckAlts(Node *p)
                 LL1Error(4, nullptr); // e.g. [[...]]
 			else
             {
-				s1 = Expected0(p->sub, curSy);
-				s2 = Expected(p->next, curSy);
+				BitSet s1 = Expected0(p->sub, curSy);
+				BitSet s2 = Expected(p->next, curSy);
 				CheckOverlap(s1, s2, 2);
 			}
 			CheckAlts(p->sub);
-		} else if (p->typ == Node::any)
+		} 
+        else if (p->typ == Node::any)
         {
 			if (Sets::Elements(p->set) == 0) 
                 LL1Error(3, nullptr);
@@ -1230,7 +1220,7 @@ void Tab::CheckAlts(Node *p)
 void Tab::CheckLL1()
 {
 	Symbol *sym;
-	for (int i=0; i<nonterminals->Count; i++)
+	for (int i = 0; i < nonterminals->Count; i++)
     {
 		sym = (Symbol*)((*nonterminals)[i]);
 		curSy = sym;
@@ -1240,43 +1230,42 @@ void Tab::CheckLL1()
 
 //------------- check if resolvers are legal  --------------------
 
-void Tab::ResErr(Node *p, const wchar_t* msg)
+void Tab::ResErr(Node * p, std::wstring const & msg)
 {
 	errors->Warning(p->line, p->pos->col, msg);
 }
 
-void Tab::CheckRes(Node *p, bool rslvAllowed)
+void Tab::CheckRes(Node * p, bool rslvAllowed)
 {
 	while (p != nullptr)
     {
-
-		Node *q;
+		Node * q;
 		if (p->typ == Node::alt)
         {
-			BitArray *expected = new BitArray(terminals->Count);
+			BitSet expected(terminals->Count);
 			for (q = p; q != nullptr; q = q->down)
-				expected->Or(Expected0(q->sub, curSy));
-			BitArray *soFar = new BitArray(terminals->Count);
+				expected |= Expected0(q->sub, curSy);
+			BitSet soFar(terminals->Count);
 			for (q = p; q != nullptr; q = q->down)
             {
 				if (q->sub->typ == Node::rslv)
                 {
-					BitArray *fs = Expected(q->sub->next, curSy);
+					BitSet fs = Expected(q->sub->next, curSy);
 					if (Sets::Intersect(fs, soFar))
 						ResErr(q->sub, L"Warning: Resolver will never be evaluated. Place it at previous conflicting alternative.");
 					if (!Sets::Intersect(fs, expected))
 						ResErr(q->sub, L"Warning: Misplaced resolver: no LL(1) conflict.");
 				} 
                 else
-                    soFar->Or(Expected(q->sub, curSy));
+                    soFar |= Expected(q->sub, curSy);
 				CheckRes(q->sub, true);
 			}
 		} else if (p->typ == Node::iter || p->typ == Node::opt)
         {
 			if (p->sub->typ == Node::rslv)
             {
-				BitArray *fs = First(p->sub->next);
-				BitArray *fsNext = Expected(p->next, curSy);
+				BitSet fs = First(p->sub->next);
+				BitSet fsNext = Expected(p->next, curSy);
 				if (!Sets::Intersect(fs, fsNext))
 					ResErr(p->sub, L"Warning: Misplaced resolver: no LL(1) conflict.");
 			}
@@ -1325,7 +1314,7 @@ bool Tab::NtsComplete()
 
 //-------------- check if every nts can be reached  -----------------
 
-void Tab::MarkReachedNts(Node *p)
+void Tab::MarkReachedNts(Node * p)
 {
 	while (p != nullptr) {
 		if (p->typ == Node::nt && !((*visited)[p->sym->n]))
@@ -1348,7 +1337,7 @@ void Tab::MarkReachedNts(Node *p)
 bool Tab::AllNtReached()
 {
 	bool ok = true;
-	visited = new BitArray(nonterminals->Count);
+	visited = new BitSet(nonterminals->Count);
 	visited->Set(gramSy->n, true);
 	MarkReachedNts(gramSy->graph);
 	Symbol *sym;
@@ -1366,11 +1355,11 @@ bool Tab::AllNtReached()
 
 //--------- check if every nts can be derived to terminals  ------------
 
-bool Tab::IsTerm(Node *p, BitArray *mark)
+bool Tab::IsTerm(Node * p, BitSet const & mark)
 { // true if graph can be derived to terminals
 	while (p != nullptr)
     {
-		if (p->typ == Node::nt && !((*mark)[p->sym->n]))
+		if (p->typ == Node::nt && !(mark[p->sym->n]))
             return false;
 		if (p->typ == Node::alt && !IsTerm(p->sub, mark)
 		&& (p->down == nullptr || !IsTerm(p->down, mark))) 
@@ -1386,7 +1375,7 @@ bool Tab::IsTerm(Node *p, BitArray *mark)
 bool Tab::AllNtToTerm() 
 {
 	bool changed, ok = true;
-	BitArray *mark = new BitArray(nonterminals->Count);
+	BitSet mark(nonterminals->Count);
 	// a nonterminal is marked if it can be derived to terminal symbols
 	Symbol *sym;
 	int i;
@@ -1397,16 +1386,16 @@ bool Tab::AllNtToTerm()
 		for (i=0; i<nonterminals->Count; i++) 
         {
 			sym = (Symbol*)((*nonterminals)[i]);
-			if (!((*mark)[sym->n]) && IsTerm(sym->graph, mark)) 
+			if (!(mark[sym->n]) && IsTerm(sym->graph, mark)) 
             {
-				mark->Set(sym->n, true); changed = true;
+				mark.Set(sym->n, true); changed = true;
 			}
 		}
 	} while (changed);
 	for (i=0; i<nonterminals->Count; i++)
     {
 		sym = (Symbol*)((*nonterminals)[i]);
-		if (!((*mark)[sym->n]))
+		if (!(mark[sym->n]))
         {
 			ok = false; errors->count++;
 			wprintf(L"  %ls cannot be derived to terminals\n", sym->name.c_str());
@@ -1459,7 +1448,8 @@ void Tab::XRef()
 	fwprintf(trace, L"Cross reference list:\n");
 	fwprintf(trace, L"--------------------\n\n");
 
-	for (i=0; i<xref->Count; i++) {
+	for (i=0; i<xref->Count; i++)
+    {
 		sym = (Symbol*)(xref->GetKey(i));
 		std::wstring paddedName = Name(sym->name);
 		fwprintf(trace, L"  %12ls", paddedName.c_str());

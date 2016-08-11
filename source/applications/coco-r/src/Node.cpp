@@ -58,7 +58,7 @@ Node::Node(int typ, Symbol *sym, size_t line) {
 	this->up    = false;
 	this->val   = 0;
 	this->code  = 0;
-	this->set   = nullptr;
+    this->set   = {};
 	this->pos   = nullptr;
 	this->state = nullptr;
 	this->state = 0;

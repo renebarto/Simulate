@@ -46,9 +46,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="assembler.cocol" />
+    <Text Include="assembler-test.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="assembler-test.txt" />
+    <CustomBuild Include="assembler.cocol" />
   </ItemGroup>
 </Project>

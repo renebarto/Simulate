@@ -46,7 +46,7 @@ namespace Coco
 
 class Errors;
 class Parser;
-class BitArray;
+class BitSet;
 
 class Tab
 {
@@ -57,7 +57,7 @@ public:
 	Symbol *gramSy;             // root nonterminal; filled by ATG
 	Symbol *eofSy;              // end of file symbol
 	Symbol *noSym;              // used in case of an error
-	BitArray *allSyncSets;      // union of all synchronisation sets
+	BitSet *allSyncSets;      // union of all synchronisation sets
 	HashTable *literals;        // symbols that are used as literals
 
 	std::wstring srcName;            // name of the atg file (including path)
@@ -69,7 +69,7 @@ public:
 	                             // the end of Parser.Parse():
 	bool emitLines;              // emit line directives in generated parser
 
-	BitArray *visited;                // mark list for graph traversals
+	BitSet *visited;                // mark list for graph traversals
 	Symbol *curSy;                     // current symbol in computation of sets
 
 	Parser *parser;                    // other Coco objects
@@ -101,10 +101,10 @@ public:
 
 	Symbol* NewSym(int typ, std::wstring const & name, size_t line);
 	Symbol* FindSym(std::wstring const & name);
-	int Num(Node *p);
+	int Num(Node * p);
 	void PrintSym(Symbol *sym);
 	void PrintSymbolTable();
-	void PrintSet(BitArray *s, int indent);
+	void PrintSet(BitSet const & s, int indent);
 
 	//---------------------------------------------------------------------
 	//  Syntax graph management
@@ -121,7 +121,7 @@ public:
 	void Finish(Graph *g);
 	void DeleteNodes();
 	Graph* StrToGraph(std::wstring const & str);
-	void SetContextTrans(Node *p); // set transition code in the graph rooted at p
+	void SetContextTrans(Node * p); // set transition code in the graph rooted at p
 
 	//------------ graph deletability check -----------------
 
@@ -131,7 +131,7 @@ public:
 
 	//----------------- graph printing ----------------------
 
-	int Ptr(Node *p, bool up);
+	int Ptr(Node * p, bool up);
 	wchar_t* Pos(Position *pos);
 	std::wstring Name(std::wstring const & name);
 	void PrintNodes();
@@ -156,19 +156,19 @@ public:
 	//---------------------------------------------------------------------
 
 	/* Computes the first set for the given Node. */
-	BitArray* First0(Node *p, BitArray *mark);
-	BitArray* First(Node *p);
+	BitSet First0(Node * p, BitSet & mark);
+	BitSet First(Node * p);
 	void CompFirstSets();
-	void CompFollow(Node *p);
+	void CompFollow(Node * p);
 	void Complete(Symbol *sym);
 	void CompFollowSets();
-	Node* LeadingAny(Node *p);
-	void FindAS(Node *p); // find ANY sets
+	Node* LeadingAny(Node * p);
+	void FindAS(Node * p); // find ANY sets
 	void CompAnySets();
-	BitArray* Expected(Node *p, Symbol *curSy);
+	BitSet Expected(Node * p, Symbol *curSy);
 	// does not look behind resolvers; only called during LL(1) test and in CheckRes
-	BitArray* Expected0(Node *p, Symbol *curSy);
-	void CompSync(Node *p);
+	BitSet Expected0(Node * p, Symbol *curSy);
+	void CompSync(Node * p);
 	void CompSyncSets();
 	void SetupAnys();
 	void CompDeletableSymbols();
@@ -201,20 +201,20 @@ public:
 		}
 	};
 
-	void GetSingles(Node *p, ArrayList *singles);
+	void GetSingles(Node * p, ArrayList *singles);
 	bool NoCircularProductions();
 
 	//--------------- check for LL(1) errors ----------------------
 
 	void LL1Error(int cond, Symbol *sym);
-	void CheckOverlap(BitArray *s1, BitArray *s2, int cond);
-	void CheckAlts(Node *p);
+	void CheckOverlap(BitSet const & s1, BitSet const & s2, int cond);
+	void CheckAlts(Node * p);
 	void CheckLL1();
 
 	//------------- check if resolvers are legal  --------------------
 
-	void ResErr(Node *p, const wchar_t* msg);
-	void CheckRes(Node *p, bool rslvAllowed);
+	void ResErr(Node * p, std::wstring const & msg);
+	void CheckRes(Node * p, bool rslvAllowed);
 	void CheckResolvers();
 
 	//------------- check if every nts has a production --------------------
@@ -223,12 +223,12 @@ public:
 
 	//-------------- check if every nts can be reached  -----------------
 
-	void MarkReachedNts(Node *p);
+	void MarkReachedNts(Node * p);
 	bool AllNtReached();
 
 	//--------- check if every nts can be derived to terminals  ------------
 
-	bool IsTerm(Node *p, BitArray *mark); // true if graph can be derived to terminals
+	bool IsTerm(Node * p, BitSet const & mark); // true if graph can be derived to terminals
 	bool AllNtToTerm();
 
 	//---------------------------------------------------------------------

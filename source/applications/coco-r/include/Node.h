@@ -37,7 +37,7 @@ namespace Coco
 {
 
 class Symbol;
-class BitArray;
+class BitSet;
 
 class Node
 {
@@ -71,7 +71,7 @@ public:
 	int      val;		// chr:  ordinal character value
 												// clas: index of character class
 	int      code;		// chr, clas: transition code
-	BitArray *set;		// any, sync: the set represented by this node
+	BitSet   set;		// any, sync: the set represented by this node
 	Position *pos;		// nt, t, wt: pos of actual attributes
 	                    // sem:       pos of semantic action in source text
 						// rslv:       pos of resolver in source text

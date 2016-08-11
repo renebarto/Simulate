@@ -32,7 +32,7 @@ Coco/R itself) does not fall under the GNU General Public License.
 #include "DFA.h"
 #include "Tab.h"
 #include "Parser.h"
-#include "BitArray.h"
+#include "BitSet.h"
 #include "Scanner.h"
 #include "Generator.h"
 
@@ -85,7 +85,7 @@ void DFA::PutRange(CharSet * s)
 
 //---------- State handling
 
-State* DFA::NewState()
+State * DFA::NewState()
 {
 	State *s = new State(); s->nr = ++lastStateNr;
 	if (firstState == nullptr) 
@@ -96,10 +96,11 @@ State* DFA::NewState()
 	return s;
 }
 
-void DFA::NewTransition(State *from, State *to, int typ, int sym, int tc)
+void DFA::NewTransition(State * from, State * to, int typ, int sym, int tc)
 {
 	Target *t = new Target(to);
-	Action *a = new Action(typ, sym, tc); a->target = t;
+	Action *a = new Action(typ, sym, tc);
+    a->target = t;
 	from->AddAction(a);
 	if (typ == Node::clas) 
         curSy->tokenKind = Symbol::classToken;
@@ -129,11 +130,11 @@ void DFA::CombineShifts()
 	}
 }
 
-void DFA::FindUsedStates(State *state, BitArray *used)
+void DFA::FindUsedStates(State *state, BitSet & used)
 {
-	if ((*used)[state->nr]) 
+	if (used[state->nr]) 
         return;
-	used->Set(state->nr, true);
+	used.Set(state->nr, true);
 	for (Action *a = state->firstAction; a != nullptr; a = a->next)
 		FindUsedStates(a->target->state, used);
 }
@@ -142,28 +143,28 @@ void DFA::DeleteRedundantStates()
 {
 	//State *newState = new State[State::lastNr + 1];
 	State **newState = (State**) malloc (sizeof(State*) * (lastStateNr + 1));
-	BitArray *used = new BitArray(lastStateNr + 1);
+	BitSet used(lastStateNr + 1);
 	FindUsedStates(firstState, used);
 	// combine equal final states
 	for (State *s1 = firstState->next; s1 != nullptr; s1 = s1->next) // firstState cannot be final
-		if ((*used)[s1->nr] && s1->endOf != nullptr && s1->firstAction == nullptr && !(s1->ctx))
+		if (used[s1->nr] && s1->endOf != nullptr && s1->firstAction == nullptr && !(s1->ctx))
 			for (State *s2 = s1->next; s2 != nullptr; s2 = s2->next)
-				if ((*used)[s2->nr] && s1->endOf == s2->endOf && s2->firstAction == nullptr && !(s2->ctx))
+				if (used[s2->nr] && s1->endOf == s2->endOf && s2->firstAction == nullptr && !(s2->ctx))
                 {
-					used->Set(s2->nr, false); 
+					used.Set(s2->nr, false); 
                     newState[s2->nr] = s1;
 				}
 
 	State *state;
 	for (state = firstState; state != nullptr; state = state->next)
-		if ((*used)[state->nr])
+		if (used[state->nr])
 			for (Action *a = state->firstAction; a != nullptr; a = a->next)
-				if (!((*used)[a->target->state->nr]))
+				if (!(used[a->target->state->nr]))
 					a->target->state = newState[a->target->state->nr];
 	// delete unused states
 	lastState = firstState; lastStateNr = 0; // firstState has number 0
 	for (state = firstState->next; state != nullptr; state = state->next)
-		if ((*used)[state->nr])
+		if (used[state->nr])
         {
             state->nr = ++lastStateNr; 
             lastState = state;
@@ -171,10 +172,9 @@ void DFA::DeleteRedundantStates()
 		else 
             lastState->next = state->next;
 	free (newState);
-	delete used;
 }
 
-State* DFA::TheState(Node *p)
+State* DFA::TheState(Node * p)
 {
 	State *state;
 	if (p == nullptr)
@@ -186,11 +186,11 @@ State* DFA::TheState(Node *p)
 	else return p->state;
 }
 
-void DFA::Step(State *from, Node *p, BitArray *stepped)
+void DFA::Step(State *from, Node *p, BitSet & stepped)
 {
 	if (p == nullptr)
         return;
-	stepped->Set(p->n, true);
+	stepped.Set(p->n, true);
 
 	if (p->typ == Node::clas || p->typ == Node::chr)
     {
@@ -198,7 +198,8 @@ void DFA::Step(State *from, Node *p, BitArray *stepped)
 	} 
     else if (p->typ == Node::alt)
     {
-		Step(from, p->sub, stepped); Step(from, p->down, stepped);
+		Step(from, p->sub, stepped); 
+        Step(from, p->down, stepped);
 	}
     else if (p->typ == Node::iter)
     {
@@ -207,19 +208,18 @@ void DFA::Step(State *from, Node *p, BitArray *stepped)
 			parser->SemErr(L"contents of {...} must not be deletable");
 			return;
 		}
-		if (p->next != nullptr && !((*stepped)[p->next->n])) 
+		if (p->next != nullptr && !(stepped[p->next->n])) 
             Step(from, p->next, stepped);
 		Step(from, p->sub, stepped);
 		if (p->state != from)
         {
-			BitArray *newStepped = new BitArray(tab->nodes->Count);
+			BitSet newStepped(tab->nodes->Count);
 			Step(p->state, p, newStepped);
-			delete newStepped;
 		}
 	} 
     else if (p->typ == Node::opt)
     {
-		if (p->next != nullptr && !((*stepped)[p->next->n])) 
+		if (p->next != nullptr && !(stepped[p->next->n])) 
             Step(from, p->next, stepped);
 		Step(from, p->sub, stepped);
 	}
@@ -232,7 +232,7 @@ void DFA::Step(State *from, Node *p, BitArray *stepped)
 //  - any node after a chr, clas, opt, or alt, must get a new number
 //  - if a nested structure starts with an iteration the iter node must get a new number
 //  - if an iteration follows an iteration, it must get a new number
-void DFA::NumberNodes(Node *p, State *state, bool renumIter)
+void DFA::NumberNodes(Node * p, State * state, bool renumIter)
 {
 	if (p == nullptr) 
         return;
@@ -266,16 +266,15 @@ void DFA::NumberNodes(Node *p, State *state, bool renumIter)
 	}
 }
 
-void DFA::FindTrans (Node *p, bool start, BitArray *marked)
+void DFA::FindTrans(Node *p, bool start, BitSet & marked)
 {
-	if (p == nullptr || (*marked)[p->n]) 
+	if (p == nullptr || marked[p->n]) 
         return;
-	marked->Set(p->n, true);
+	marked.Set(p->n, true);
 	if (start)
     {
-		BitArray *stepped = new BitArray(tab->nodes->Count);
+		BitSet stepped(tab->nodes->Count);
 		Step(p->state, p, stepped); // start of group of equally numbered nodes
-		delete stepped;
 	}
 
 	if (p->typ == Node::clas || p->typ == Node::chr)
@@ -284,15 +283,18 @@ void DFA::FindTrans (Node *p, bool start, BitArray *marked)
 	} 
     else if (p->typ == Node::opt) 
     {
-		FindTrans(p->next, true, marked); FindTrans(p->sub, false, marked);
+		FindTrans(p->next, true, marked); 
+        FindTrans(p->sub, false, marked);
 	} 
     else if (p->typ == Node::iter)
     {
-		FindTrans(p->next, false, marked); FindTrans(p->sub, false, marked);
+		FindTrans(p->next, false, marked); 
+        FindTrans(p->sub, false, marked);
 	} 
     else if (p->typ == Node::alt)
     {
-		FindTrans(p->sub, false, marked); FindTrans(p->down, false, marked);
+		FindTrans(p->sub, false, marked); 
+        FindTrans(p->down, false, marked);
 	}
 }
 
@@ -305,17 +307,16 @@ void DFA::ConvertToStates(Node *p, Symbol *sym)
         return;
     }
 	NumberNodes(curGraph, firstState, true);
-	FindTrans(curGraph, true, new BitArray(tab->nodes->Count));
+	FindTrans(curGraph, true, BitSet(tab->nodes->Count));
 	if (p->typ == Node::iter)
     {
-		BitArray *stepped = new BitArray(tab->nodes->Count);
+		BitSet stepped(tab->nodes->Count);
 		Step(firstState, p, stepped);
-		delete stepped;
 	}
 }
 
 // match string against current automaton; store it either as a fixedToken or as a litToken
-void DFA::MatchLiteral(std::wstring & s, Symbol *sym)
+void DFA::MatchLiteral(std::wstring & s, Symbol * sym)
 {
 	std::wstring subS = String::Create(s, 1, s.length()-2);
 	std::wstring sUnescaped = tab->Unescape(subS);
@@ -360,9 +361,10 @@ void DFA::MatchLiteral(std::wstring & s, Symbol *sym)
 	}
 }
 
-void DFA::SplitActions(State *state, Action *a, Action *b)
+void DFA::SplitActions(State * state, Action * a, Action * b)
 {
-	Action *c; CharSet *seta, *setb, *setc;
+	Action *c; 
+    CharSet *seta, *setb, *setc;
 	seta = a->Symbols(tab); setb = b->Symbols(tab);
 	if (seta->Equals(setb))
     {
@@ -396,9 +398,9 @@ void DFA::SplitActions(State *state, Action *a, Action *b)
 	}
 }
 
-bool DFA::Overlap(Action *a, Action *b)
+bool DFA::Overlap(Action * a, Action * b)
 {
-	CharSet *seta, *setb;
+	CharSet * seta, * setb;
 	if (a->typ == Node::chr)
 		if (b->typ == Node::chr) 
             return (a->sym == b->sym);
@@ -420,7 +422,7 @@ bool DFA::Overlap(Action *a, Action *b)
 	}
 }
 
-bool DFA::MakeUnique(State *state)
+bool DFA::MakeUnique(State * state)
 { // return true if actions were split
 	bool changed = false;
 	for (Action *a = state->firstAction; a != nullptr; a = a->next)
@@ -436,7 +438,7 @@ bool DFA::MakeUnique(State *state)
 void DFA::MeltStates(State *state)
 {
 	bool changed, ctx;
-	BitArray *targets;
+	BitSet targets;
 	Symbol *endOf;
 	for (Action *action = state->firstAction; action != nullptr; action = action->next)
     {
@@ -533,7 +535,7 @@ void DFA::PrintStates()
 
 //---------------------------- actions --------------------------------
 
-Action* DFA::FindAction(State *state, wchar_t ch)
+Action* DFA::FindAction(State * state, wchar_t ch)
 {
 	for (Action *a = state->firstAction; a != nullptr; a = a->next)
 		if (a->typ == Node::chr && ch == a->sym) 
@@ -547,21 +549,22 @@ Action* DFA::FindAction(State *state, wchar_t ch)
 	return nullptr;
 }
 
-void DFA::GetTargetStates(Action *a, BitArray* &targets, Symbol* &endOf, bool & ctx)
+void DFA::GetTargetStates(Action * a, BitSet & targets, Symbol* & endOf, bool & ctx)
 {
 	// compute the set of target states
-	targets = new BitArray(maxStates); endOf = nullptr;
+	targets = BitSet(maxStates); 
+    endOf = nullptr;
 	ctx = false;
 	for (Target *t = a->target; t != nullptr; t = t->next)
     {
 		size_t stateNr = t->state->nr;
 		if (stateNr <= lastSimState)
         {
-            targets->Set(stateNr, true);
+            targets.Set(stateNr, true);
         }
 		else
         { 
-            targets->Or(MeltedSet(stateNr));
+            targets |= MeltedSet(stateNr);
         }
 		if (t->state->endOf != nullptr)
         {
@@ -595,17 +598,18 @@ void DFA::GetTargetStates(Action *a, BitArray* &targets, Symbol* &endOf, bool & 
 //------------------------- melted states ------------------------------
 
 
-Melted* DFA::NewMelted(BitArray *set, State *state)
+Melted* DFA::NewMelted(BitSet const & set, State * state)
 {
-	Melted *m = new Melted(set, state);
-	m->next = firstMelted; firstMelted = m;
+	Melted * m = new Melted(set, state);
+	m->next = firstMelted; 
+    firstMelted = m;
 	return m;
 
 }
 
-BitArray* DFA::MeltedSet(size_t nr)
+BitSet const & DFA::MeltedSet(size_t nr)
 {
-	Melted *m = firstMelted;
+	Melted * m = firstMelted;
 	while (m != nullptr)
     {
 		if (m->state->nr == nr) 
@@ -613,14 +617,12 @@ BitArray* DFA::MeltedSet(size_t nr)
         else 
             m = m->next;
 	}
-	//Errors::Exception("-- compiler error in Melted::Set");
-	//throw new Exception("-- compiler error in Melted::Set");
-	return nullptr;
+    throw std::invalid_argument("Invalid set number");
 }
 
-Melted* DFA::StateWithSet(BitArray *s)
+Melted * DFA::StateWithSet(BitSet const & s)
 {
-	for (Melted *m = firstMelted; m != nullptr; m = m->next)
+	for (Melted * m = firstMelted; m != nullptr; m = m->next)
 		if (Sets::Equals(s, m->set)) 
             return m;
 	return nullptr;
@@ -629,7 +631,7 @@ Melted* DFA::StateWithSet(BitArray *s)
 
 //------------------------ comments --------------------------------
 
-std::wstring DFA::CommentStr(Node *p)
+std::wstring DFA::CommentStr(Node * p)
 {
 	StringBuilder s = StringBuilder();
 	while (p != nullptr)
@@ -658,7 +660,7 @@ std::wstring DFA::CommentStr(Node *p)
 }
 
 
-void DFA::NewComment(Node *from, Node *to, bool nested)
+void DFA::NewComment(Node * from, Node * to, bool nested)
 {
 	Comment *c = new Comment(CommentStr(from), CommentStr(to), nested);
 	c->next = firstComment; firstComment = c;
@@ -667,7 +669,7 @@ void DFA::NewComment(Node *from, Node *to, bool nested)
 
 //------------------------ scanner generation ----------------------
 
-void DFA::GenComBody(Comment *com)
+void DFA::GenComBody(Comment * com)
 {
 	fwprintf(gen, L"\t\tfor(;;) {\n");
 
@@ -714,12 +716,12 @@ void DFA::GenComBody(Comment *com)
 	fwprintf(gen, L"\t\t}\n");
 }
 
-void DFA::GenCommentHeader(Comment *com, int i)
+void DFA::GenCommentHeader(Comment * com, int i)
 {
 	fwprintf(gen, L"\tbool Comment%d();\n", i);
 }
 
-void DFA::GenComment(Comment *com, int i)
+void DFA::GenComment(Comment * com, int i)
 {
 	fwprintf(gen, L"\n");
 	fwprintf(gen, L"bool Scanner::Comment%d() ", i);
@@ -748,7 +750,7 @@ void DFA::GenComment(Comment *com, int i)
 	fwprintf(gen, L"}\n");
 }
 
-std::wstring DFA::SymName(Symbol *sym)
+std::wstring DFA::SymName(Symbol * sym)
 { // real name value is stored in Tab.literals
 	if (('a'<=sym->name[0] && sym->name[0]<='z') ||
 		('A'<=sym->name[0] && sym->name[0]<='Z'))
@@ -765,7 +767,7 @@ std::wstring DFA::SymName(Symbol *sym)
 	return sym->name;
 }
 
-void DFA::GenLiterals ()
+void DFA::GenLiterals()
 {
 	Symbol *sym;
 
@@ -856,7 +858,7 @@ void DFA::CheckLabels()
 	}
 }
 
-void DFA::WriteState(State *state)
+void DFA::WriteState(State * state)
 {
 	Symbol *endOf = state->endOf;
 	fwprintf(gen, L"\t\tcase %zd:\n", state->nr);
@@ -1080,7 +1082,7 @@ void DFA::WriteScanner()
 	fclose(gen);
 }
 
-DFA::DFA(Parser *parser)
+DFA::DFA(Parser * parser)
 {
 	this->parser = parser;
 	tab = parser->tab;

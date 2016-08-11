@@ -194,6 +194,7 @@
     <ClCompile Include="..\Target.cpp" />
     <ClCompile Include="src\CommandLineOptionsParser.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Test\TestBitSet.cpp" />
     <ClCompile Include="src\Test\TestCocor.cpp" />
     <ClCompile Include="src\Test\TestToken.cpp" />
   </ItemGroup>

@@ -3,6 +3,7 @@
 #include "cocor/TestData.h"
 
 #include "core/String.h"
+#include "core/Util.h"
 #include "Scanner.h"
 #include "Parser.h"
 
@@ -92,6 +93,12 @@ TEST_FIXTURE(CocorTest, Construct)
 	delete parser->tab;
 	delete parser;
 	delete scanner;
+
+    EXPECT_TRUE(Core::Util::CompareTextFiles(TestData::TestTraceRef(), TestData::TestTraceOut()));
+    EXPECT_TRUE(Core::Util::CompareTextFiles(TestData::TestParserHRef(), TestData::TestParserHOut()));
+    EXPECT_TRUE(Core::Util::CompareTextFiles(TestData::TestParserCPPRef(), TestData::TestParserCPPOut()));
+    EXPECT_TRUE(Core::Util::CompareTextFiles(TestData::TestScannerHRef(), TestData::TestScannerHOut()));
+    EXPECT_TRUE(Core::Util::CompareTextFiles(TestData::TestScannerCPPRef(), TestData::TestScannerCPPOut()));
 }
 
 } // namespace Test

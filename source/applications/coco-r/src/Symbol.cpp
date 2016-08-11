@@ -29,13 +29,13 @@ Coco/R itself) does not fall under the GNU General Public License.
 #include "Symbol.h"
 #include "Scanner.h"
 
-namespace Coco {
+namespace Coco
+{
 
 int Symbol::fixedToken     = 0;
 int Symbol::classToken     = 1;
 int Symbol::litToken       = 2;
 int Symbol::classLitToken  = 3;
-
 
 Symbol::Symbol(int typ, std::wstring const & name, size_t line)
 {
@@ -44,9 +44,9 @@ Symbol::Symbol(int typ, std::wstring const & name, size_t line)
 	tokenKind = 0;
 	deletable = false;
 	firstReady = false;
-	first = nullptr;
-	follow = nullptr;
-	nts = nullptr;
+    first = {};
+    follow = {};
+    nts = {};
 	attrPos = nullptr;
 	semPos = nullptr;
 

@@ -30,12 +30,12 @@ Coco/R itself) does not fall under the GNU General Public License.
 
 #include "Position.h"
 #include "Scanner.h"
+#include "BitSet.h"
 
 namespace Coco
 {
 
 class Node;
-class BitArray;
 
 class Symbol
 {
@@ -53,9 +53,9 @@ public:
 	int      tokenKind;   // t:  token kind (fixedToken, classToken, ...)
 	bool     deletable;   // nt: true if nonterminal is deletable
 	bool     firstReady;  // nt: true if terminal start symbols have already been computed
-	BitArray *first;      // nt: terminal start symbols
-	BitArray *follow;     // nt: terminal followers
-	BitArray *nts;        // nt: nonterminals whose followers have to be added to this sym
+	BitSet   first;       // nt: terminal start symbols
+	BitSet   follow;      // nt: terminal followers
+	BitSet   nts;         // nt: nonterminals whose followers have to be added to this sym
 	size_t   line;        // source text line number of item in this node
 	Position *attrPos;    // nt: position of attributes in source text (or null)
 	Position *semPos;     // pr: pos of semantic action in source text (or null)

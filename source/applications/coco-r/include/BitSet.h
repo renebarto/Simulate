@@ -28,37 +28,51 @@ Coco/R itself) does not fall under the GNU General Public License.
 
 #pragma once
 
+#include <vector>
+
 namespace Coco
 {
 
-class BitArray
+class BitSet
 {
 public:
-	BitArray(size_t length = 0, bool defaultValue = false) ;
-	BitArray(const BitArray & copy);
-	virtual ~BitArray();
+	BitSet(size_t length = 0, bool defaultValue = false) ;
+	BitSet(BitSet const & other);
+	virtual ~BitSet();
 
-	size_t GetCount();
+	size_t Count() const;
 
 	bool Get(size_t index) const;
 	void Set(size_t index, const bool value);
-	void SetAll(const bool value);
-	bool Equal(const BitArray *right ) const;
-	bool Overlaps(const BitArray *right ) const;
-	bool operator[](const size_t index) const { return Get(index); };
+  	bool operator[](const size_t index) const { return Get(index); };
 
-	const BitArray &operator=(const BitArray &right);
+    void SetAll(const bool value);
+	bool Equal(BitSet const & other) const;
+	bool Overlaps(BitSet const & other)  const;
+
+	BitSet & operator=(BitSet const &right);
+
+    BitSet & operator &=(BitSet const & value) { And(value); return *this; }
+    BitSet & operator |=(BitSet const & value) { Or(value); return *this; }
+    BitSet & operator ^=(BitSet const & value) { Xor(value); return *this; }
 
 	void Not();
-	void And(const BitArray *value);
-	void Or(const BitArray *value);
-	void Xor(const BitArray *value);
+	void And(BitSet const & value);
+	void Or(BitSet const & value);
+	void Xor(BitSet const & value);
 
-	BitArray* Clone() const;
+	BitSet Clone() const;
 
 private:
-	size_t Count;
-	unsigned char* Data;
+	size_t count;
+	std::vector<uint8_t> data;
 };
+
+inline bool operator == (BitSet const & lhs, BitSet const & rhs) { return lhs.Equal(rhs); }
+inline bool operator != (BitSet const & lhs, BitSet const & rhs) { return !lhs.Equal(rhs); }
+inline BitSet operator ~(BitSet const & value) { BitSet result(value); result.Not(); return result; }
+inline BitSet operator &(BitSet const & lhs, BitSet const & rhs) { BitSet result(lhs); result.And(rhs); return result; }
+inline BitSet operator |(BitSet const & lhs, BitSet const & rhs) { BitSet result(lhs); result.Or(rhs); return result; }
+inline BitSet operator ^(BitSet const & lhs, BitSet const & rhs) { BitSet result(lhs); result.Xor(rhs); return result; }
 
 } // namespace Coco

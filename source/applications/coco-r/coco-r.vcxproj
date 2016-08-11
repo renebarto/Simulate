@@ -21,7 +21,7 @@
   <ItemGroup>
     <ClCompile Include="src\Action.cpp" />
     <ClCompile Include="src\ArrayList.cpp" />
-    <ClCompile Include="src\BitArray.cpp" />
+    <ClCompile Include="src\BitSet.cpp" />
     <ClCompile Include="src\CharClass.cpp" />
     <ClCompile Include="src\CharSet.cpp" />
     <ClCompile Include="src\coco.cpp" />
@@ -47,7 +47,7 @@
   <ItemGroup>
     <ClInclude Include="include\Action.h" />
     <ClInclude Include="include\ArrayList.h" />
-    <ClInclude Include="include\BitArray.h" />
+    <ClInclude Include="include\BitSet.h" />
     <ClInclude Include="include\CharClass.h" />
     <ClInclude Include="include\CharSet.h" />
     <ClInclude Include="include\coco.h" />

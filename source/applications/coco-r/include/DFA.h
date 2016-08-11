@@ -43,7 +43,7 @@ namespace Coco
 
 class Parser;
 class Tab;
-class BitArray;
+class BitSet;
 
 class DFA
 {
@@ -79,12 +79,12 @@ public:
 	State* NewState();
 	void NewTransition(State *from, State *to, int typ, int sym, int tc);
 	void CombineShifts();
-	void FindUsedStates(State *state, BitArray *used);
+	void FindUsedStates(State *state, BitSet & used);
 	void DeleteRedundantStates();
 	State* TheState(Node *p);
-	void Step(State *from, Node *p, BitArray *stepped);
+	void Step(State *from, Node *p, BitSet & stepped);
 	void NumberNodes(Node *p, State *state, bool renumIter);
-	void FindTrans (Node *p, bool start, BitArray *marked);
+	void FindTrans(Node *p, bool start, BitSet & marked);
 	void ConvertToStates(Node *p, Symbol *sym);
 	// match string against current automaton; store it either as a fixedToken or as a litToken
 	void MatchLiteral(std::wstring & s, Symbol *sym);
@@ -99,12 +99,12 @@ public:
 
 	//---------------------------- actions --------------------------------
 	Action* FindAction(State *state, wchar_t ch);
-	void GetTargetStates(Action *a, BitArray* &targets, Symbol* &endOf, bool &ctx);
+	void GetTargetStates(Action *a, BitSet &targets, Symbol* &endOf, bool &ctx);
 
 	//------------------------- melted states ------------------------------
-	Melted* NewMelted(BitArray *set, State *state);
-	BitArray* MeltedSet(size_t nr);
-	Melted* StateWithSet(BitArray *s);
+	Melted* NewMelted(BitSet const & set, State * state);
+	BitSet const & MeltedSet(size_t nr);
+	Melted* StateWithSet(BitSet const & s);
 
 	//------------------------ comments --------------------------------
 	std::wstring CommentStr(Node *p);
@@ -114,14 +114,12 @@ public:
 	void GenComBody(Comment *com);
 	void GenCommentHeader(Comment *com, int i);
 	void GenComment(Comment *com, int i);
-	void CopyFramePart(const wchar_t* stop);
 	std::wstring SymName(Symbol *sym); // real name value is stored in Tab.literals
 	void GenLiterals ();
 	size_t GenNamespaceOpen(std::wstring const & nsName);
 	void GenNamespaceClose(size_t nrOfNs);
 	void WriteState(State *state);
 	void WriteStartTab();
-	void OpenGen(std::wstring const & genName, bool backUp); /* pdt */
 	void WriteScanner();
 	DFA(Parser *parser);
 };

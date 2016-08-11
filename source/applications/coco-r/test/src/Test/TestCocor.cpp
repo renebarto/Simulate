@@ -3,6 +3,7 @@
 #include "coco-r/TestData.h"
 
 #include "core/String.h"
+#include "core/Util.h"
 #include "Scanner.h"
 #include "Parser.h"
 
@@ -35,7 +36,7 @@ TEST_FIXTURE(CocorTest, Construct)
     std::string traceFile = "trace.txt";
     std::string inputDir = TestData::TestDirectoryCocor();
     std::string inputPath = Core::Path::CombinePath(inputDir, inputFile);
-    std::string tracePath = Core::Path::CombinePath(inputDir, traceFile);
+    std::string tracePath = Core::Path::CombinePath(TestData::TestDirectoryCocorOutput(), traceFile);
     std::string framesDir = TestData::TestDirectoryCocorFrames();
 
     std::wstring srcDir = Core::String::ToWString(inputDir);
@@ -93,6 +94,12 @@ TEST_FIXTURE(CocorTest, Construct)
 	delete parser->tab;
 	delete parser;
 	delete scanner;
+
+    EXPECT_TRUE(Core::Util::CompareTextFiles(TestData::TestTraceRef(), TestData::TestTraceOut()));
+    EXPECT_TRUE(Core::Util::CompareTextFiles(TestData::TestParserHRef(), TestData::TestParserHOut()));
+    EXPECT_TRUE(Core::Util::CompareTextFiles(TestData::TestParserCPPRef(), TestData::TestParserCPPOut()));
+    EXPECT_TRUE(Core::Util::CompareTextFiles(TestData::TestScannerHRef(), TestData::TestScannerHOut()));
+    EXPECT_TRUE(Core::Util::CompareTextFiles(TestData::TestScannerCPPRef(), TestData::TestScannerCPPOut()));
 }
 
 } // namespace Test

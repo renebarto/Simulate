@@ -173,7 +173,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\Action.cpp" />
     <ClCompile Include="..\src\ArrayList.cpp" />
-    <ClCompile Include="..\src\BitArray.cpp" />
+    <ClCompile Include="..\src\BitSet.cpp" />
     <ClCompile Include="..\src\CharClass.cpp" />
     <ClCompile Include="..\src\CharSet.cpp" />
     <ClCompile Include="..\src\coco.cpp" />
@@ -195,6 +195,7 @@
     <ClCompile Include="..\src\Target.cpp" />
     <ClCompile Include="src\CommandLineOptionsParser.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Test\TestBitSet.cpp" />
     <ClCompile Include="src\Test\TestCocor.cpp" />
     <ClCompile Include="src\Test\TestToken.cpp" />
   </ItemGroup>

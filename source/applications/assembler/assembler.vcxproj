@@ -40,7 +40,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\build\bin\x64\Debug\cocor.exe %(FullPath) -namespace Assembler -trace AGIPSX -o .</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Creating Scanner / Parser</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\build\bin\x64\Debug\cocor.exe %(FullPath) -namespace Assembler -trace AGIPSX -o .</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\build\bin\x64\Debug\coco-r.exe %(FullPath) --namespace Assembler --trace AGIPSX --o ./</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Creating Scanner / Parser</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\build\bin\x64\Debug\cocor.exe %(FullPath) -namespace Assembler -trace AGIPSX -o .</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Creating Scanner / Parser</Message>

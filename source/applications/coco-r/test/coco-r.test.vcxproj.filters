@@ -44,9 +44,6 @@
     <ClCompile Include="..\src\ArrayList.cpp">
       <Filter>Source Files\Coco-R</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\BitArray.cpp">
-      <Filter>Source Files\Coco-R</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\CharClass.cpp">
       <Filter>Source Files\Coco-R</Filter>
     </ClCompile>
@@ -102,6 +99,12 @@
       <Filter>Source Files\Coco-R</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Target.cpp">
+      <Filter>Source Files\Coco-R</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Test\TestBitSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\BitSet.cpp">
       <Filter>Source Files\Coco-R</Filter>
     </ClCompile>
   </ItemGroup>
