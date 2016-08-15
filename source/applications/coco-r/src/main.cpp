@@ -91,7 +91,7 @@ int wmain(int argc, wchar_t const * const argv[])
 
 	size_t pos = Coco::String::LastIndexOf(cmdLineParser.inputFile, '/');
 	if (pos == std::string::npos) pos = Coco::String::LastIndexOf(cmdLineParser.inputFile, '\\');
-	std::string file = Coco::String::Create(cmdLineParser.inputFile);
+	std::string file = cmdLineParser.inputFile;
 	std::string srcDir = Coco::String::Create(cmdLineParser.inputFile, 0, pos + 1);
 
 	Coco::Scanner *scanner = new Coco::Scanner(file);
@@ -108,11 +108,11 @@ int wmain(int argc, wchar_t const * const argv[])
 	parser->dfa  = new Coco::DFA(parser);
 	parser->pgen = new Coco::ParserGen(parser);
 
-	parser->tab->srcName  = Core::String::ToWString(cmdLineParser.inputFile);
-	parser->tab->srcDir   = Core::String::ToWString(srcDir);
-	parser->tab->nsName   = !cmdLineParser.namespaceName.empty() ? Core::String::ToWString(cmdLineParser.namespaceName) : L"";
-	parser->tab->frameDir = Core::String::ToWString(cmdLineParser.frameFilesDirectory);
-	parser->tab->outDir   = Core::String::ToWString(!cmdLineParser.outputDirectory.empty() ? cmdLineParser.outputDirectory : cmdLineParser.inputFile);
+	parser->tab->srcName  = cmdLineParser.inputFile;
+	parser->tab->srcDir   = srcDir;
+	parser->tab->nsName   = !cmdLineParser.namespaceName.empty() ? cmdLineParser.namespaceName : "";
+	parser->tab->frameDir = cmdLineParser.frameFilesDirectory;
+	parser->tab->outDir   = !cmdLineParser.outputDirectory.empty() ? cmdLineParser.outputDirectory : cmdLineParser.inputFile;
 	parser->tab->emitLines = cmdLineParser.emitLineNumbers;
 
 	if (!cmdLineParser.traceString.empty()) parser->tab->SetDDT(Core::String::ToWString(cmdLineParser.traceString));

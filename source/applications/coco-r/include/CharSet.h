@@ -28,36 +28,38 @@ Coco/R itself) does not fall under the GNU General Public License.
 
 #pragma once
 
-#include <stdio.h>
 
-namespace Coco {
+namespace Coco
+{
 
-class CharSet {
+class CharSet
+{
 public:
-	class Range {
+	class Range
+    {
 	public:
-		int from;
-		int to;
+		wchar_t from;
+		wchar_t to;
 		Range *next;
 		Range(int from, int to) { this->from = from; this->to = to; next = nullptr; };
 	};
 
-	Range *head;
+	Range * head;
 	
 	CharSet() { head = nullptr; };
 	virtual ~CharSet();
 	
-	bool Get(int i) const;
-	void Set(int i);
+	bool Get(wchar_t i) const;
+	void Set(wchar_t i);
 	CharSet* Clone() const;
 	bool Equals(CharSet *s) const;
-	int Elements() const;
-	int First() const;
-	void Or(CharSet *s);
-	void And(CharSet *s);
-	void Subtract(CharSet *s);
-	bool Includes(CharSet *s) const;
-	bool Intersects(CharSet *s) const;
+	size_t Elements() const;
+	wchar_t First() const;
+	void Or(CharSet * s);
+	void And(CharSet * s);
+	void Subtract(CharSet * s);
+	bool Includes(CharSet * s) const;
+	bool Intersects(CharSet * s) const;
 	void Clear();
 	void Fill();
 };

@@ -43,17 +43,6 @@ Coco/R itself) does not fall under the GNU General Public License.
 #include <fcntl.h>
 #endif
 
-#if _MSC_VER >= 1400
-#define coco_swprintf swprintf_s
-#elif _MSC_VER >= 1300
-#define coco_swprintf _snwprintf
-#elif defined __MINGW32__
-#define coco_swprintf _snwprintf
-#else
-// assume every other compiler knows swprintf
-#define coco_swprintf swprintf
-#endif
-
 #define COCO_WCHAR_MAX 65535
 #define COCO_MIN_BUFFER_LENGTH 1024
 #define COCO_MAX_BUFFER_LENGTH (64*COCO_MIN_BUFFER_LENGTH)
@@ -63,35 +52,10 @@ Coco/R itself) does not fall under the GNU General Public License.
 namespace Coco
 {
 
-//// string handling, wide character
-//wchar_t* coco_string_create(const wchar_t *value);
-//wchar_t* coco_string_create(const wchar_t *value, int startIndex);
-//wchar_t* coco_string_create(const wchar_t *value, int startIndex, int length);
-//wchar_t* coco_string_create_upper(const wchar_t* data);
-//wchar_t* coco_string_create_lower(const wchar_t* data);
-//wchar_t* coco_string_create_lower(const wchar_t* data, int startIndex, int dataLen);
-//wchar_t* coco_string_create_append(const wchar_t* data1, const wchar_t* data2);
-//wchar_t* coco_string_create_append(const wchar_t* data, const wchar_t value);
-//void  coco_string_delete(wchar_t* &data);
-//int   coco_string_length(const wchar_t* data);
-//bool  coco_string_endswith(const wchar_t* data, const wchar_t *value);
-//int   coco_string_indexof(const wchar_t* data, const wchar_t value);
-//int   coco_string_lastindexof(const wchar_t* data, const wchar_t value);
-//void  coco_string_merge(wchar_t* &data, const wchar_t* value);
-//bool  coco_string_equal(const wchar_t* data1, const wchar_t* data2);
-//int   coco_string_compareto(const wchar_t* data1, const wchar_t* data2);
-//int   coco_string_hash(const wchar_t* data);
-//
-//// string handling, ascii character
-//wchar_t* coco_string_create(const char *value);
-//char* coco_string_create_char(const wchar_t *value);
-//void  coco_string_delete(char* &data);
-
-
 class Token  
 {
 public:
-	int kind;       // token kind
+	int    kind;   // token kind
 	size_t pos;    // token position in bytes in the source text (starting at 0)
 	size_t charPos;// token position in characters in the source text (starting at 0)
 	size_t col;    // token column (starting at 1)

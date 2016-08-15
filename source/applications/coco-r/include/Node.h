@@ -61,15 +61,15 @@ public:
 	static int normalTrans;		// transition codes
 	static int contextTrans;
 
-	int      n;			// node number
+	size_t   n;			// node number
 	int      typ;		// t, nt, wt, chr, clas, any, eps, sem, sync, alt, iter, opt, rslv
 	Node     *next;		// to successor node
 	Node     *down;		// alt: to next alternative
 	Node     *sub;		// alt, iter, opt: to first node of substructure
 	bool     up;			// true: "next" leads to successor in enclosing structure
 	Symbol   *sym;		// nt, t, wt: symbol represented by this node
-	int      val;		// chr:  ordinal character value
-												// clas: index of character class
+	wchar_t  val;		// chr:  ordinal character value
+						// clas: index of character class
 	int      code;		// chr, clas: transition code
 	BitSet   set;		// any, sync: the set represented by this node
 	Position *pos;		// nt, t, wt: pos of actual attributes

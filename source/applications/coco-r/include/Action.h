@@ -31,7 +31,8 @@ Coco/R itself) does not fall under the GNU General Public License.
 #include "State.h"
 #include "Tab.h"
 
-namespace Coco {
+namespace Coco
+{
 
 class Target;
 class CharSet;
@@ -40,16 +41,16 @@ class Action  			// action of finite automaton
 {
 public:
 	int typ;			// type of action symbol: clas, chr
-	int sym;			// action symbol
+	wchar_t sym;		// action symbol
 	int tc;				// transition code: normalTrans, contextTrans
-	Target *target;		// states reached from this action
-	Action *next;
+	Target * target;	// states reached from this action
+	Action * next;
 
-	Action(int typ, int sym, int tc);
-	void AddTarget(Target *t);  // add t to the action.targets
-	void AddTargets(Action *a); // add copy of a.targets to action.targets
-	CharSet* Symbols(Tab *tab);
-	void ShiftWith(CharSet *s, Tab *tab);
+	Action(int typ, wchar_t sym, int tc);
+	void AddTarget(Target * t);  // add t to the action.targets
+	void AddTargets(Action * a); // add copy of a.targets to action.targets
+	CharSet * Symbols(Tab * tab);
+	void ShiftWith(CharSet * s, Tab * tab);
 };
 
 }; // namespace

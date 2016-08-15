@@ -40,26 +40,6 @@ Copyright (c) 2016 Rene Barto
 using namespace Coco;
 using namespace String;
 
-//wchar_t * Coco::String::Create(const wchar_t *value)
-//{
-//    return coco_string_create(value);
-//}
-//
-//wchar_t * Coco::String::Create(const wchar_t *value, int startIndex)
-//{
-//    return coco_string_create(value, startIndex);
-//}
-//
-//wchar_t * Coco::String::Create(const wchar_t *value, int startIndex, int length)
-//{
-//    return coco_string_create(value, startIndex, length);
-//}
-
-std::string Coco::String::Create(std::string const & value)
-{
-    return value;
-}
-
 std::string Coco::String::Create(std::string const & value, size_t startIndex)
 {
     return value.substr(startIndex);
@@ -68,11 +48,6 @@ std::string Coco::String::Create(std::string const & value, size_t startIndex)
 std::string Coco::String::Create(std::string const & value, size_t startIndex, size_t length)
 {
     return value.substr(startIndex, length);
-}
-
-std::wstring Coco::String::Create(std::wstring const & value)
-{
-    return value;
 }
 
 std::wstring Coco::String::Create(std::wstring const & value, size_t startIndex)
@@ -85,16 +60,6 @@ std::wstring Coco::String::Create(std::wstring const & value, size_t startIndex,
     return value.substr(startIndex, length);
 }
 
-//wchar_t * Coco::String::CreateAppend(wchar_t const * data1, wchar_t const * data2)
-//{
-//    return coco_string_create_append(data1, data2);
-//}
-//
-//wchar_t * Coco::String::CreateAppend(wchar_t const * data, wchar_t const value)
-//{
-//    return coco_string_create_append(data, value);
-//}
-//
 std::string Coco::String::CreateAppend(std::string const & data1, std::string const & data2)
 {
     return data1 + data2;
@@ -164,11 +129,6 @@ std::wstring Coco::String::CreateLower(std::wstring const & data, size_t startIn
 	return newData;
 }
 
-//size_t Coco::String::LastIndexOf(wchar_t const * data, wchar_t const value)
-//{
-//    return coco_string_lastindexof(data, value);
-//}
-
 size_t Coco::String::LastIndexOf(std::string const & data, char const value)
 {
     return data.find_last_of(value);
@@ -199,34 +159,6 @@ size_t Coco::String::IndexOf(std::wstring const & data, size_t startIndex, wchar
     return data.find_first_of(value, startIndex);
 }
 
-//char * Coco::String::CreateChar(wchar_t const * value)
-//{
-//    return coco_string_create_char(value);
-//}
-//
-//char * Coco::String::CreateChar(std::string const & value)
-//{
-//    std::wstring valueW = Core::String::ToWString(value);
-//    return coco_string_create_char(valueW.c_str());
-//}
-//
-//char * Coco::String::CreateChar(std::wstring const & value)
-//{
-//    return coco_string_create_char(value.c_str());
-//}
-
-//void Coco::String::Delete(wchar_t * &data)
-//{
-//    delete[] data;
-//    data = nullptr;
-//}
-//
-//void Coco::String::Delete(char * &data)
-//{
-//    delete[] data;
-//    data = nullptr;
-//}
-//
 void Coco::String::Merge(std::wstring & target, std::wstring const & appendix)
 {
 	if (appendix.empty())

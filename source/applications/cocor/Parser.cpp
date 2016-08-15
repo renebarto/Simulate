@@ -373,7 +373,8 @@ void Parser::Expression(Graph* &g) {
 		}
 }
 
-void Parser::SimSet(CharSet* &s) {
+void Parser::SimSet(CharSet* &s)
+{
 		int n1, n2; 
 		s = new CharSet(); 
 		if (la->kind == _ident) {

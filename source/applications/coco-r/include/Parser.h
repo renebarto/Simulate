@@ -39,45 +39,77 @@ Coco/R itself) does not fall under the GNU General Public License.
 namespace Coco
 {
 
-class Errors
-{
-public:
-	int count;			// number of errors detected
-
-	Errors();
-	void SynErr(size_t line, size_t col, int n);
-	void Error(size_t line, size_t col, std::wstring const & s);
-	void Warning(size_t line, size_t col, std::wstring const & s);
-	void Warning(std::wstring const & s);
-	void Exception(std::wstring const & s);
-
-}; // Errors
-
 class Parser
 {
-private:
-	enum {
-		_EOF=0,
-		_ident=1,
-		_number=2,
-		_string=3,
-		_badString=4,
-		_char=5,
-		_ddtSym=42,
-		_optionSym=43
+public:
+	enum class TokenType : int
+    {
+		_EOF = 0,
+		Identifier = 1,
+		Number = 2,
+		String = 3,
+		BadString = 4,
+		Char = 5,
+        COMPILER = 6,
+        IGNORECASE = 7,
+        CHARACTERS = 8,
+        TOKENS = 9,
+        PRAGMAS = 10,
+        COMMENTS = 11,
+        FROM = 12,
+        TO = 13,
+        NESTED = 14,
+        _IGNORE = 15,
+        PRODUCTIONS = 16,
+        Equals = 17,
+        Dot = 18,
+        END = 19,
+        Plus = 20,
+        Minus = 21,
+        DotDot = 22,
+        ANY = 23,
+        AngleBracketOpen = 24,
+        AngleBracketClose = 25,
+        AngleBracketOpenDot = 26,
+        AngleBracketCloseDot = 27,
+        Pipe = 28,
+        WEAK = 29,
+        ParenthesisOpen = 30,
+        ParenthesisClose = 31,
+        SquareBracketOpen = 32,
+        SquareBracketClose = 33,
+        CurlyBraceOpen = 34,
+        CurlyBraceClose = 35,
+        SYNC = 36,
+        IF = 37,
+        CONTEXT = 38,
+        ParenthesisOpenDot = 39,
+        ParenthesisCloseDot = 40,
+        MaxT = 41,
+		DDTSym = 42,
+		OptionSym = 43,
+        InvalidTokenDecl = 44,
+        InvalidAttrDecl = 45,
+        InvalidSimSet = 46,
+        InvalidSym = 47,
+        InvalidTerm = 48,
+        InvalidFactor = 49,
+        InvalidAttribs = 50,
+        InvalidTokenFactor = 51,
 	};
-	int maxT;
+
+private:
 
 	Token *dummyToken;
 	int errDist;
 	int minErrDist;
 
-	void SynErr(int n);
+	void SyntaxError(TokenType tokenType);
 	void Get();
-	void Expect(int n);
-	bool StartOf(int s);
-	void ExpectWeak(int n, int follow);
-	bool WeakSeparator(int n, int syFol, int repFol);
+	void Expect(TokenType tokenType);
+	bool StartOf(TokenType s);
+	void ExpectWeak(TokenType tokenType, TokenType follow);
+	bool WeakSeparator(TokenType tokenType, TokenType syFol, TokenType repFol);
 
 public:
 	Scanner *scanner;
@@ -123,7 +155,7 @@ int id;
 
 	Parser(Scanner *scanner);
 	~Parser();
-	void SemErr(std::wstring const & msg);
+	void SemanticError(std::wstring const & msg);
 
 	void Coco();
 	void SetDecl();
@@ -146,6 +178,22 @@ int id;
 
 	void Parse();
 
-}; // end Parser
+}; // Parser
+
+class Errors
+{
+public:
+    std::wostream & stream;
+	int count;			// number of errors detected
+
+	Errors(std::wostream & stream);
+	void SyntaxError(size_t line, size_t col, Parser::TokenType tokenType);
+	void Error(size_t line, size_t col, std::wstring const & s);
+	void Warning(size_t line, size_t col, std::wstring const & s);
+	void Warning(std::wstring const & s);
+	void Exception(std::wstring const & s);
+	void Exception(std::string const & s);
+
+}; // Errors
 
 } // namespace Coco

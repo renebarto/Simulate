@@ -30,51 +30,72 @@ Coco/R itself) does not fall under the GNU General Public License.
 #include "Target.h"
 #include "CharSet.h"
 
-namespace Coco {
+namespace Coco
+{
 
-Action::Action(int typ, int sym, int tc) {
-	this->target = nullptr;
-	this->next   = nullptr;
-
-	this->typ = typ; this->sym = sym; this->tc = tc;
+Action::Action(int typ, wchar_t sym, int tc)
+    : typ(typ)
+	, sym(sym)
+	, tc(tc)
+	, target(nullptr)
+	, next(nullptr)
+{
 }
 
-void Action::AddTarget(Target *t) { // add t to the action.targets
+void Action::AddTarget(Target * t)
+{ // add t to the action.targets
 	Target *last = nullptr;
 	Target *p = target;
-	while (p != nullptr && t->state->nr >= p->state->nr) {
-		if (t->state == p->state) return;
+	while (p != nullptr && t->state->nr >= p->state->nr)
+    {
+		if (t->state == p->state) 
+            return;
 		last = p; p = p->next;
 	}
 	t->next = p;
-	if (p == target) target = t; else last->next = t;
+	if (p == target) 
+        target = t; 
+    else 
+        last->next = t;
 }
 
-void Action::AddTargets(Action *a) {// add copy of a.targets to action.targets
-	for (Target *p = a->target; p != nullptr; p = p->next) {
-		Target *t = new Target(p->state);
+void Action::AddTargets(Action * a)
+{// add copy of a.targets to action.targets
+	for (Target * p = a->target; p != nullptr; p = p->next)
+    {
+		Target * t = new Target(p->state);
 		AddTarget(t);
 	}
-	if (a->tc == Node::contextTrans) tc = Node::contextTrans;
+	if (a->tc == Node::contextTrans) 
+        tc = Node::contextTrans;
 }
 
-CharSet* Action::Symbols(Tab *tab) {
-	CharSet *s;
+CharSet * Action::Symbols(Tab * tab)
+{
+	CharSet * s;
 	if (typ == Node::clas)
 		s = tab->CharClassSet(sym)->Clone();
-	else {
-		s = new CharSet(); s->Set(sym);
+	else
+    {
+		s = new CharSet(); 
+        s->Set(sym);
 	}
 	return s;
 }
 
-void Action::ShiftWith(CharSet *s, Tab *tab) {
-	if (s->Elements() == 1) {
-		typ = Node::chr; sym = s->First();
-	} else {
-		CharClass *c = tab->FindCharClass(s);
-		if (c == nullptr) c = tab->NewCharClass(L"#", s); // class with dummy name
-		typ = Node::clas; sym = c->n;
+void Action::ShiftWith(CharSet * s, Tab * tab)
+{
+	if (s->Elements() == 1)
+    {
+		typ = Node::chr; 
+        sym = s->First();
+	} else
+    {
+		CharClass * c = tab->FindCharClass(s);
+		if (c == nullptr) 
+            c = tab->NewCharClass(L"#", s); // class with dummy name
+		typ = Node::clas; 
+        sym = wchar_t(c->n);
 	}
 }
 

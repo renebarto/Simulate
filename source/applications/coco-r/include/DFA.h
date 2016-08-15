@@ -116,7 +116,7 @@ public:
 	void GenComment(Comment *com, int i);
 	std::wstring SymName(Symbol *sym); // real name value is stored in Tab.literals
 	void GenLiterals ();
-	size_t GenNamespaceOpen(std::wstring const & nsName);
+	size_t GenNamespaceOpen(std::string const & nsName);
 	void GenNamespaceClose(size_t nrOfNs);
 	void WriteState(State *state);
 	void WriteStartTab();

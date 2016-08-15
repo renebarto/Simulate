@@ -29,7 +29,6 @@ Coco/R itself) does not fall under the GNU General Public License.
 
 #pragma once
 
-#include "ArrayList.h"
 #include "HashTable.h"
 #include "StringBuilder.h"
 #include "SortedList.h"
@@ -60,11 +59,11 @@ public:
 	BitSet *allSyncSets;      // union of all synchronisation sets
 	HashTable *literals;        // symbols that are used as literals
 
-	std::wstring srcName;            // name of the atg file (including path)
-	std::wstring srcDir;             // directory path of the atg file
-	std::wstring nsName;             // namespace for generated files
-	std::wstring frameDir;           // directory containing the frame files
-	std::wstring outDir;             // directory for generated files
+	std::string srcName;            // name of the atg file (including path)
+	std::string srcDir;             // directory path of the atg file
+	std::string nsName;             // namespace for generated files
+	std::string frameDir;           // directory containing the frame files
+	std::string outDir;             // directory for generated files
 	bool checkEOF;               // should coco generate a check for EOF at
 	                             // the end of Parser.Parse():
 	bool emitLines;              // emit line directives in generated parser
@@ -77,16 +76,15 @@ public:
 
 	Errors *errors;
 
-	ArrayList *terminals;
-	ArrayList *pragmas;
-	ArrayList *nonterminals;
-
-
-	ArrayList *nodes;
+	std::vector<Symbol *> terminals;
+	std::vector<Symbol *> pragmas;
+	std::vector<Symbol *> nonterminals;
+    
+	std::vector<Node *> nodes;
 	static const char* nTyp[];
 	Node *dummyNode;
 
-	ArrayList *classes;
+	std::vector<CharClass *> classes;
 	int dummyName;
 
 
@@ -101,7 +99,7 @@ public:
 
 	Symbol* NewSym(int typ, std::wstring const & name, size_t line);
 	Symbol* FindSym(std::wstring const & name);
-	int Num(Node * p);
+	size_t Num(Node * p);
 	void PrintSym(Symbol *sym);
 	void PrintSymbolTable();
 	void PrintSet(BitSet const & s, int indent);
@@ -131,8 +129,8 @@ public:
 
 	//----------------- graph printing ----------------------
 
-	int Ptr(Node * p, bool up);
-	wchar_t* Pos(Position *pos);
+	long Ptr(Node * p, bool up);
+	std::wstring Pos(Position *pos);
 	std::wstring Name(std::wstring const & name);
 	void PrintNodes();
 
@@ -140,16 +138,16 @@ public:
 	//  Character class management
 	//---------------------------------------------------------------------
 
-	CharClass* NewCharClass(std::wstring const & name, CharSet *s);
+	CharClass* NewCharClass(std::wstring const & name, CharSet * s);
 	CharClass* FindCharClass(std::wstring const & name);
-	CharClass* FindCharClass(CharSet *s);
+	CharClass* FindCharClass(CharSet const * s);
 	CharSet* CharClassSet(int i);
 
 	//----------- character class printing
 
-	wchar_t* Ch(const wchar_t ch);
-	void WriteCharSet(CharSet *s);
-	void WriteCharClasses ();
+	std::wstring Ch(const wchar_t ch) const;
+	void WriteCharSet(CharSet const * s) const;
+	void WriteCharClasses() const;
 
 	//---------------------------------------------------------------------
 	//  Symbol set computations
@@ -201,7 +199,7 @@ public:
 		}
 	};
 
-	void GetSingles(Node * p, ArrayList *singles);
+	void GetSingles(Node * p, std::vector<Symbol *> & singles);
 	bool NoCircularProductions();
 
 	//--------------- check for LL(1) errors ----------------------

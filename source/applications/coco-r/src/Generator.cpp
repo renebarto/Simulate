@@ -29,6 +29,7 @@ Coco/R itself) does not fall under the GNU General Public License.
 #include "Generator.h"
 #include "Scanner.h"
 #include "coco.h"
+#include "core/Path.h"
 #include "core/String.h"
 
 namespace Coco
@@ -43,24 +44,21 @@ Generator::Generator(Tab *tab, Errors *errors)
     frameFile = {};
 }
 
-FILE* Generator::OpenFrame(std::wstring const & frame)
+FILE* Generator::OpenFrame(std::string const & frame)
 {
 	if (tab->frameDir.length() != 0)
     {
-		frameFile = String::CreateAppend(tab->frameDir, L"/");
-		String::Merge(frameFile, frame);
-		std::string chFrameFile = Core::String::ToString(frameFile);
-		fram = fopen(chFrameFile.c_str(), "r");
+		frameFile = Core::Path::CombinePath(tab->frameDir, frame);
+		fram = fopen(frameFile.c_str(), "r");
 	}
 	if (fram == nullptr)
     {
-		frameFile = String::CreateAppend(tab->srcDir, frame);  /* pdt */
-		std::string chFrameFile = Core::String::ToString(frameFile);
-		fram = fopen(chFrameFile.c_str(), "r");
+		frameFile =  Core::Path::CombinePath(tab->srcDir, frame);
+		fram = fopen(frameFile.c_str(), "r");
 	}
 	if (fram == nullptr)
     {
-		std::wstring message = String::CreateAppend(L"-- Cannot find : ", frame);
+		std::string message = "-- Cannot find : " + frame;
 		errors->Exception(message);
 	}
 
@@ -68,22 +66,20 @@ FILE* Generator::OpenFrame(std::wstring const & frame)
 }
 
 
-FILE* Generator::OpenGen(std::wstring const & genName)
-{ /* pdt */
-	std::wstring fn = String::CreateAppend(tab->outDir, genName); /* pdt */
-	std::string chFn = Core::String::ToString(fn);
+FILE* Generator::OpenGen(std::string const & genName)
+{
+	std::string path = Core::Path::CombinePath(tab->outDir, genName);
 
-	if ((gen = fopen(chFn.c_str(), "r")) != nullptr)
+	if ((gen = fopen(path.c_str(), "r")) != nullptr)
     {
 		fclose(gen);
-		std::wstring oldName = String::CreateAppend(fn, L".old");
-    	std::string chOldName = Core::String::ToString(oldName);
-		remove(chOldName.c_str()); 
-        rename(chFn.c_str(), chOldName.c_str()); // copy with overwrite
+		std::string oldPath = path + ".old";
+		remove(oldPath.c_str()); 
+        rename(path.c_str(), oldPath.c_str()); // copy with overwrite
 	}
-	if ((gen = fopen(chFn.c_str(), "w")) == nullptr)
+	if ((gen = fopen(path.c_str(), "w")) == nullptr)
     {
-		std::wstring message = String::CreateAppend(L"-- Cannot generate : ", genName);
+		std::string message = "-- Cannot generate : " + genName;
 		errors->Exception(message);
 	}
 
@@ -97,15 +93,13 @@ void Generator::GenCopyright()
 
 	if (!tab->frameDir.empty())
     {
-		std::wstring copyFr = String::CreateAppend(tab->frameDir, L"/Copyright.frame");
-		std::string chCopyFr = Core::String::ToString(copyFr);
-		file = fopen(chCopyFr.c_str(), "r");
+		std::string path = Core::Path::CombinePath(tab->frameDir, "Copyright.frame");
+		file = fopen(path.c_str(), "r");
 	}
 	if (file == nullptr)
     {
-		std::wstring copyFr = String::CreateAppend(tab->srcDir, L"Copyright.frame");
-		std::string chCopyFr = Core::String::ToString(copyFr);
-		file = fopen(chCopyFr.c_str(), "r");
+		std::string path = Core::Path::CombinePath(tab->srcDir, "Copyright.frame");
+		file = fopen(path.c_str(), "r");
 	}
 	if (file == nullptr)
     {
@@ -123,7 +117,7 @@ void Generator::GenCopyright()
 
 void Generator::GenPrefixFromNamespace()
 {
-	std::wstring nsName = tab->nsName;
+	std::string nsName = tab->nsName;
 	if (nsName.empty())
     {
 		return;
@@ -133,10 +127,10 @@ void Generator::GenPrefixFromNamespace()
 	do
     {
 		size_t curLen = String::IndexOf(nsName, startPos, COCO_CPP_NAMESPACE_SEPARATOR);
-		if (curLen == std::wstring::npos)
+		if (curLen == std::string::npos)
             curLen = len - startPos;
-		std::wstring curNs = String::Create(nsName, startPos, curLen);
-		fwprintf(gen, L"%ls_", curNs.c_str());
+		std::string curNs = String::Create(nsName, startPos, curLen);
+		fwprintf(gen, L"%hs_", curNs.c_str());
 		startPos = startPos + curLen + 1;
 	} 
     while (startPos < len);
@@ -194,7 +188,7 @@ void Generator::CopyFramePart(std::wstring const & stop, bool generateOutput)
 	}
 	if (!stop.empty())
     {
-		std::wstring message = String::CreateAppend(L" -- Incomplete or corrupt frame file: ", frameFile);
+		std::string message = " -- Incomplete or corrupt frame file: " + frameFile;
 		errors->Exception(message);
 	}
 }

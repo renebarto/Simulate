@@ -37,7 +37,7 @@ namespace Coco
 class CharClass
 {
 public:
-	int n;          // class number
+	size_t n;           // class number
 	std::wstring name;  // class name
 	CharSet *set;   // set representing the class
 

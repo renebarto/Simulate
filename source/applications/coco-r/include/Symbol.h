@@ -46,7 +46,7 @@ public:
 	static int litToken;      // e.g. "while"
 	static int classLitToken; // e.g. letter {letter} but without literals that have the same structure*/
 
-	int      n;           // symbol number
+	size_t   n;           // symbol number
 	int      typ;         // t, nt, pr, unknown, rslv /* ML 29_11_2002 slv added */ /* AW slv --> rslv */
 	std::wstring name;    // symbol name
 	Node     *graph;      // nt: to first node of syntax graph

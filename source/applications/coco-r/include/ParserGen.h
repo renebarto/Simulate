@@ -71,7 +71,7 @@ public:
 	bool UseSwitch(Node *p);
 	void CopyFramePart(std::wstring const & stop);
 	void CopySourcePart(Position *pos, int indent);
-	int GenNamespaceOpen(std::wstring const &  nsName);
+	int GenNamespaceOpen(std::string const & nsName);
 	void GenNamespaceClose(int nrOfNs);
 	void GenErrorMsg(int errTyp, Symbol *sym);
 	size_t NewCondSet(BitSet const & s);

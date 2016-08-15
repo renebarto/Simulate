@@ -39,8 +39,8 @@ class Generator
 {
 public:
 	Generator(Tab *tab, Errors *errors);
-	FILE* OpenFrame(std::wstring const & frame);
-	FILE* OpenGen(std::wstring const & genName);
+	FILE* OpenFrame(std::string const & frame);
+	FILE* OpenGen(std::string const & genName);
 	void GenCopyright();
 	void GenPrefixFromNamespace();
 	void SkipFramePart(std::wstring const & stop);
@@ -50,7 +50,7 @@ private:
 	FILE* fram;
 	FILE* gen;
 	Tab *tab;
-	std::wstring frameFile;
+	std::string frameFile;
 	Errors *errors;
 
 	void CopyFramePart(std::wstring const & stop, bool generateOutput);
