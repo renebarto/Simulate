@@ -33,25 +33,25 @@ namespace Coco
 {
 
 CharSet::CharSet()
-    : head()
+    : ranges()
 {
 }
 
 CharSet::CharSet(CharSet const & other)
-    : head()
+    : ranges()
 {
 	for (auto & range : other)
     {
 		Range r(range.from, range.to);
-        head.push_back(r);
+        ranges.push_back(r);
 	}
 }
 
 CharSet::CharSet(CharSet && other)
-    : head()
+    : ranges()
 {
-    this->head = std::move(other.head);
-    other.head = {};
+    this->ranges = std::move(other.ranges);
+    other.ranges = {};
 }
 
 CharSet::~CharSet()
@@ -64,10 +64,10 @@ CharSet & CharSet::operator = (CharSet const & other)
     if (this != &other)
     {
         Clear();
-	    for (auto & range : other.head)
+	    for (auto & range : other.ranges)
         {
 		    Range r(range.from, range.to);
-            head.push_back(r);
+            ranges.push_back(r);
 	    }
     }
     return *this;
@@ -75,14 +75,14 @@ CharSet & CharSet::operator = (CharSet const & other)
 
 CharSet & CharSet::operator = (CharSet && other)
 {
-    this->head = std::move(other.head);
-    other.head = {};
+    this->ranges = std::move(other.ranges);
+    other.ranges = {};
     return *this;
 }
 
 bool CharSet::Get(wchar_t i) const
 {
-	for (auto & range : head)
+	for (auto & range : ranges)
 		if (i < range.from) 
             return false;
 		else if (i <= range.to) 
@@ -92,8 +92,8 @@ bool CharSet::Get(wchar_t i) const
 
 void CharSet::Set(wchar_t i)
 {
-	Iterator cur = head.begin();
-	while (cur != head.end() && i >= cur->from-1)
+	Iterator cur = ranges.begin();
+	while (cur != ranges.end() && i >= cur->from-1)
     {
 		if (i <= cur->to + 1)
         { // (cur.from-1) <= i <= (cur.to+1)
@@ -102,11 +102,11 @@ void CharSet::Set(wchar_t i)
             {
 				cur->to++;
 				Iterator next = cur + 1;
-				if (next != head.end() && cur->to == next->from - 1)
+				if (next != ranges.end() && cur->to == next->from - 1)
                 {
 					cur->to = next->to;
 					cur->next = next->next;
-					head.erase(next);
+					ranges.erase(next);
 				};
 			}
 			return;
@@ -114,7 +114,7 @@ void CharSet::Set(wchar_t i)
 		++cur;
 	}
 	Range n(i, i);
-    head.insert(cur, n);
+    ranges.insert(cur, n);
 }
 
 CharSet CharSet::Clone() const
@@ -124,35 +124,35 @@ CharSet CharSet::Clone() const
 
 bool CharSet::Equals(CharSet const & s) const
 {
-	ConstIterator p = head.begin(), q = s.head.begin();
-	while (p != head.end() && q != s.head.end())
+	ConstIterator p = ranges.begin(), q = s.ranges.begin();
+	while (p != ranges.end() && q != s.ranges.end())
     {
 		if (p->from != q->from || p->to != q->to) 
             return false;
 		++p; 
         ++q;
 	}
-	return (p == head.end()) && (q == s.head.end());
+	return (p == ranges.end()) && (q == s.ranges.end());
 }
 
 size_t CharSet::Count() const
 {
 	size_t n = 0;
-	for (auto & range : head) 
+	for (auto & range : ranges) 
         n += range.to - range.from + 1;
 	return n;
 }
 
 wchar_t CharSet::First() const
 {
-	if (head.begin() != head.end()) 
-        return head.begin()->from;
+	if (ranges.begin() != ranges.end()) 
+        return ranges.begin()->from;
 	return -1;
 }
 
 void CharSet::Or(CharSet const & s)
 {
-	for (auto & range : s.head)
+	for (auto & range : s.ranges)
 		for (int i = range.from; i <= range.to; i++) 
             Set(i);
 }
@@ -160,32 +160,32 @@ void CharSet::Or(CharSet const & s)
 void CharSet::And(CharSet const & s)
 {
 	CharSet newSet;
-    for (auto & range : head)
+    for (auto & range : ranges)
     {
 		for (int i = range.from; i <= range.to; i++)
 			if (s.Get(i)) 
                 newSet.Set(i);
     }
-	head = std::move(newSet.head);
-    newSet.head = {};
+	ranges = std::move(newSet.ranges);
+    newSet.ranges = {};
 }
 
 void CharSet::Subtract(CharSet const & s)
 {
 	CharSet newSet;
-	for (auto & range : head)
+	for (auto & range : ranges)
     {
 		for (int i = range.from; i <= range.to; i++)
 			if (!s.Get(i)) 
                 newSet.Set(i);
 	}
-	head = std::move(newSet.head);
-    newSet.head = {};
+	ranges = std::move(newSet.ranges);
+    newSet.ranges = {};
 }
 
 bool CharSet::Includes(CharSet const & s) const
 {
-	for (auto & range : s.head)
+	for (auto & range : s.ranges)
 		for (int i = range.from; i <= range.to; i++)
 			if (!Get(i)) 
                 return false;
@@ -194,7 +194,7 @@ bool CharSet::Includes(CharSet const & s) const
 
 bool CharSet::Overlaps(CharSet const & s) const
 {
-	for (auto & range : s.head)
+	for (auto & range : s.ranges)
 		for (int i = range.from; i <= range.to; i++)
 			if (Get(i)) 
                 return true;
@@ -203,13 +203,13 @@ bool CharSet::Overlaps(CharSet const & s) const
 
 void CharSet::Clear()
 {
-    head.clear();
+    ranges.clear();
 }
 
 void CharSet::Fill()
 {
 	Clear();
-	head.push_back(Range(0, COCO_WCHAR_MAX));
+	ranges.push_back(Range(0, COCO_WCHAR_MAX));
 }
 
 } // namespace Coco

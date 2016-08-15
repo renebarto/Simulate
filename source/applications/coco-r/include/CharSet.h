@@ -78,11 +78,11 @@ public:
     using Container = std::deque<Range>;
     using Iterator = Container::iterator;
     using ConstIterator = Container::const_iterator;
-    ConstIterator begin() const { return head.begin(); }
-    ConstIterator end() const { return head.end(); }
+    ConstIterator begin() const { return ranges.begin(); }
+    ConstIterator end() const { return ranges.end(); }
 
 private:
-	std::deque<Range> head;
+	std::deque<Range> ranges;
 
     bool Equals(CharSet const & s) const;
 	void Or(CharSet const & s);
