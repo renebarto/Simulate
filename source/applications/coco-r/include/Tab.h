@@ -51,7 +51,7 @@ class Tab
 {
 public:
 	Position *semDeclPos;       // position of global semantic declarations
-	CharSet *ignored;           // characters ignored by the scanner
+	CharSet ignored;            // characters ignored by the scanner
 	bool ddt[10];                  // debug and test switches
 	Symbol *gramSy;             // root nonterminal; filled by ATG
 	Symbol *eofSy;              // end of file symbol

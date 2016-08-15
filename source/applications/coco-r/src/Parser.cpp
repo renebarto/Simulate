@@ -141,7 +141,7 @@ void Parser::Coco()
         
     Expect(TokenType::COMPILER);
     genScanner = true; 
-	tab->ignored = new CharSet(); 
+    tab->ignored = {};
     Expect(TokenType::Identifier);
     gramName = t->val;
     beg = la->pos;
@@ -194,7 +194,7 @@ void Parser::Coco()
     {
         Get();
         Set(s);
-        *(tab->ignored) |= s; 
+        tab->ignored |= s; 
     }
     while (!(TokenType(la->kind) == TokenType::_EOF || TokenType(la->kind) == TokenType::PRODUCTIONS))
     {

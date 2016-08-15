@@ -531,7 +531,7 @@ std::wstring Tab::Ch(const wchar_t ch) const
 
 void Tab::WriteCharSet(CharSet const & s) const
 {
-	for (CharSet::Range const * r = s.FirstRange(); r != nullptr; r = s.NextRange(r))
+	for (CharSet::ConstIterator r = s.begin(); r != s.end(); ++r)
     {
 		if (r->from < r->to)
         {

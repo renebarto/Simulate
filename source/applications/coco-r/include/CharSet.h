@@ -28,6 +28,7 @@ Coco/R itself) does not fall under the GNU General Public License.
 
 #pragma once
 
+#include <deque>
 
 namespace Coco
 {
@@ -44,7 +45,7 @@ public:
 		Range(int from, int to) { this->from = from; this->to = to; next = nullptr; };
 	};
 
-	CharSet() { head = nullptr; };
+    CharSet();
     CharSet(CharSet const & other);
     CharSet(CharSet && other);
 	virtual ~CharSet();
@@ -74,11 +75,14 @@ public:
 	void Clear();
 	void Fill();
 
-    Range const * FirstRange() const { return head; }
-    Range const * NextRange(Range const * current) const { return current->next; }
+    using Container = std::deque<Range>;
+    using Iterator = Container::iterator;
+    using ConstIterator = Container::const_iterator;
+    ConstIterator begin() const { return head.begin(); }
+    ConstIterator end() const { return head.end(); }
 
 private:
-	Range * head;
+	std::deque<Range> head;
 
     bool Equals(CharSet const & s) const;
 	void Or(CharSet const & s);

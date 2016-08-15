@@ -59,9 +59,9 @@ std::wstring DFA::ChCond(wchar_t ch)
 	return std::wstring(stream.str());
 }
 
-void DFA::PutRange(CharSet const * s)
+void DFA::PutRange(CharSet const & s)
 {
-	for (CharSet::Range const * r = s->FirstRange(); r != nullptr; r = s->NextRange(r))
+	for (CharSet::ConstIterator r = s.begin(); r != s.end(); ++r)
     {
 		if (r->from == r->to)
         {
@@ -79,7 +79,7 @@ void DFA::PutRange(CharSet const * s)
 			std::wstring to = Ch(r->to);
 			fwprintf(gen, L"(ch >= %ls && ch <= %ls)", from.c_str(), to.c_str());
 		}
-		if (r->next != nullptr) 
+		if (r != s.end() - 1) 
             fwprintf(gen, L" || ");
 	}
 }
@@ -886,7 +886,7 @@ void DFA::WriteState(State * state)
 			fwprintf(gen, L"%ls", res.c_str());
 		} 
         else 
-            PutRange(&(tab->CharClassSet(action->sym)));
+            PutRange(tab->CharClassSet(action->sym));
 		fwprintf(gen, L") {");
 
 		if (action->tc == Node::contextTrans)
@@ -950,7 +950,7 @@ void DFA::WriteStartTab()
         else
         {
 			CharSet const & s = tab->CharClassSet(action->sym);
-        	for (CharSet::Range const * r = s.FirstRange(); r != nullptr; r = s.NextRange(r))
+        	for (CharSet::ConstIterator r = s.begin(); r != s.end(); ++r)
             {
 				if (firstRange)
                 {
@@ -1042,7 +1042,7 @@ void DFA::WriteScanner()
 
 	g.CopyFramePart(L"-->scan1");
 	fwprintf(gen, L"\t\t\t");
-	if (tab->ignored->Count() > 0)
+	if (tab->ignored.Count() > 0)
         PutRange(tab->ignored);
     else
         fwprintf(gen, L"false");
