@@ -138,15 +138,15 @@ public:
 	//  Character class management
 	//---------------------------------------------------------------------
 
-	CharClass* NewCharClass(std::wstring const & name, CharSet * s);
-	CharClass* FindCharClass(std::wstring const & name);
-	CharClass* FindCharClass(CharSet const * s);
-	CharSet* CharClassSet(int i);
+	CharClass * NewCharClass(std::wstring const & name, CharSet const & s);
+	CharClass * FindCharClass(std::wstring const & name);
+	CharClass * FindCharClass(CharSet const * s);
+	CharSet const & CharClassSet(int i) const;
 
 	//----------- character class printing
 
 	std::wstring Ch(const wchar_t ch) const;
-	void WriteCharSet(CharSet const * s) const;
+	void WriteCharSet(CharSet const & s) const;
 	void WriteCharClasses() const;
 
 	//---------------------------------------------------------------------

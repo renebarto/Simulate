@@ -36,6 +36,57 @@ Coco/R itself) does not fall under the GNU General Public License.
 namespace Coco
 {
 
+CharSet::CharSet(CharSet const & other)
+{
+	Range *prev = nullptr;
+	for (Range *cur = other.head; cur != nullptr; cur = cur->next)
+    {
+		Range *r = new Range(cur->from, cur->to);
+		if (prev == nullptr) 
+            this->head = r; 
+        else 
+            prev->next = r;
+		prev = r;
+	}
+}
+
+CharSet::CharSet(CharSet && other)
+{
+    this->head = std::move(other.head);
+    other.head = nullptr;
+}
+
+CharSet::~CharSet()
+{
+	Clear();
+}
+	
+CharSet & CharSet::operator = (CharSet const & other)
+{
+    if (this != &other)
+    {
+        Clear();
+	    Range *prev = nullptr;
+	    for (Range *cur = other.head; cur != nullptr; cur = cur->next)
+        {
+		    Range *r = new Range(cur->from, cur->to);
+		    if (prev == nullptr) 
+                this->head = r; 
+            else 
+                prev->next = r;
+		    prev = r;
+	    }
+    }
+    return *this;
+}
+
+CharSet & CharSet::operator = (CharSet && other)
+{
+    this->head = std::move(other.head);
+    other.head = nullptr;
+    return *this;
+}
+
 bool CharSet::Get(wchar_t i) const
 {
 	for (Range *p = head; p != nullptr; p = p->next)
@@ -77,15 +128,15 @@ void CharSet::Set(wchar_t i)
         prev->next = n;
 }
 
-CharSet * CharSet::Clone() const
+CharSet CharSet::Clone() const
 {
-	CharSet *s = new CharSet();
+	CharSet s;
 	Range *prev = nullptr;
 	for (Range *cur = head; cur != nullptr; cur = cur->next)
     {
 		Range *r = new Range(cur->from, cur->to);
 		if (prev == nullptr) 
-            s->head = r; 
+            s.head = r; 
         else 
             prev->next = r;
 		prev = r;
@@ -93,9 +144,9 @@ CharSet * CharSet::Clone() const
 	return s;
 }
 
-bool CharSet::Equals(CharSet *s) const
+bool CharSet::Equals(CharSet const & s) const
 {
-	Range *p = head, *q = s->head;
+	Range *p = head, *q = s.head;
 	while (p != nullptr && q != nullptr)
     {
 		if (p->from != q->from || p->to != q->to) 
@@ -106,7 +157,7 @@ bool CharSet::Equals(CharSet *s) const
 	return p == q;
 }
 
-size_t CharSet::Elements() const
+size_t CharSet::Count() const
 {
 	size_t n = 0;
 	for (Range *p = head; p != nullptr; p = p->next) 
@@ -121,21 +172,21 @@ wchar_t CharSet::First() const
 	return -1;
 }
 
-void CharSet::Or(CharSet * s)
+void CharSet::Or(CharSet const & s)
 {
-	for (Range *p = s->head; p != nullptr; p = p->next)
+	for (Range *p = s.head; p != nullptr; p = p->next)
 		for (int i = p->from; i <= p->to; i++) 
             Set(i);
 }
 
-void CharSet::And(CharSet * s)
+void CharSet::And(CharSet const & s)
 {
 	CharSet * newSet = new CharSet();
-	Range *p = head;
+	Range * p = head;
 	while (p != nullptr)
     {
 		for (int i = p->from; i <= p->to; i++)
-			if (s->Get(i)) 
+			if (s.Get(i)) 
                 newSet->Set(i);
 		Range *del = p;
 		p = p->next;
@@ -146,14 +197,14 @@ void CharSet::And(CharSet * s)
 	delete newSet;
 }
 
-void CharSet::Subtract(CharSet * s)
+void CharSet::Subtract(CharSet const & s)
 {
 	CharSet * newSet = new CharSet();
-	Range *p = head;
+	Range * p = head;
 	while (p != nullptr)
     {
 		for (int i = p->from; i <= p->to; i++)
-			if (!s->Get(i)) 
+			if (!s.Get(i)) 
                 newSet->Set(i);
 		Range *del = p;
 		p = p->next;
@@ -164,18 +215,18 @@ void CharSet::Subtract(CharSet * s)
 	delete newSet;
 }
 
-bool CharSet::Includes(CharSet * s) const
+bool CharSet::Includes(CharSet const & s) const
 {
-	for (Range *p = s->head; p != nullptr; p = p->next)
+	for (Range *p = s.head; p != nullptr; p = p->next)
 		for (int i = p->from; i <= p->to; i++)
 			if (!Get(i)) 
                 return false;
 	return true;
 }
 
-bool CharSet::Intersects(CharSet *s) const
+bool CharSet::Overlaps(CharSet const & s) const
 {
-	for (Range *p = s->head; p != nullptr; p = p->next)
+	for (Range *p = s.head; p != nullptr; p = p->next)
 		for (int i = p->from; i <= p->to; i++)
 			if (Get(i)) 
                 return true;
@@ -196,11 +247,6 @@ void CharSet::Fill()
 {
 	Clear();
 	head = new Range(0, COCO_WCHAR_MAX);
-}
-
-CharSet::~CharSet()
-{
-	Clear();
 }
 
 } // namespace Coco

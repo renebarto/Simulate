@@ -73,7 +73,7 @@ public:
 	//---------- Output primitives
 	std::wstring Ch(wchar_t ch);
 	std::wstring ChCond(wchar_t ch);
-	void  PutRange(CharSet *s);
+	void  PutRange(CharSet const * s);
 
 	//---------- State handling
 	State* NewState();

@@ -37,11 +37,17 @@ namespace Coco
 class CharClass
 {
 public:
+
+	CharClass(std::wstring const & name, CharSet const & s, size_t id);
+
+    CharSet const & GetCharSet() { return set; }
+    std::wstring const & GetName() { return name; }
+    size_t GetClassID() { return n; }
+
+private:
 	size_t n;           // class number
 	std::wstring name;  // class name
-	CharSet *set;   // set representing the class
-
-	CharClass(std::wstring const & name, CharSet * s);
+	CharSet set;        // set representing the class
 };
 
 } // namespace Coco

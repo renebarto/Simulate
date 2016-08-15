@@ -127,7 +127,7 @@ void Parser::Coco()
     Symbol *sym; 
     Graph *g, *g1, *g2; 
     wchar_t* gramName = nullptr; 
-    CharSet * s; 
+    CharSet s; 
     size_t beg = la->pos; 
     size_t line = la->line; 
     while (StartOf(TokenType::Identifier))
@@ -194,7 +194,7 @@ void Parser::Coco()
     {
         Get();
         Set(s);
-        tab->ignored->Or(s); 
+        *(tab->ignored) |= s; 
     }
     while (!(TokenType(la->kind) == TokenType::_EOF || TokenType(la->kind) == TokenType::PRODUCTIONS))
     {
@@ -290,7 +290,7 @@ void Parser::Coco()
 
 void Parser::SetDecl()
 {
-    CharSet * s; 
+    CharSet s; 
     Expect(TokenType::Identifier);
     std::wstring name = t->val;
     CharClass * c = tab->FindCharClass(name);
@@ -299,7 +299,7 @@ void Parser::SetDecl()
         
     Expect(TokenType::Equals /* "=" */);
     Set(s);
-    if (s->Elements() == 0) 
+    if (s.Count() == 0) 
         SemanticError(L"character set must not be empty");
     tab->NewCharClass(name, s);
         
@@ -382,9 +382,9 @@ void Parser::TokenExpr(Graph *& g)
     }
 }
 
-void Parser::Set(CharSet *& s)
+void Parser::Set(CharSet & s)
 {
-    CharSet * s2; 
+    CharSet s2; 
     SimSet(s);
     while (TokenType(la->kind) == TokenType::Plus /* "+" */ || TokenType(la->kind) == TokenType::Minus /* "-" */)
     {
@@ -392,13 +392,13 @@ void Parser::Set(CharSet *& s)
         {
             Get();
             SimSet(s2);
-            s->Or(s2); 
+            s |= s2; 
         }
         else
         {
             Get();
             SimSet(s2);
-            s->Subtract(s2); 
+            s -= s2; 
         }
     }
 }
@@ -491,10 +491,10 @@ void Parser::Expression(Graph *& g)
     }
 }
 
-void Parser::SimSet(CharSet *& s)
+void Parser::SimSet(CharSet & s)
 {
     int n1, n2; 
-	s = new CharSet(); 
+    s = {};
     if (TokenType(la->kind) == TokenType::Identifier)
     {
         Get();
@@ -502,7 +502,7 @@ void Parser::SimSet(CharSet *& s)
         if (c == nullptr) 
             SemanticError(L"undefined name"); 
         else 
-            s->Or(c->set);
+            s |= c->GetCharSet();
     } 
     else if (TokenType(la->kind) == TokenType::String)
     {
@@ -519,26 +519,26 @@ void Parser::SimSet(CharSet *& s)
                 if ((L'A' <= ch) && (ch <= L'Z')) 
                     ch = ch - (L'A' - L'a'); // ch.ToLower()
             }
-            s->Set(ch);
+            s.Set(ch);
         }
     } 
     else if (TokenType(la->kind) == TokenType::Char)
     {
         Char(n1);
-        s->Set(n1); 
+        s.Set(n1); 
         if (TokenType(la->kind) == TokenType::DotDot /* ".." */)
         {
             Get();
             Char(n2);
             for (int i = n1; i <= n2; i++) 
-                s->Set(i); 
+                s.Set(i); 
         }
     } 
     else if (TokenType(la->kind) == TokenType::ANY)
     {
         Get();
-		s = new CharSet(); 
-        s->Fill(); 
+        s = {};
+        s.Fill(); 
     } 
     else 
         SyntaxError(TokenType::InvalidSimSet);
@@ -858,10 +858,10 @@ void Parser::TokenFactor(Graph *& g)
             if (c == nullptr)
             {
                 SemanticError(L"undefined name");
-                c = tab->NewCharClass(name, new CharSet());
+                c = tab->NewCharClass(name, CharSet());
             }
             Node *p = tab->NewNode(Node::clas, nullptr, 0); 
-            p->val = wchar_t(c->n);
+            p->val = wchar_t(c->GetClassID());
             g = new Graph(p);
             tokenString = noString;
         } 

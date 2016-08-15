@@ -59,9 +59,9 @@ std::wstring DFA::ChCond(wchar_t ch)
 	return std::wstring(stream.str());
 }
 
-void DFA::PutRange(CharSet * s)
+void DFA::PutRange(CharSet const * s)
 {
-	for (CharSet::Range *r = s->head; r != nullptr; r = r->next)
+	for (CharSet::Range const * r = s->FirstRange(); r != nullptr; r = s->NextRange(r))
     {
 		if (r->from == r->to)
         {
@@ -119,10 +119,10 @@ void DFA::CombineShifts()
 			while (b != nullptr)
 				if (a->target->state == b->target->state && a->tc == b->tc)
                 {
-					CharSet * seta = a->Symbols(tab); 
-                    CharSet * setb = b->Symbols(tab);
-					seta->Or(setb);
-					a->ShiftWith(seta, tab);
+					CharSet & seta = a->Symbols(tab); 
+                    CharSet & setb = b->Symbols(tab);
+					seta |= setb;
+					a->ShiftWith(&seta, tab);
 					c = b; b = b->next; state->DetachAction(c);
 				} 
                 else 
@@ -365,39 +365,39 @@ void DFA::MatchLiteral(std::wstring & s, Symbol * sym)
 void DFA::SplitActions(State * state, Action * a, Action * b)
 {
 	Action *c; 
-    CharSet * seta = a->Symbols(tab); 
-    CharSet * setb = b->Symbols(tab);
-	if (seta->Equals(setb))
+    CharSet & seta = a->Symbols(tab); 
+    CharSet & setb = b->Symbols(tab);
+	if (seta == setb)
     {
 		a->AddTargets(b);
 		state->DetachAction(b);
 	} 
-    else if (seta->Includes(setb)) 
+    else if (seta.Includes(setb)) 
     {
-		CharSet * setc = seta->Clone(); 
-        setc->Subtract(setb);
+		CharSet & setc = seta.Clone(); 
+        setc -= setb;
 		b->AddTargets(a);
-		a->ShiftWith(setc, tab);
+		a->ShiftWith(&setc, tab);
 	} 
-    else if (setb->Includes(seta))
+    else if (setb.Includes(seta))
     {
-		CharSet * setc = setb->Clone(); 
-        setc->Subtract(seta);
+		CharSet setc = setb.Clone(); 
+        setc -= seta;
 		a->AddTargets(b);
-		b->ShiftWith(setc, tab);
+		b->ShiftWith(&setc, tab);
 	} 
     else 
     {
-		CharSet * setc = seta->Clone(); 
-        setc->And(setb);
-		seta->Subtract(setc);
-		setb->Subtract(setc);
-		a->ShiftWith(seta, tab);
-		b->ShiftWith(setb, tab);
+		CharSet setc(seta); 
+        setc &= setb;
+		seta -= setc;
+		setb -= setc;
+		a->ShiftWith(&seta, tab);
+		b->ShiftWith(&setb, tab);
 		c = new Action(0, 0, Node::normalTrans);  // typ and sym are set in ShiftWith
 		c->AddTargets(a);
 		c->AddTargets(b);
-		c->ShiftWith(setc, tab);
+		c->ShiftWith(&setc, tab);
 		state->AddAction(c);
 	}
 }
@@ -409,18 +409,18 @@ bool DFA::Overlap(Action * a, Action * b)
             return (a->sym == b->sym);
 		else
         {
-            CharSet * setb = tab->CharClassSet(b->sym);
-            return setb->Get(a->sym);
+            CharSet const & setb = tab->CharClassSet(b->sym);
+            return setb.Get(a->sym);
         }
 	else
     {
-        CharSet * seta = tab->CharClassSet(a->sym);
+        CharSet const & seta = tab->CharClassSet(a->sym);
 		if (b->typ == Node::chr) 
-            return seta->Get(b->sym);
+            return seta.Get(b->sym);
 		else 
         {
-            CharSet * setb = tab->CharClassSet(b->sym); 
-            return seta->Intersects(setb);
+            CharSet const & setb = tab->CharClassSet(b->sym); 
+            return seta.Overlaps(setb);
         }
 	}
 }
@@ -519,7 +519,7 @@ void DFA::PrintStates()
                 fwprintf(trace, L"                    ");
 
 			if (action->typ == Node::clas) 
-                fwprintf(trace, L"%ls", tab->classes[action->sym]->name.c_str());
+                fwprintf(trace, L"%ls", tab->classes[action->sym]->GetName().c_str());
 			else 
                 fwprintf(trace, L"%3s", Ch((wchar_t)action->sym).c_str());
 			for (Target *targ = action->target; targ != nullptr; targ = targ->next)
@@ -545,8 +545,8 @@ Action* DFA::FindAction(State * state, wchar_t ch)
             return a;
 		else if (a->typ == Node::clas)
         {
-			CharSet * s = tab->CharClassSet(a->sym);
-			if (s->Get(ch)) 
+			CharSet const & s = tab->CharClassSet(a->sym);
+			if (s.Get(ch)) 
                 return a;
 		}
 	return nullptr;
@@ -645,10 +645,10 @@ std::wstring DFA::CommentStr(Node * p)
 		}
         else if (p->typ == Node::clas)
         {
-			CharSet * set = tab->CharClassSet(p->val);
-			if (set->Elements() != 1) 
+			CharSet const & set = tab->CharClassSet(p->val);
+			if (set.Count() != 1) 
                 parser->SemanticError(L"character set contains more than 1 character");
-			s.Append(set->First());
+			s.Append(set.First());
 		}
 		else 
             parser->SemanticError(L"comment delimiters may not be structured");
@@ -886,7 +886,7 @@ void DFA::WriteState(State * state)
 			fwprintf(gen, L"%ls", res.c_str());
 		} 
         else 
-            PutRange(tab->CharClassSet(action->sym));
+            PutRange(&(tab->CharClassSet(action->sym)));
 		fwprintf(gen, L") {");
 
 		if (action->tc == Node::contextTrans)
@@ -949,8 +949,8 @@ void DFA::WriteStartTab()
 		} 
         else
         {
-			CharSet * s = tab->CharClassSet(action->sym);
-			for (CharSet::Range * r = s->head; r != nullptr; r = r->next)
+			CharSet const & s = tab->CharClassSet(action->sym);
+        	for (CharSet::Range const * r = s.FirstRange(); r != nullptr; r = s.NextRange(r))
             {
 				if (firstRange)
                 {
@@ -1042,7 +1042,7 @@ void DFA::WriteScanner()
 
 	g.CopyFramePart(L"-->scan1");
 	fwprintf(gen, L"\t\t\t");
-	if (tab->ignored->Elements() > 0)
+	if (tab->ignored->Count() > 0)
         PutRange(tab->ignored);
     else
         fwprintf(gen, L"false");

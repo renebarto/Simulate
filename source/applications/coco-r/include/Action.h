@@ -49,7 +49,7 @@ public:
 	Action(int typ, wchar_t sym, int tc);
 	void AddTarget(Target * t);  // add t to the action.targets
 	void AddTargets(Action * a); // add copy of a.targets to action.targets
-	CharSet * Symbols(Tab * tab);
+	CharSet Symbols(Tab * tab);
 	void ShiftWith(CharSet * s, Tab * tab);
 };
 

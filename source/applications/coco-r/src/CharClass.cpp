@@ -32,9 +32,10 @@ Coco/R itself) does not fall under the GNU General Public License.
 namespace Coco
 {
 
-CharClass::CharClass(std::wstring const & name, CharSet * set)
+CharClass::CharClass(std::wstring const & name, CharSet const & set, size_t id)
     : name(name)
     , set(set)
+    , n(id)
 {
 }
 

@@ -44,24 +44,52 @@ public:
 		Range(int from, int to) { this->from = from; this->to = to; next = nullptr; };
 	};
 
-	Range * head;
-	
 	CharSet() { head = nullptr; };
+    CharSet(CharSet const & other);
+    CharSet(CharSet && other);
 	virtual ~CharSet();
 	
-	bool Get(wchar_t i) const;
+    CharSet & operator = (CharSet const & other);
+    CharSet & operator = (CharSet && other);
+
+    size_t Count() const;
+
+    bool Get(wchar_t i) const;
 	void Set(wchar_t i);
-	CharSet* Clone() const;
-	bool Equals(CharSet *s) const;
-	size_t Elements() const;
+	CharSet Clone() const;
+
+    CharSet & operator &= (CharSet const & value) { And(value); return *this; }
+    CharSet & operator |= (CharSet const & value) { Or(value); return *this; }
+    CharSet & operator -= (CharSet const & value) { Subtract(value); return *this; }
+
+    friend bool operator == (CharSet const & lhs, CharSet const & rhs);
+    friend bool operator != (CharSet const & lhs, CharSet const & rhs);
+    friend CharSet operator & (CharSet const & lhs, CharSet const & rhs);
+    friend CharSet operator | (CharSet const & lhs, CharSet const & rhs);
+    friend CharSet operator - (CharSet const & lhs, CharSet const & rhs);
+
 	wchar_t First() const;
-	void Or(CharSet * s);
-	void And(CharSet * s);
-	void Subtract(CharSet * s);
-	bool Includes(CharSet * s) const;
-	bool Intersects(CharSet * s) const;
+	bool Includes(CharSet const & s) const;
+	bool Overlaps(CharSet const & s) const;
 	void Clear();
 	void Fill();
+
+    Range const * FirstRange() const { return head; }
+    Range const * NextRange(Range const * current) const { return current->next; }
+
+private:
+	Range * head;
+
+    bool Equals(CharSet const & s) const;
+	void Or(CharSet const & s);
+	void And(CharSet const & s);
+	void Subtract(CharSet const & s);
 };
+
+inline bool operator == (CharSet const & lhs, CharSet const & rhs) { return lhs.Equals(rhs); }
+inline bool operator != (CharSet const & lhs, CharSet const & rhs) { return !lhs.Equals(rhs); }
+inline CharSet operator & (CharSet const & lhs, CharSet const & rhs) { CharSet result(lhs); result.And(rhs); return result; }
+inline CharSet operator | (CharSet const & lhs, CharSet const & rhs) { CharSet result(lhs); result.Or(rhs); return result; }
+inline CharSet operator - (CharSet const & lhs, CharSet const & rhs) { CharSet result(lhs); result.Subtract(rhs); return result; }
 
 } // namespace

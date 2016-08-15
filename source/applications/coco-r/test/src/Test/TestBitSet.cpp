@@ -144,41 +144,6 @@ TEST_FIXTURE(BitSetTest, SetAll)
         EXPECT_EQ(false, set[i]);
 }
 
-TEST_FIXTURE(BitSetTest, Equal)
-{
-    BitSet set(Size, false);
-    BitSet ref1(Size, false);
-    BitSet ref2(Size, true);
-    BitSet ref3(Size, false);
-    ref3.Set(0, true);
-    
-    EXPECT_TRUE(set.Equal(set));
-    EXPECT_TRUE(set.Equal(ref1));
-    EXPECT_TRUE(ref1.Equal(set));
-    EXPECT_FALSE(set.Equal(ref2));
-    EXPECT_FALSE(ref2.Equal(set));
-    EXPECT_FALSE(set.Equal(ref3));
-    EXPECT_FALSE(ref3.Equal(set));
-    EXPECT_FALSE(ref2.Equal(ref1));
-    EXPECT_FALSE(ref2.Equal(ref3));
-    set.Set(0, true);
-    EXPECT_TRUE(set.Equal(set));
-    EXPECT_FALSE(set.Equal(ref1));
-    EXPECT_FALSE(ref1.Equal(set));
-    EXPECT_FALSE(set.Equal(ref2));
-    EXPECT_FALSE(ref2.Equal(set));
-    EXPECT_TRUE(set.Equal(ref3));
-    EXPECT_TRUE(ref3.Equal(set));
-    set.SetAll(true);
-    EXPECT_TRUE(set.Equal(set));
-    EXPECT_FALSE(set.Equal(ref1));
-    EXPECT_FALSE(ref1.Equal(set));
-    EXPECT_TRUE(set.Equal(ref2));
-    EXPECT_TRUE(ref2.Equal(set));
-    EXPECT_FALSE(set.Equal(ref3));
-    EXPECT_FALSE(ref3.Equal(set));
-}
-
 TEST_FIXTURE(BitSetTest, OperatorEqual)
 {
     BitSet set(Size, false);
@@ -289,37 +254,6 @@ TEST_FIXTURE(BitSetTest, Overlaps)
     EXPECT_TRUE(ref4.Overlaps(set));
 }
 
-TEST_FIXTURE(BitSetTest, Not)
-{
-    BitSet set(Size, false);
-    BitSet ref1(Size, false);
-    BitSet ref2(Size, true);
-    BitSet ref3(Size, false);
-    ref3.Set(0, true);
-    BitSet ref4(Size, true);
-    ref4.Set(0, false);
-
-    EXPECT_TRUE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
-    set.Not();
-    EXPECT_FALSE(set == ref1);
-    EXPECT_TRUE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
-    set.Set(0, false);
-    EXPECT_FALSE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_TRUE(set == ref4);
-    set.Not();
-    EXPECT_FALSE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_TRUE(set == ref3);
-    EXPECT_FALSE(set == ref4);
-}
-
 TEST_FIXTURE(BitSetTest, OperatorNot)
 {
     BitSet set(Size, false);
@@ -345,49 +279,6 @@ TEST_FIXTURE(BitSetTest, OperatorNot)
     EXPECT_FALSE(~set == ref2);
     EXPECT_TRUE(~set == ref3);
     EXPECT_FALSE(~set == ref4);
-}
-
-TEST_FIXTURE(BitSetTest, And)
-{
-    BitSet set(Size, false);
-    BitSet ref1(Size, false);
-    BitSet ref2(Size, true);
-    BitSet ref3(Size, false);
-    ref3.Set(0, true);
-    BitSet ref4(Size, true);
-    ref4.Set(0, false);
-
-    EXPECT_TRUE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
-    set.And(ref2);
-    EXPECT_TRUE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
-    set.SetAll(true);
-    set.And(ref2);
-    EXPECT_FALSE(set == ref1);
-    EXPECT_TRUE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
-    set.And(ref4);
-    EXPECT_FALSE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_TRUE(set == ref4);
-    set = ref3;
-    set.And(ref2);
-    EXPECT_FALSE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_TRUE(set == ref3);
-    EXPECT_FALSE(set == ref4);
-    set.And(ref4);
-    EXPECT_TRUE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
 }
 
 TEST_FIXTURE(BitSetTest, OperatorAndEquals)
@@ -471,44 +362,6 @@ TEST_FIXTURE(BitSetTest, OperatorAnd)
     EXPECT_FALSE((set & ref4) == ref4);
 }
 
-TEST_FIXTURE(BitSetTest, Or)
-{
-    BitSet set(Size, false);
-    BitSet ref1(Size, false);
-    BitSet ref2(Size, true);
-    BitSet ref3(Size, false);
-    ref3.Set(0, true);
-    BitSet ref4(Size, true);
-    ref4.Set(0, false);
-
-    EXPECT_TRUE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
-    set.Or(ref2);
-    EXPECT_FALSE(set == ref1);
-    EXPECT_TRUE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
-    set = ref1;
-    set.Or(ref3);
-    EXPECT_FALSE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_TRUE(set == ref3);
-    EXPECT_FALSE(set == ref4);
-    set.Or(ref4);
-    EXPECT_FALSE(set == ref1);
-    EXPECT_TRUE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
-    set = ref4;
-    set.Or(ref3);
-    EXPECT_FALSE(set == ref1);
-    EXPECT_TRUE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
-}
-
 TEST_FIXTURE(BitSetTest, OperatorOrEquals)
 {
     BitSet set(Size, false);
@@ -580,42 +433,6 @@ TEST_FIXTURE(BitSetTest, OperatorOr)
     EXPECT_TRUE((set | ref3) == ref2);
     EXPECT_FALSE((set | ref3) == ref3);
     EXPECT_FALSE((set | ref3) == ref4);
-}
-
-TEST_FIXTURE(BitSetTest, Xor)
-{
-    BitSet set(Size, false);
-    BitSet ref1(Size, false);
-    BitSet ref2(Size, true);
-    BitSet ref3(Size, false);
-    ref3.Set(0, true);
-    BitSet ref4(Size, true);
-    ref4.Set(0, false);
-
-    EXPECT_TRUE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
-    set.Xor(ref2);
-    EXPECT_FALSE(set == ref1);
-    EXPECT_TRUE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
-    set.Xor(ref3);
-    EXPECT_FALSE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_TRUE(set == ref4);
-    set.Xor(ref2);
-    EXPECT_FALSE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_TRUE(set == ref3);
-    EXPECT_FALSE(set == ref4);
-    set.Xor(ref3);
-    EXPECT_TRUE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
 }
 
 TEST_FIXTURE(BitSetTest, OperatorXorEquals)

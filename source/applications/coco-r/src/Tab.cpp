@@ -427,7 +427,7 @@ void Tab::PrintNodes()
         else if (p->typ == Node::clas)
         {
 			CharClass * c = classes[p->val];
-			std::wstring paddedName = Name(c->name);
+			std::wstring paddedName = Name(c->GetName());
 			fwprintf(trace, L"%12s ", paddedName.c_str());
 		} 
         else 
@@ -468,19 +468,18 @@ void Tab::PrintNodes()
 //---------------------------------------------------------------------
 
 
-CharClass * Tab::NewCharClass(std::wstring const & name, CharSet * s)
+CharClass * Tab::NewCharClass(std::wstring const & name, CharSet const & s)
 {
 	CharClass * c;
 	if (String::Equal(name, L"#"))
     {
 		std::wstring temp = String::CreateAppend(name, (wchar_t) dummyName++);
-		c = new CharClass(temp, s);
+		c = new CharClass(temp, s, classes.size());
 	} 
     else
     {
-		c = new CharClass(name, s);
+		c = new CharClass(name, s, classes.size());
 	}
-	c->n = classes.size();
     classes.push_back(c);
 	return c;
 }
@@ -491,7 +490,7 @@ CharClass * Tab::FindCharClass(std::wstring const & name)
 	for (size_t i = 0; i < classes.size(); i++)
     {
 		c = classes[i];
-		if (String::Equal(c->name, name)) 
+		if (String::Equal(c->GetName(), name)) 
             return c;
 	}
 	return nullptr;
@@ -503,15 +502,15 @@ CharClass * Tab::FindCharClass(CharSet const * s)
 	for (size_t i = 0; i < classes.size(); i++)
     {
 		c = classes[i];
-		if (s->Equals(c->set)) 
+		if (*s == c->GetCharSet()) 
             return c;
 	}
 	return nullptr;
 }
 
-CharSet * Tab::CharClassSet(int i)
+CharSet const & Tab::CharClassSet(int i) const
 {
-	return classes[i]->set;
+    return classes[i]->GetCharSet();
 }
 
 //----------- character class printing
@@ -530,9 +529,9 @@ std::wstring Tab::Ch(const wchar_t ch) const
 	return stream.str();
 }
 
-void Tab::WriteCharSet(CharSet const * s) const
+void Tab::WriteCharSet(CharSet const & s) const
 {
-	for (CharSet::Range *r = s->head; r != nullptr; r = r->next)
+	for (CharSet::Range const * r = s.FirstRange(); r != nullptr; r = s.NextRange(r))
     {
 		if (r->from < r->to)
         {
@@ -554,12 +553,12 @@ void Tab::WriteCharClasses() const
     {
     	CharClass * c = classes[i];
 
-		std::wstring format2 = String::CreateAppend(c->name, L"            ");
+		std::wstring format2 = String::CreateAppend(c->GetName(), L"            ");
 		std::wstring format  = String::Create(format2, 0, 10);
 		String::Merge(format, L": ");
 		fwprintf(trace, format.c_str());
 
-		WriteCharSet(c->set);
+		WriteCharSet(c->GetCharSet());
 		fwprintf(trace, L"\n");
 	}
 	fwprintf(trace, L"\n");

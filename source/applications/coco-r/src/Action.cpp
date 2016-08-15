@@ -70,22 +70,22 @@ void Action::AddTargets(Action * a)
         tc = Node::contextTrans;
 }
 
-CharSet * Action::Symbols(Tab * tab)
+CharSet Action::Symbols(Tab * tab)
 {
-	CharSet * s;
+	CharSet s;
 	if (typ == Node::clas)
-		s = tab->CharClassSet(sym)->Clone();
+		s = tab->CharClassSet(sym).Clone();
 	else
     {
-		s = new CharSet(); 
-        s->Set(sym);
+		s = CharSet(); 
+        s.Set(sym);
 	}
 	return s;
 }
 
 void Action::ShiftWith(CharSet * s, Tab * tab)
 {
-	if (s->Elements() == 1)
+	if (s->Count() == 1)
     {
 		typ = Node::chr; 
         sym = s->First();
@@ -93,9 +93,9 @@ void Action::ShiftWith(CharSet * s, Tab * tab)
     {
 		CharClass * c = tab->FindCharClass(s);
 		if (c == nullptr) 
-            c = tab->NewCharClass(L"#", s); // class with dummy name
+            c = tab->NewCharClass(L"#", *s); // class with dummy name
 		typ = Node::clas; 
-        sym = wchar_t(c->n);
+        sym = wchar_t(c->GetClassID());
 	}
 }
 

@@ -130,7 +130,7 @@ BitSet BitSet::Clone() const
 	return BitSet(*this);
 }
 
-bool BitSet::Equal(BitSet const & other) const
+bool BitSet::Equals(BitSet const & other) const
 {
 	if (count != other.count)
         throw std::invalid_argument("Bit sets must be same size");
