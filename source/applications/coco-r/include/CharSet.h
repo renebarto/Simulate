@@ -41,8 +41,7 @@ public:
 	public:
 		wchar_t from;
 		wchar_t to;
-		Range *next;
-		Range(int from, int to) { this->from = from; this->to = to; next = nullptr; };
+		Range(int from, int to) { this->from = from; this->to = to; }
 	};
 
     CharSet();
