@@ -37,7 +37,6 @@ Coco/R itself) does not fall under the GNU General Public License.
 #include "Symbol.h"
 #include "Node.h"
 #include "Graph.h"
-#include "Sets.h"
 #include "CharClass.h"
 
 namespace Coco
@@ -99,7 +98,7 @@ public:
 
 	Symbol* NewSym(int typ, std::wstring const & name, size_t line);
 	Symbol* FindSym(std::wstring const & name);
-	size_t Num(Node * p);
+	size_t Num(Node const * p);
 	void PrintSym(Symbol *sym);
 	void PrintSymbolTable();
 	void PrintSet(BitSet const & s, int indent);
@@ -123,9 +122,9 @@ public:
 
 	//------------ graph deletability check -----------------
 
-	bool DelGraph(Node* p);
-	bool DelSubGraph(Node* p);
-	bool DelNode(Node* p);
+	bool DelGraph(Node const * p);
+	bool DelSubGraph(Node const * p);
+	bool DelNode(Node const * p);
 
 	//----------------- graph printing ----------------------
 
@@ -154,14 +153,14 @@ public:
 	//---------------------------------------------------------------------
 
 	/* Computes the first set for the given Node. */
-	BitSet First0(Node * p, BitSet & mark);
-	BitSet First(Node * p);
+	BitSet First0(Node const * p, BitSet & mark);
+	BitSet First(Node const * p);
 	void CompFirstSets();
-	void CompFollow(Node * p);
+	void CompFollow(Node const * p);
 	void Complete(Symbol *sym);
 	void CompFollowSets();
 	Node* LeadingAny(Node * p);
-	void FindAS(Node * p); // find ANY sets
+	void FindAS(Node const * p); // find ANY sets
 	void CompAnySets();
 	BitSet Expected(Node * p, Symbol *curSy);
 	// does not look behind resolvers; only called during LL(1) test and in CheckRes
@@ -192,27 +191,29 @@ public:
 
 	class CNode {	// node of list for finding circular productions
 	public:
-		Symbol *left, *right;
+        Symbol const * left;
+        Symbol const * right;
 
-		CNode (Symbol *l, Symbol *r) {
+		CNode (Symbol const * l, Symbol const * r)
+        {
 			left = l; right = r;
 		}
 	};
 
-	void GetSingles(Node * p, std::vector<Symbol *> & singles);
+	void GetSingles(Node const * p, std::vector<Symbol const *> & singles);
 	bool NoCircularProductions();
 
 	//--------------- check for LL(1) errors ----------------------
 
-	void LL1Error(int cond, Symbol *sym);
+	void LL1Error(int cond, Symbol const * sym);
 	void CheckOverlap(BitSet const & s1, BitSet const & s2, int cond);
-	void CheckAlts(Node * p);
+	void CheckAlts(Node const * p);
 	void CheckLL1();
 
 	//------------- check if resolvers are legal  --------------------
 
-	void ResErr(Node * p, std::wstring const & msg);
-	void CheckRes(Node * p, bool rslvAllowed);
+	void ResErr(Node const * p, std::wstring const & msg);
+	void CheckRes(Node const * p, bool rslvAllowed);
 	void CheckResolvers();
 
 	//------------- check if every nts has a production --------------------
@@ -221,12 +222,12 @@ public:
 
 	//-------------- check if every nts can be reached  -----------------
 
-	void MarkReachedNts(Node * p);
+	void MarkReachedNts(Node const * p);
 	bool AllNtReached();
 
 	//--------- check if every nts can be derived to terminals  ------------
 
-	bool IsTerm(Node * p, BitSet const & mark); // true if graph can be derived to terminals
+	bool IsTerm(Node const * p, BitSet const & mark); // true if graph can be derived to terminals
 	bool AllNtToTerm();
 
 	//---------------------------------------------------------------------

@@ -196,6 +196,7 @@
     <ClCompile Include="src\CommandLineOptionsParser.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Test\TestBitSet.cpp" />
+    <ClCompile Include="src\Test\TestCharClass.cpp" />
     <ClCompile Include="src\Test\TestCharSet.cpp" />
     <ClCompile Include="src\Test\TestCocor.cpp" />
     <ClCompile Include="src\Test\TestToken.cpp" />

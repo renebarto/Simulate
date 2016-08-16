@@ -47,13 +47,19 @@ public:
   	bool operator[](const size_t index) const { return Get(index); };
 
     void SetAll(const bool value);
-	bool Overlaps(BitSet const & other)  const;
+	bool Overlaps(BitSet const & other) const;
+    bool Includes(BitSet const & other) const;
+
+    size_t First() const;
+    size_t Elements() const;
+	
 
 	BitSet & operator=(BitSet const &right);
 
     BitSet & operator &= (BitSet const & value) { And(value); return *this; }
     BitSet & operator |= (BitSet const & value) { Or(value); return *this; }
     BitSet & operator ^= (BitSet const & value) { Xor(value); return *this; }
+    BitSet & operator -= (BitSet const & value) { Subtract(value); return *this; }
 
 	BitSet Clone() const;
 
@@ -63,6 +69,7 @@ public:
     friend BitSet operator & (BitSet const & lhs, BitSet const & rhs);
     friend BitSet operator | (BitSet const & lhs, BitSet const & rhs);
     friend BitSet operator ^ (BitSet const & lhs, BitSet const & rhs);
+    friend BitSet operator - (BitSet const & lhs, BitSet const & rhs);
 
 private:
 	size_t count;
@@ -73,6 +80,7 @@ private:
 	void And(BitSet const & value);
 	void Or(BitSet const & value);
 	void Xor(BitSet const & value);
+    void Subtract(BitSet const & other);
 };
 
 inline bool operator == (BitSet const & lhs, BitSet const & rhs) { return lhs.Equals(rhs); }
@@ -81,5 +89,6 @@ inline BitSet operator ~ (BitSet const & value) { BitSet result(value); result.N
 inline BitSet operator & (BitSet const & lhs, BitSet const & rhs) { BitSet result(lhs); result.And(rhs); return result; }
 inline BitSet operator | (BitSet const & lhs, BitSet const & rhs) { BitSet result(lhs); result.Or(rhs); return result; }
 inline BitSet operator ^ (BitSet const & lhs, BitSet const & rhs) { BitSet result(lhs); result.Xor(rhs); return result; }
+inline BitSet operator - (BitSet const & lhs, BitSet const & rhs) { BitSet result(lhs); result.Subtract(rhs); return result; }
 
 } // namespace Coco

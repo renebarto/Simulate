@@ -32,27 +32,21 @@ Coco/R itself) does not fall under the GNU General Public License.
 namespace Coco
 {
 
-int Symbol::fixedToken     = 0;
-int Symbol::classToken     = 1;
-int Symbol::litToken       = 2;
-int Symbol::classLitToken  = 3;
-
 Symbol::Symbol(int typ, std::wstring const & name, size_t line)
+    : n(0)
+    , typ(typ)
+    , name(name)
+    , graph(nullptr)
+    , tokenKind(TokenKind::FixedToken)
+    , deletable(false)
+    , firstReady(false)
+    , first()
+    , follow()
+    , nts()
+    , line(line)
+    , attrPos(nullptr)
+    , semPos(nullptr)
 {
-	n = 0;
-	graph = nullptr;
-	tokenKind = 0;
-	deletable = false;
-	firstReady = false;
-    first = {};
-    follow = {};
-    nts = {};
-	attrPos = nullptr;
-	semPos = nullptr;
-
-	this->typ = typ;
-	this->name = name;
-	this->line = line;
 }
 
 }; // namespace

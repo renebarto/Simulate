@@ -63,7 +63,6 @@
     <ClInclude Include="include\ParserGen.h" />
     <ClInclude Include="include\Position.h" />
     <ClInclude Include="include\Scanner.h" />
-    <ClInclude Include="include\Sets.h" />
     <ClInclude Include="include\SortedList.h" />
     <ClInclude Include="include\State.h" />
     <ClInclude Include="include\StringBuilder.h" />

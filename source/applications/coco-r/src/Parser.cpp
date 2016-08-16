@@ -215,29 +215,29 @@ void Parser::Coco()
             sym = tab->NewSym(Node::nt, t->val, t->line);
         else
         {
-            if (sym->typ == Node::nt)
+            if (sym->GetSymbolType() == Node::nt)
             {
-                if (sym->graph != nullptr) 
+                if (sym->GetGraph() != nullptr) 
                     SemanticError(L"name declared twice");
             } 
             else 
                 SemanticError(L"this symbol kind not allowed on left side of production");
-            sym->line = t->line;
+            sym->SetLine(t->line);
         }
-        bool noAttrs = (sym->attrPos == nullptr);
-        sym->attrPos = nullptr;
+        bool noAttrs = (sym->GetAttrPos() == nullptr);
+        sym->SetAttrPos(nullptr);
             
         if (TokenType(la->kind) == TokenType::AngleBracketOpen /* "<" */ || TokenType(la->kind) == TokenType::AngleBracketOpenDot /* "<." */)
             AttrDecl(sym);
         if (!undef)
-            if (noAttrs != (sym->attrPos == nullptr))
+            if (noAttrs != (sym->GetAttrPos() == nullptr))
                 SemanticError(L"attribute mismatch between declaration and use of this symbol");
             
         if (TokenType(la->kind) == TokenType::ParenthesisOpenDot /* "(." */)
-            SemText(sym->semPos);
+            SemText(sym->GetSemPos());
         ExpectWeak(TokenType::Equals /* "=" */, TokenType::String);
         Expression(g);
-        sym->graph = g->l;
+        sym->SetGraph(g->l);
         tab->Finish(g);
             
         ExpectWeak(TokenType::Dot /* "." */, TokenType::BadString);
@@ -252,7 +252,7 @@ void Parser::Coco()
     else
     {
         sym = tab->gramSy;
-        if (sym->attrPos != nullptr)
+        if (sym->GetAttrPos() != nullptr)
             SemanticError(L"grammar symbol must not have attributes");
     }
     tab->noSym = tab->NewSym(Node::t, L"???", 0); // noSym gets highest number
@@ -319,7 +319,7 @@ void Parser::TokenDecl(int typ)
     else
     {
         sym = tab->NewSym(typ, name, t->line);
-        sym->tokenKind = Symbol::fixedToken;
+        sym->SetTokenKind(Symbol::TokenKind::FixedToken);
     }
     tokenString = {};
         
@@ -352,14 +352,14 @@ void Parser::TokenDecl(int typ)
         if (kind == id) 
             genScanner = false;
         else 
-            dfa->MatchLiteral(sym->name, sym);
+            dfa->MatchLiteral(sym->GetName(), sym);
             
     } 
     else 
         SyntaxError(TokenType::InvalidTokenDecl);
     if (TokenType(la->kind) == TokenType::ParenthesisOpenDot /* "(." */)
     {
-        SemText(sym->semPos);
+        SemText(sym->GetSemPos());
         if (typ != Node::pr) 
             SemanticError(L"semantic action not allowed here"); 
     }
@@ -423,7 +423,7 @@ void Parser::AttrDecl(Symbol * sym)
         }
         Expect(TokenType::AngleBracketClose /* ">" */);
         if (t->pos > beg)
-            sym->attrPos = new Position(beg, t->pos, col, line); 
+            sym->SetAttrPos(new Position(beg, t->pos, col, line)); 
     } 
     else if (TokenType(la->kind) == TokenType::AngleBracketOpenDot /* "<." */)
     {
@@ -443,7 +443,7 @@ void Parser::AttrDecl(Symbol * sym)
         }
         Expect(TokenType::AngleBracketCloseDot /* ".>" */);
         if (t->pos > beg)
-            sym->attrPos = new Position(beg, t->pos, col, line); 
+            sym->SetAttrPos(new Position(beg, t->pos, col, line)); 
     } 
     else 
         SyntaxError(TokenType::InvalidAttrDecl);
@@ -673,7 +673,7 @@ void Parser::Factor(Graph *& g)
                 else if (genScanner)
                 { 
                     sym = tab->NewSym(Node::t, name, t->line);
-                    dfa->MatchLiteral(sym->name, sym);
+                    dfa->MatchLiteral(sym->GetName(), sym);
                 } 
                 else
                 {  // undefined string in production
@@ -681,7 +681,7 @@ void Parser::Factor(Graph *& g)
                     sym = tab->eofSy;  // dummy
                 }
             }
-            int typ = sym->typ;
+            int typ = sym->GetSymbolType();
             if (typ != Node::t && typ != Node::nt)
                 SemanticError(L"this symbol kind is not allowed in a production");
             if (weak)
@@ -701,8 +701,8 @@ void Parser::Factor(Graph *& g)
                     SemanticError(L"a literal must not have attributes"); 
             }
             if (undef)
-                sym->attrPos = p->pos;  // dummy
-            else if ((p->pos == nullptr) != (sym->attrPos == nullptr))
+                sym->SetAttrPos(p->pos);  // dummy
+            else if ((p->pos == nullptr) != (sym->GetAttrPos() == nullptr))
                 SemanticError(L"attribute mismatch between declaration and use of this symbol");
             
             break;

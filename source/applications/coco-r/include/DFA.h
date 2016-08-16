@@ -87,7 +87,7 @@ public:
 	void FindTrans(Node *p, bool start, BitSet & marked);
 	void ConvertToStates(Node *p, Symbol *sym);
 	// match string against current automaton; store it either as a fixedToken or as a litToken
-	void MatchLiteral(std::wstring & s, Symbol *sym);
+	void MatchLiteral(std::wstring const & s, Symbol *sym);
 	void SplitActions(State *state, Action *a, Action *b);
 	bool Overlap(Action *a, Action *b);
 	bool MakeUnique(State *state); // return true if actions were split

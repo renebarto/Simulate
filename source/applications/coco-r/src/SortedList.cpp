@@ -36,7 +36,7 @@ namespace Coco
 
 int Compare(Symbol *x, Symbol *y)
 {
-	return String::CompareTo(x->name, y->name);
+	return String::CompareTo(x->GetName(), y->GetName());
 }
 
 SortedEntry::SortedEntry(Symbol* Key, void* Value)

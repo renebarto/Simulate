@@ -104,7 +104,7 @@ void DFA::NewTransition(State * from, State * to, int typ, int sym, int tc)
     a->target = t;
 	from->AddAction(a);
 	if (typ == Node::clas) 
-        curSy->tokenKind = Symbol::classToken;
+        curSy->SetTokenKind(Symbol::TokenKind::ClassToken);
 }
 
 void DFA::CombineShifts()
@@ -317,7 +317,7 @@ void DFA::ConvertToStates(Node *p, Symbol *sym)
 }
 
 // match string against current automaton; store it either as a fixedToken or as a litToken
-void DFA::MatchLiteral(std::wstring & s, Symbol * sym)
+void DFA::MatchLiteral(std::wstring const & s, Symbol * sym)
 {
 	std::wstring subS = String::Create(s, 1, s.length()-2);
 	std::wstring sUnescaped = tab->Unescape(subS);
@@ -348,17 +348,17 @@ void DFA::MatchLiteral(std::wstring & s, Symbol * sym)
     {
 		state->endOf = sym;
 	} 
-    else if (matchedSym->tokenKind == Symbol::fixedToken || (a != nullptr && a->tc == Node::contextTrans))
+    else if (matchedSym->GetTokenKind() == Symbol::TokenKind::FixedToken || (a != nullptr && a->tc == Node::contextTrans))
     {
 		// s matched a token with a fixed definition or a token with an appendix that will be cut off
         std::wostringstream stream;
-		stream << L"tokens " << sym->name << " and " << matchedSym->name << " cannot be distinguished";
+		stream << L"tokens " << sym->GetName() << " and " << matchedSym->GetName() << " cannot be distinguished";
 		parser->SemanticError(stream.str());
 	} 
     else 
     { // matchedSym == classToken || classLitToken
-		matchedSym->tokenKind = Symbol::classLitToken;
-		sym->tokenKind = Symbol::litToken;
+		matchedSym->SetTokenKind(Symbol::TokenKind::ClassLitToken);
+		sym->SetTokenKind(Symbol::TokenKind::LitToken);
 	}
 }
 
@@ -503,7 +503,7 @@ void DFA::PrintStates()
 		if (state->endOf == nullptr) fwprintf(trace, L"               ");
 		else
         {
-			std::wstring paddedName = tab->Name(state->endOf->name);
+			std::wstring paddedName = tab->Name(state->endOf->GetName());
 			fwprintf(trace, L"E(%12s)", paddedName.c_str());
 		}
 		fwprintf(trace, L"%3zd:", state->nr);
@@ -577,7 +577,7 @@ void DFA::GetTargetStates(Action * a, BitSet & targets, Symbol* & endOf, bool & 
 			}
 			else
             {
-				wprintf(L"Tokens %ls and %ls cannot be distinguished\n", endOf->name.c_str(), t->state->endOf->name.c_str());
+				wprintf(L"Tokens %ls and %ls cannot be distinguished\n", endOf->GetName().c_str(), t->state->endOf->GetName().c_str());
 				errors->count++;
 			}
 		}
@@ -626,7 +626,7 @@ BitSet const & DFA::MeltedSet(size_t nr)
 Melted * DFA::StateWithSet(BitSet const & s)
 {
 	for (Melted * m = firstMelted; m != nullptr; m = m->next)
-		if (Sets::Equals(s, m->set)) 
+		if (s == m->set)
             return m;
 	return nullptr;
 }
@@ -755,8 +755,8 @@ void DFA::GenComment(Comment * com, int i)
 
 std::wstring DFA::SymName(Symbol * sym)
 { // real name value is stored in Tab.literals
-	if (('a'<=sym->name[0] && sym->name[0]<='z') ||
-		('A'<=sym->name[0] && sym->name[0]<='Z'))
+	if (('a'<=sym->GetName()[0] && sym->GetName()[0]<='z') ||
+		('A'<=sym->GetName()[0] && sym->GetName()[0]<='Z'))
     { //Char::IsLetter(sym->name[0])
 
 		Iterator *iter = tab->literals->GetIterator();
@@ -767,7 +767,7 @@ std::wstring DFA::SymName(Symbol * sym)
                 return e->key;
 		}
 	}
-	return sym->name;
+	return sym->GetName();
 }
 
 void DFA::GenLiterals()
@@ -783,7 +783,7 @@ void DFA::GenLiterals()
 		for (int j = 0; j < ts[i]->size(); j++)
         {
 			sym = (*ts)[i][j];
-			if (sym->tokenKind == Symbol::litToken)
+			if (sym->GetTokenKind() == Symbol::TokenKind::LitToken)
             {
 				std::wstring name = SymName(sym);
 				if (ignoreCase)
@@ -799,7 +799,7 @@ void DFA::GenLiterals()
 					wchar_t c = name[k];
 					fwprintf(gen, (c >= 32 && c <= 127) ? L"%lc" : L"\\x%04x", c);
 				}
-				fwprintf(gen, L", %zd);\n", sym->n);
+				fwprintf(gen, L", %zd);\n", sym->GetSymbolNumber());
 			}
 		}
 	}
@@ -870,7 +870,7 @@ void DFA::WriteState(State * state)
 
 	if (endOf != nullptr && state->firstAction != nullptr)
     {
-		fwprintf(gen, L"\t\t\trecEnd = pos; recKind = %zd;\n", endOf->n);
+		fwprintf(gen, L"\t\t\trecEnd = pos; recKind = %zd;\n", endOf->GetSymbolNumber());
 	}
 	bool ctxEnd = state->ctx;
 
@@ -918,8 +918,8 @@ void DFA::WriteState(State * state)
 	} 
     else
     {
-		fwprintf(gen, L"t->kind = %zd; ", endOf->n);
-		if (endOf->tokenKind == Symbol::classLitToken)
+		fwprintf(gen, L"t->kind = %zd; ", endOf->GetSymbolNumber());
+		if (endOf->GetTokenKind() == Symbol::TokenKind::ClassLitToken)
         {
 			if (ignoreCase)
             {
@@ -1014,7 +1014,7 @@ void DFA::WriteScanner()
 
 	g.CopyFramePart(L"-->declarations");
 	fwprintf(gen, L"\tmaxT = %zd;\n", tab->terminals.size() - 1);
-	fwprintf(gen, L"\tnoSym = %zd;\n", tab->noSym->n);
+	fwprintf(gen, L"\tnoSym = %zd;\n", tab->noSym->GetSymbolNumber());
 	WriteStartTab();
 	GenLiterals();
 

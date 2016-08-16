@@ -254,6 +254,76 @@ TEST_FIXTURE(BitSetTest, Overlaps)
     EXPECT_TRUE(ref4.Overlaps(set));
 }
 
+TEST_FIXTURE(BitSetTest, Includes)
+{
+    BitSet set(Size, false);
+    BitSet ref1(Size, false);
+    BitSet ref2(Size, true);
+    BitSet ref3(Size, false);
+    ref3.Set(0, true);
+    BitSet ref4(Size, false);
+    ref4.Set(1, true);
+
+    EXPECT_TRUE(set.Includes(ref1));
+    EXPECT_TRUE(ref1.Includes(set));
+    EXPECT_FALSE(set.Includes(ref2));
+    EXPECT_TRUE(ref2.Includes(set));
+    EXPECT_FALSE(set.Includes(ref3));
+    EXPECT_TRUE(ref3.Includes(set));
+    EXPECT_TRUE(ref2.Includes(ref3));
+    EXPECT_FALSE(ref3.Includes(ref2));
+    EXPECT_TRUE(ref2.Includes(ref4));
+    EXPECT_FALSE(ref4.Includes(ref2));
+    set.Set(0, true);
+    EXPECT_TRUE(set.Includes(ref1));
+    EXPECT_FALSE(ref1.Includes(set));
+    EXPECT_FALSE(set.Includes(ref2));
+    EXPECT_TRUE(ref2.Includes(set));
+    EXPECT_TRUE(set.Includes(ref3));
+    EXPECT_TRUE(ref3.Includes(set));
+    EXPECT_FALSE(set.Includes(ref4));
+    EXPECT_FALSE(ref4.Includes(set));
+    set.SetAll(true);
+    EXPECT_TRUE(set.Includes(ref1));
+    EXPECT_FALSE(ref1.Includes(set));
+    EXPECT_TRUE(set.Includes(ref2));
+    EXPECT_TRUE(ref2.Includes(set));
+    EXPECT_TRUE(set.Includes(ref3));
+    EXPECT_FALSE(ref3.Includes(set));
+    EXPECT_TRUE(set.Includes(ref4));
+    EXPECT_FALSE(ref4.Includes(set));
+}
+
+TEST_FIXTURE(BitSetTest, First)
+{
+    BitSet ref1(Size, false);
+    BitSet ref2(Size, true);
+    BitSet ref3(Size, false);
+    ref3.Set(3, true);
+    BitSet ref4(Size, true);
+    ref4.Set(0, false);
+
+    EXPECT_EQ(size_t(-1), ref1.First());
+    EXPECT_EQ(size_t{ 0 }, ref2.First());
+    EXPECT_EQ(size_t{ 3 }, ref3.First());
+    EXPECT_EQ(size_t{ 1 }, ref4.First());
+}
+
+TEST_FIXTURE(BitSetTest, Elements)
+{
+    BitSet ref1(Size, false);
+    BitSet ref2(Size, true);
+    BitSet ref3(Size, false);
+    ref3.Set(0, true);
+    BitSet ref4(Size, true);
+    ref4.Set(0, false);
+
+    EXPECT_EQ(size_t{ 0 }, ref1.Elements());
+    EXPECT_EQ(size_t{ Size }, ref2.Elements());
+    EXPECT_EQ(size_t{ 1 }, ref3.Elements());
+    EXPECT_EQ(size_t{ Size - 1 }, ref4.Elements());
+}
+
 TEST_FIXTURE(BitSetTest, OperatorNot)
 {
     BitSet set(Size, false);
@@ -265,20 +335,20 @@ TEST_FIXTURE(BitSetTest, OperatorNot)
     ref4.Set(0, false);
 
     EXPECT_TRUE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
+    EXPECT_TRUE(set != ref2);
+    EXPECT_TRUE(set != ref3);
+    EXPECT_TRUE(set != ref4);
 
-    EXPECT_FALSE(~set == ref1);
+    EXPECT_TRUE(~set != ref1);
     EXPECT_TRUE(~set == ref2);
-    EXPECT_FALSE(~set == ref3);
-    EXPECT_FALSE(~set == ref4);
+    EXPECT_TRUE(~set != ref3);
+    EXPECT_TRUE(~set != ref4);
 
     set = ref4;
-    EXPECT_FALSE(~set == ref1);
-    EXPECT_FALSE(~set == ref2);
+    EXPECT_TRUE(~set != ref1);
+    EXPECT_TRUE(~set != ref2);
     EXPECT_TRUE(~set == ref3);
-    EXPECT_FALSE(~set == ref4);
+    EXPECT_TRUE(~set != ref4);
 }
 
 TEST_FIXTURE(BitSetTest, OperatorAndEquals)
@@ -292,36 +362,36 @@ TEST_FIXTURE(BitSetTest, OperatorAndEquals)
     ref4.Set(0, false);
 
     EXPECT_TRUE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
+    EXPECT_TRUE(set != ref2);
+    EXPECT_TRUE(set != ref3);
+    EXPECT_TRUE(set != ref4);
     set &= ref2;
     EXPECT_TRUE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
+    EXPECT_TRUE(set != ref2);
+    EXPECT_TRUE(set != ref3);
+    EXPECT_TRUE(set != ref4);
     set.SetAll(true);
     set &= ref2;
-    EXPECT_FALSE(set == ref1);
+    EXPECT_TRUE(set != ref1);
     EXPECT_TRUE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
+    EXPECT_TRUE(set != ref3);
+    EXPECT_TRUE(set != ref4);
     set &= ref4;
-    EXPECT_FALSE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
+    EXPECT_TRUE(set != ref1);
+    EXPECT_TRUE(set != ref2);
+    EXPECT_TRUE(set != ref3);
     EXPECT_TRUE(set == ref4);
     set = ref3;
     set &= ref2;
-    EXPECT_FALSE(set == ref1);
-    EXPECT_FALSE(set == ref2);
+    EXPECT_TRUE(set != ref1);
+    EXPECT_TRUE(set != ref2);
     EXPECT_TRUE(set == ref3);
-    EXPECT_FALSE(set == ref4);
+    EXPECT_TRUE(set != ref4);
     set &= ref4;
     EXPECT_TRUE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
+    EXPECT_TRUE(set != ref2);
+    EXPECT_TRUE(set != ref3);
+    EXPECT_TRUE(set != ref4);
 }
 
 TEST_FIXTURE(BitSetTest, OperatorAnd)
@@ -335,31 +405,31 @@ TEST_FIXTURE(BitSetTest, OperatorAnd)
     ref4.Set(0, false);
 
     EXPECT_TRUE((set & ref2) == ref1);
-    EXPECT_FALSE((set & ref2) == ref2);
-    EXPECT_FALSE((set & ref2) == ref3);
-    EXPECT_FALSE((set & ref2) == ref4);
+    EXPECT_TRUE((set & ref2) != ref2);
+    EXPECT_TRUE((set & ref2) != ref3);
+    EXPECT_TRUE((set & ref2) != ref4);
     EXPECT_TRUE((set & ref4) == ref1);
-    EXPECT_FALSE((set & ref4) == ref2);
-    EXPECT_FALSE((set & ref4) == ref3);
-    EXPECT_FALSE((set & ref4) == ref4);
+    EXPECT_TRUE((set & ref4) != ref2);
+    EXPECT_TRUE((set & ref4) != ref3);
+    EXPECT_TRUE((set & ref4) != ref4);
     set.SetAll(true);
-    EXPECT_FALSE((set & ref2) == ref1);
+    EXPECT_TRUE((set & ref2) != ref1);
     EXPECT_TRUE((set & ref2) == ref2);
-    EXPECT_FALSE((set & ref2) == ref3);
-    EXPECT_FALSE((set & ref2) == ref4);
-    EXPECT_FALSE((set & ref4) == ref1);
-    EXPECT_FALSE((set & ref4) == ref2);
-    EXPECT_FALSE((set & ref4) == ref3);
+    EXPECT_TRUE((set & ref2) != ref3);
+    EXPECT_TRUE((set & ref2) != ref4);
+    EXPECT_TRUE((set & ref4) != ref1);
+    EXPECT_TRUE((set & ref4) != ref2);
+    EXPECT_TRUE((set & ref4) != ref3);
     EXPECT_TRUE((set & ref4) == ref4);
     set = ref3;
-    EXPECT_FALSE((set & ref2) == ref1);
-    EXPECT_FALSE((set & ref2) == ref2);
+    EXPECT_TRUE((set & ref2) != ref1);
+    EXPECT_TRUE((set & ref2) != ref2);
     EXPECT_TRUE((set & ref2) == ref3);
-    EXPECT_FALSE((set & ref2) == ref4);
+    EXPECT_TRUE((set & ref2) != ref4);
     EXPECT_TRUE((set & ref4) == ref1);
-    EXPECT_FALSE((set & ref4) == ref2);
-    EXPECT_FALSE((set & ref4) == ref3);
-    EXPECT_FALSE((set & ref4) == ref4);
+    EXPECT_TRUE((set & ref4) != ref2);
+    EXPECT_TRUE((set & ref4) != ref3);
+    EXPECT_TRUE((set & ref4) != ref4);
 }
 
 TEST_FIXTURE(BitSetTest, OperatorOrEquals)
@@ -373,31 +443,31 @@ TEST_FIXTURE(BitSetTest, OperatorOrEquals)
     ref4.Set(0, false);
 
     EXPECT_TRUE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
+    EXPECT_TRUE(set != ref2);
+    EXPECT_TRUE(set != ref3);
+    EXPECT_TRUE(set != ref4);
     set |= ref2;
-    EXPECT_FALSE(set == ref1);
+    EXPECT_TRUE(set != ref1);
     EXPECT_TRUE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
+    EXPECT_TRUE(set != ref3);
+    EXPECT_TRUE(set != ref4);
     set = ref1;
     set |= ref3;
-    EXPECT_FALSE(set == ref1);
-    EXPECT_FALSE(set == ref2);
+    EXPECT_TRUE(set != ref1);
+    EXPECT_TRUE(set != ref2);
     EXPECT_TRUE(set == ref3);
-    EXPECT_FALSE(set == ref4);
+    EXPECT_TRUE(set != ref4);
     set |= ref4;
-    EXPECT_FALSE(set == ref1);
+    EXPECT_TRUE(set != ref1);
     EXPECT_TRUE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
+    EXPECT_TRUE(set != ref3);
+    EXPECT_TRUE(set != ref4);
     set = ref4;
     set |= ref3;
-    EXPECT_FALSE(set == ref1);
+    EXPECT_TRUE(set != ref1);
     EXPECT_TRUE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
+    EXPECT_TRUE(set != ref3);
+    EXPECT_TRUE(set != ref4);
 }
 
 TEST_FIXTURE(BitSetTest, OperatorOr)
@@ -410,29 +480,29 @@ TEST_FIXTURE(BitSetTest, OperatorOr)
     BitSet ref4(Size, true);
     ref4.Set(0, false);
 
-    EXPECT_FALSE((set | ref2) == ref1);
+    EXPECT_TRUE((set | ref2) != ref1);
     EXPECT_TRUE((set | ref2) == ref2);
-    EXPECT_FALSE((set | ref2) == ref3);
-    EXPECT_FALSE((set | ref2) == ref4);
-    EXPECT_FALSE((set | ref4) == ref1);
-    EXPECT_FALSE((set | ref4) == ref2);
-    EXPECT_FALSE((set | ref4) == ref3);
+    EXPECT_TRUE((set | ref2) != ref3);
+    EXPECT_TRUE((set | ref2) != ref4);
+    EXPECT_TRUE((set | ref4) != ref1);
+    EXPECT_TRUE((set | ref4) != ref2);
+    EXPECT_TRUE((set | ref4) != ref3);
     EXPECT_TRUE((set | ref4) == ref4);
     set = ref1;
-    EXPECT_FALSE((set | ref3) == ref1);
-    EXPECT_FALSE((set | ref3) == ref2);
+    EXPECT_TRUE((set | ref3) != ref1);
+    EXPECT_TRUE((set | ref3) != ref2);
     EXPECT_TRUE((set | ref3) == ref3);
-    EXPECT_FALSE((set | ref3) == ref4);
+    EXPECT_TRUE((set | ref3) != ref4);
     set = ref3;
-    EXPECT_FALSE((set | ref4) == ref1);
+    EXPECT_TRUE((set | ref4) != ref1);
     EXPECT_TRUE((set | ref4) == ref2);
-    EXPECT_FALSE((set | ref4) == ref3);
-    EXPECT_FALSE((set | ref4) == ref4);
+    EXPECT_TRUE((set | ref4) != ref3);
+    EXPECT_TRUE((set | ref4) != ref4);
     set = ref4;
-    EXPECT_FALSE((set | ref3) == ref1);
+    EXPECT_TRUE((set | ref3) != ref1);
     EXPECT_TRUE((set | ref3) == ref2);
-    EXPECT_FALSE((set | ref3) == ref3);
-    EXPECT_FALSE((set | ref3) == ref4);
+    EXPECT_TRUE((set | ref3) != ref3);
+    EXPECT_TRUE((set | ref3) != ref4);
 }
 
 TEST_FIXTURE(BitSetTest, OperatorXorEquals)
@@ -446,29 +516,29 @@ TEST_FIXTURE(BitSetTest, OperatorXorEquals)
     ref4.Set(0, false);
 
     EXPECT_TRUE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
+    EXPECT_TRUE(set != ref2);
+    EXPECT_TRUE(set != ref3);
+    EXPECT_TRUE(set != ref4);
     set ^= ref2;
-    EXPECT_FALSE(set == ref1);
+    EXPECT_TRUE(set != ref1);
     EXPECT_TRUE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
+    EXPECT_TRUE(set != ref3);
+    EXPECT_TRUE(set != ref4);
     set ^= ref3;
-    EXPECT_FALSE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
+    EXPECT_TRUE(set != ref1);
+    EXPECT_TRUE(set != ref2);
+    EXPECT_TRUE(set != ref3);
     EXPECT_TRUE(set == ref4);
     set ^= ref2;
-    EXPECT_FALSE(set == ref1);
-    EXPECT_FALSE(set == ref2);
+    EXPECT_TRUE(set != ref1);
+    EXPECT_TRUE(set != ref2);
     EXPECT_TRUE(set == ref3);
-    EXPECT_FALSE(set == ref4);
+    EXPECT_TRUE(set != ref4);
     set ^= ref3;
     EXPECT_TRUE(set == ref1);
-    EXPECT_FALSE(set == ref2);
-    EXPECT_FALSE(set == ref3);
-    EXPECT_FALSE(set == ref4);
+    EXPECT_TRUE(set != ref2);
+    EXPECT_TRUE(set != ref3);
+    EXPECT_TRUE(set != ref4);
 }
 
 TEST_FIXTURE(BitSetTest, OperatorXor)
@@ -481,29 +551,107 @@ TEST_FIXTURE(BitSetTest, OperatorXor)
     BitSet ref4(Size, true);
     ref4.Set(0, false);
 
-    EXPECT_FALSE((set ^ ref2) == ref1);
+    EXPECT_TRUE((set ^ ref2) != ref1);
     EXPECT_TRUE((set ^ ref2) == ref2);
-    EXPECT_FALSE((set ^ ref2) == ref3);
-    EXPECT_FALSE((set ^ ref2) == ref4);
-    EXPECT_FALSE((set ^ ref4) == ref1);
-    EXPECT_FALSE((set ^ ref4) == ref2);
-    EXPECT_FALSE((set ^ ref4) == ref3);
+    EXPECT_TRUE((set ^ ref2) != ref3);
+    EXPECT_TRUE((set ^ ref2) != ref4);
+    EXPECT_TRUE((set ^ ref4) != ref1);
+    EXPECT_TRUE((set ^ ref4) != ref2);
+    EXPECT_TRUE((set ^ ref4) != ref3);
     EXPECT_TRUE((set ^ ref4) == ref4);
     set = ref2;
-    EXPECT_FALSE((set ^ ref3) == ref1);
-    EXPECT_FALSE((set ^ ref3) == ref2);
-    EXPECT_FALSE((set ^ ref3) == ref3);
+    EXPECT_TRUE((set ^ ref3) != ref1);
+    EXPECT_TRUE((set ^ ref3) != ref2);
+    EXPECT_TRUE((set ^ ref3) != ref3);
     EXPECT_TRUE((set ^ ref3) == ref4);
     set = ref4;
-    EXPECT_FALSE((set ^ ref2) == ref1);
-    EXPECT_FALSE((set ^ ref2) == ref2);
+    EXPECT_TRUE((set ^ ref2) != ref1);
+    EXPECT_TRUE((set ^ ref2) != ref2);
     EXPECT_TRUE((set ^ ref2) == ref3);
-    EXPECT_FALSE((set ^ ref2) == ref4);
+    EXPECT_TRUE((set ^ ref2) != ref4);
     set = ref3;
     EXPECT_TRUE((set ^ ref3) == ref1);
-    EXPECT_FALSE((set ^ ref3) == ref2);
-    EXPECT_FALSE((set ^ ref3) == ref3);
-    EXPECT_FALSE((set ^ ref3) == ref4);
+    EXPECT_TRUE((set ^ ref3) != ref2);
+    EXPECT_TRUE((set ^ ref3) != ref3);
+    EXPECT_TRUE((set ^ ref3) != ref4);
+}
+
+TEST_FIXTURE(BitSetTest, OperatorMinusEquals)
+{
+    BitSet set(Size, false);
+    BitSet ref1(Size, false);
+    BitSet ref2(Size, true);
+    BitSet ref3(Size, false);
+    ref3.Set(0, true);
+    BitSet ref4(Size, true);
+    ref4.Set(0, false);
+
+    EXPECT_TRUE(set == ref1);
+    EXPECT_TRUE(set != ref2);
+    EXPECT_TRUE(set != ref3);
+    EXPECT_TRUE(set != ref4);
+    set -= ref2;
+    EXPECT_TRUE(set == ref1);
+    EXPECT_TRUE(set != ref2);
+    EXPECT_TRUE(set != ref3);
+    EXPECT_TRUE(set != ref4);
+    set = ref2;
+    set -= ref3;
+    EXPECT_TRUE(set != ref1);
+    EXPECT_TRUE(set != ref2);
+    EXPECT_TRUE(set != ref3);
+    EXPECT_TRUE(set == ref4);
+    set -= ref2;
+    EXPECT_TRUE(set == ref1);
+    EXPECT_TRUE(set != ref2);
+    EXPECT_TRUE(set != ref3);
+    EXPECT_TRUE(set != ref4);
+    set = ref4;
+    set -= ref1;
+    EXPECT_TRUE(set != ref1);
+    EXPECT_TRUE(set != ref2);
+    EXPECT_TRUE(set != ref3);
+    EXPECT_TRUE(set == ref4);
+    set -= ref3;
+    EXPECT_TRUE(set != ref1);
+    EXPECT_TRUE(set != ref2);
+    EXPECT_TRUE(set != ref3);
+    EXPECT_TRUE(set == ref4);
+}
+
+TEST_FIXTURE(BitSetTest, OperatorMinus)
+{
+    BitSet set(Size, false);
+    BitSet ref1(Size, false);
+    BitSet ref2(Size, true);
+    BitSet ref3(Size, false);
+    ref3.Set(0, true);
+    BitSet ref4(Size, true);
+    ref4.Set(0, false);
+
+    EXPECT_TRUE((set - ref2) == ref1);
+    EXPECT_TRUE((set - ref2) != ref2);
+    EXPECT_TRUE((set - ref2) != ref3);
+    EXPECT_TRUE((set - ref2) != ref4);
+    EXPECT_TRUE((set - ref4) == ref1);
+    EXPECT_TRUE((set - ref4) != ref2);
+    EXPECT_TRUE((set - ref4) != ref3);
+    EXPECT_TRUE((set - ref4) != ref4);
+    set = ref2;
+    EXPECT_TRUE((set - ref3) != ref1);
+    EXPECT_TRUE((set - ref3) != ref2);
+    EXPECT_TRUE((set - ref3) != ref3);
+    EXPECT_TRUE((set - ref3) == ref4);
+    set = ref3;
+    EXPECT_TRUE((set - ref1) != ref1);
+    EXPECT_TRUE((set - ref1) != ref2);
+    EXPECT_TRUE((set - ref1) == ref3);
+    EXPECT_TRUE((set - ref1) != ref4);
+    set = ref4;
+    EXPECT_TRUE((set - ref3) != ref1);
+    EXPECT_TRUE((set - ref3) != ref2);
+    EXPECT_TRUE((set - ref3) != ref3);
+    EXPECT_TRUE((set - ref3) == ref4);
 }
 
 } // namespace Test

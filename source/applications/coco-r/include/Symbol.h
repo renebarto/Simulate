@@ -40,29 +40,58 @@ class Node;
 class Symbol
 {
 public:
-	// token kinds
-	static int fixedToken;    // e.g. 'a' ('b' | 'c') (structure of literals)
-	static int classToken;    // e.g. digit {digit}   (at least one char class)
-	static int litToken;      // e.g. "while"
-	static int classLitToken; // e.g. letter {letter} but without literals that have the same structure*/
-
-	size_t   n;           // symbol number
-	int      typ;         // t, nt, pr, unknown, rslv /* ML 29_11_2002 slv added */ /* AW slv --> rslv */
-	std::wstring name;    // symbol name
-	Node     *graph;      // nt: to first node of syntax graph
-	int      tokenKind;   // t:  token kind (fixedToken, classToken, ...)
-	bool     deletable;   // nt: true if nonterminal is deletable
-	bool     firstReady;  // nt: true if terminal start symbols have already been computed
-	BitSet   first;       // nt: terminal start symbols
-	BitSet   follow;      // nt: terminal followers
-	BitSet   nts;         // nt: nonterminals whose followers have to be added to this sym
-	size_t   line;        // source text line number of item in this node
-	Position *attrPos;    // nt: position of attributes in source text (or null)
-	Position *semPos;     // pr: pos of semantic action in source text (or null)
-	                      // nt: pos of local declarations in source text (or null)
-
+    enum class TokenKind
+    {
+        FixedToken = 0,     // e.g. 'a' ('b' | 'c') (structure of literals)
+        ClassToken = 1,     // e.g. digit {digit}   (at least one char class)
+        LitToken = 2,       // e.g. "while"
+        ClassLitToken = 3,  // e.g. letter {letter} but without literals that have the same structure
+    };
 
 	Symbol(int typ, std::wstring const & name, size_t line);
+
+    std::wstring const & GetName() const { return name; }
+    size_t GetSymbolNumber() const { return n; }
+    void SetSymbolNumber(size_t value) { n = value; }
+    int GetSymbolType() const { return typ; }
+    TokenKind GetTokenKind() const { return tokenKind; }
+    void SetTokenKind(TokenKind value) { tokenKind = value; }
+    size_t GetLine() const { return line; }
+    void SetLine(size_t value) { line = value; }
+    Node * GetGraph() const { return graph; }
+    void SetGraph(Node const * value) { graph = const_cast<Node *>(value); }
+    bool IsDeletable() const { return deletable; }
+    void SetDeletable() { deletable = true; }
+    bool IsFirstReady() const { return firstReady; }
+    void SetFirstReady(bool value) { firstReady = value; }
+    BitSet const & GetFirst() const { return first; }
+    void SetFirst(BitSet const & value) { first = value; }
+    BitSet const & GetFollow() const { return follow; }
+    BitSet & GetFollow() { return follow; }
+    void SetFollow(BitSet const & value) { follow = value; }
+    BitSet const & GetNts() const { return nts; }
+    BitSet & GetNts() { return nts; }
+    void SetNts(BitSet const & value) { nts = value; }
+    Position * GetAttrPos() { return attrPos; }
+    void SetAttrPos(Position * value) { attrPos = value; }
+    Position *& GetSemPos() { return semPos; }
+
+private:
+    size_t          n;          // symbol number
+	int             typ;        // t, nt, pr, unknown, rslv /* ML 29_11_2002 slv added */ /* AW slv --> rslv */
+	std::wstring    name;       // symbol name
+	Node            *graph;     // nt: to first node of syntax graph
+	TokenKind       tokenKind;  // t:  token kind (fixedToken, classToken, ...)
+	bool            deletable;  // nt: true if nonterminal is deletable
+	bool            firstReady; // nt: true if terminal start symbols have already been computed
+	BitSet          first;      // nt: terminal start symbols
+	BitSet          follow;     // nt: terminal followers
+	BitSet          nts;        // nt: nonterminals whose followers have to be added to this sym
+	size_t          line;       // source text line number of item in this node
+	Position        *attrPos;   // nt: position of attributes in source text (or null)
+	Position        *semPos;    // pr: pos of semantic action in source text (or null)
+	                            // nt: pos of local declarations in source text (or null)
+
 };
 
 } // namespace Coco

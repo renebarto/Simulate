@@ -68,16 +68,16 @@ public:
 	Buffer *buffer;
 
 	void Indent(int n);
-	bool UseSwitch(Node *p);
+	bool UseSwitch(Node const * p);
 	void CopyFramePart(std::wstring const & stop);
 	void CopySourcePart(Position *pos, int indent);
 	int GenNamespaceOpen(std::string const & nsName);
 	void GenNamespaceClose(int nrOfNs);
 	void GenErrorMsg(int errTyp, Symbol *sym);
 	size_t NewCondSet(BitSet const & s);
-	void GenCond(BitSet const & s, Node *p);
+	void GenCond(BitSet const & s, Node const * p);
 	void PutCaseLabels(BitSet const & s);
-	void GenCode(Node *p, int indent, BitSet & isChecked);
+	void GenCode(Node const * p, int indent, BitSet & isChecked);
 	void GenTokens();
 	void GenTokensHeader();
 	void GenPragmas();
@@ -89,8 +89,8 @@ public:
 	void OpenGen(std::wstring const & genName, bool backUp);
 	void WriteParser();
 	void WriteStatistics();
-	void WriteSymbolOrCode(FILE *gen, const Symbol *sym);
-	ParserGen (Parser *parser);
+	void WriteSymbolOrCode(FILE * gen, Symbol const * sym);
+	ParserGen (Parser * parser);
 
 };
 

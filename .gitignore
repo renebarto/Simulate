@@ -11,3 +11,4 @@
 *.log
 *.suo
 source/build
+/source/simulate.VC.db

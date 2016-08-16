@@ -55,9 +55,38 @@ BitSet::~BitSet()
 {
 }
 
+BitSet & BitSet::operator = (BitSet const & other)
+{
+	if (&other != this)
+    {
+		count  = other.count;
+		data = other.data;
+	}
+	return *this;
+}
+
 size_t BitSet::Count() const
 {
 	return count;
+}
+
+size_t BitSet::First() const
+{
+	size_t max = Count();
+	for (size_t i = 0; i < max; i++)
+		if (Get(i)) 
+            return i;
+	return -1;
+}
+
+size_t BitSet::Elements() const
+{
+	size_t max = Count();
+	size_t n = 0;
+	for (size_t i = 0; i < max; i++)
+		if (Get(i))
+            n++;
+	return n;
 }
 
 bool BitSet::Get(size_t index) const
@@ -125,6 +154,11 @@ void BitSet::Xor(BitSet const & value)
 	}
 }
 
+void BitSet::Subtract(BitSet const & other)
+{ // a = a - b
+	this->And(~other);
+}
+
 BitSet BitSet::Clone() const
 {
 	return BitSet(*this);
@@ -158,14 +192,15 @@ bool BitSet::Overlaps(BitSet const & other) const
 	return false;
 }
 
-BitSet & BitSet::operator = (BitSet const & other)
+bool BitSet::Includes(BitSet const & other) const
 {
-	if (&other != this)
-    {
-		count  = other.count;
-		data = other.data;
-	}
-	return *this;
+	if (count != other.count)
+        throw std::invalid_argument("Bit sets must be same size");
+	size_t max = Count();
+	for (size_t i = 0; i < max; i++)
+		if (other.Get(i) && !Get(i))
+            return false;
+	return true;
 }
-
+	
 } // namespace Coco

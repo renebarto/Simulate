@@ -140,9 +140,6 @@
     <ClInclude Include="include\Scanner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Sets.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\SortedList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
