@@ -105,7 +105,6 @@ void CharSet::Set(wchar_t i)
 				if (next != ranges.end() && cur->to == next->from - 1)
                 {
 					cur->to = next->to;
-					cur->next = next->next;
 					ranges.erase(next);
 				};
 			}
