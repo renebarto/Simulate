@@ -32,16 +32,21 @@ Coco/R itself) does not fall under the GNU General Public License.
 #include "Scanner.h"
 #include "BitSet.h"
 
-namespace Coco {
+namespace Coco
+{
 
 class Melted			// info about melted states
 {
 public:
-	BitSet set;				// set of old states
-	State *state;				// new state
 	Melted *next;
 	
 	Melted(BitSet const & set, State *state);
+    BitSet const & GetSet() const { return set; }
+    State * GetState() const { return state; }
+
+private:
+    BitSet set;				// set of old states
+	State *state;				// new state
 };
 
 }; // namespace

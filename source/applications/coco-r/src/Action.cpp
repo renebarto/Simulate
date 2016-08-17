@@ -33,7 +33,7 @@ Coco/R itself) does not fall under the GNU General Public License.
 namespace Coco
 {
 
-Action::Action(int typ, wchar_t sym, int tc)
+Action::Action(Node::Kind typ, wchar_t sym, Node::TransCode tc)
     : typ(typ)
 	, sym(sym)
 	, tc(tc)
@@ -46,9 +46,9 @@ void Action::AddTarget(Target * t)
 { // add t to the action.targets
 	Target *last = nullptr;
 	Target *p = target;
-	while (p != nullptr && t->state->nr >= p->state->nr)
+	while (p != nullptr && t->GetState()->nr >= p->GetState()->nr)
     {
-		if (t->state == p->state) 
+		if (t->GetState() == p->GetState()) 
             return;
 		last = p; p = p->next;
 	}
@@ -63,17 +63,17 @@ void Action::AddTargets(Action * a)
 {// add copy of a.targets to action.targets
 	for (Target * p = a->target; p != nullptr; p = p->next)
     {
-		Target * t = new Target(p->state);
+		Target * t = new Target(p->GetState());
 		AddTarget(t);
 	}
-	if (a->tc == Node::contextTrans) 
-        tc = Node::contextTrans;
+	if (a->tc == Node::TransCode::ContextTrans) 
+        tc = Node::TransCode::ContextTrans;
 }
 
 CharSet Action::Symbols(Tab * tab)
 {
 	CharSet s;
-	if (typ == Node::clas)
+	if (typ == Node::Kind::_Class)
 		s = tab->CharClassSet(sym).Clone();
 	else
     {
@@ -87,14 +87,14 @@ void Action::ShiftWith(CharSet * s, Tab * tab)
 {
 	if (s->Count() == 1)
     {
-		typ = Node::chr; 
+		typ = Node::Kind::Char; 
         sym = s->First();
 	} else
     {
 		CharClass * c = tab->FindCharClass(s);
 		if (c == nullptr) 
             c = tab->NewCharClass(L"#", *s); // class with dummy name
-		typ = Node::clas; 
+		typ = Node::Kind::_Class; 
         sym = wchar_t(c->GetClassID());
 	}
 }

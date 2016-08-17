@@ -40,13 +40,13 @@ class CharSet;
 class Action  			// action of finite automaton
 {
 public:
-	int typ;			// type of action symbol: clas, chr
+	Node::Kind typ;     // type of action symbol: clas, chr
 	wchar_t sym;		// action symbol
-	int tc;				// transition code: normalTrans, contextTrans
+	Node::TransCode tc;	// transition code: normalTrans, contextTrans
 	Target * target;	// states reached from this action
 	Action * next;
 
-	Action(int typ, wchar_t sym, int tc);
+	Action(Node::Kind typ, wchar_t sym, Node::TransCode tc);
 	void AddTarget(Target * t);  // add t to the action.targets
 	void AddTargets(Action * a); // add copy of a.targets to action.targets
 	CharSet Symbols(Tab * tab);

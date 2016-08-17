@@ -53,7 +53,7 @@ public:
 	int altErr;
 	int syncErr;
 
-	Position *usingPos; // "using" definitions from the attributed grammar
+	Position usingPos; // "using" definitions from the attributed grammar
 
 	int errorNr;      // highest parser error number
 	Symbol *curSy;    // symbol whose production is currently generated
@@ -70,7 +70,7 @@ public:
 	void Indent(int n);
 	bool UseSwitch(Node const * p);
 	void CopyFramePart(std::wstring const & stop);
-	void CopySourcePart(Position *pos, int indent);
+	void CopySourcePart(Position const & pos, int indent);
 	int GenNamespaceOpen(std::string const & nsName);
 	void GenNamespaceClose(int nrOfNs);
 	void GenErrorMsg(int errTyp, Symbol *sym);

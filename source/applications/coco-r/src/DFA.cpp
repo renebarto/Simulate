@@ -97,13 +97,13 @@ State * DFA::NewState()
 	return s;
 }
 
-void DFA::NewTransition(State * from, State * to, int typ, int sym, int tc)
+void DFA::NewTransition(State * from, State * to, Node::Kind typ, int sym, Node::TransCode tc)
 {
 	Target *t = new Target(to);
 	Action *a = new Action(typ, sym, tc);
     a->target = t;
 	from->AddAction(a);
-	if (typ == Node::clas) 
+	if (typ == Node::Kind::_Class) 
         curSy->SetTokenKind(Symbol::TokenKind::ClassToken);
 }
 
@@ -117,7 +117,7 @@ void DFA::CombineShifts()
         {
 			b = a->next;
 			while (b != nullptr)
-				if (a->target->state == b->target->state && a->tc == b->tc)
+				if (a->target->GetState() == b->target->GetState() && a->tc == b->tc)
                 {
 					CharSet & seta = a->Symbols(tab); 
                     CharSet & setb = b->Symbols(tab);
@@ -131,13 +131,13 @@ void DFA::CombineShifts()
 	}
 }
 
-void DFA::FindUsedStates(State *state, BitSet & used)
+void DFA::FindUsedStates(State * state, BitSet & used)
 {
 	if (used[state->nr]) 
         return;
 	used.Set(state->nr, true);
 	for (Action *a = state->firstAction; a != nullptr; a = a->next)
-		FindUsedStates(a->target->state, used);
+		FindUsedStates(a->target->GetState(), used);
 }
 
 void DFA::DeleteRedundantStates()
@@ -160,8 +160,8 @@ void DFA::DeleteRedundantStates()
 	for (state = firstState; state != nullptr; state = state->next)
 		if (used[state->nr])
 			for (Action *a = state->firstAction; a != nullptr; a = a->next)
-				if (!(used[a->target->state->nr]))
-					a->target->state = newState[a->target->state->nr];
+				if (!(used[a->target->GetState()->nr]))
+					a->target->SetState(newState[a->target->GetState()->nr]);
 	// delete unused states
 	lastState = firstState; lastStateNr = 0; // firstState has number 0
 	for (state = firstState->next; state != nullptr; state = state->next)
@@ -175,7 +175,7 @@ void DFA::DeleteRedundantStates()
 	free (newState);
 }
 
-State* DFA::TheState(Node * p)
+State * DFA::TheState(Node * p)
 {
 	State *state;
 	if (p == nullptr)
@@ -184,45 +184,45 @@ State* DFA::TheState(Node * p)
         state->endOf = curSy; 
         return state;
     }
-	else return p->state;
+	else return p->GetState();
 }
 
-void DFA::Step(State *from, Node *p, BitSet & stepped)
+void DFA::Step(State * from, Node *p, BitSet & stepped)
 {
 	if (p == nullptr)
         return;
-	stepped.Set(p->n, true);
+	stepped.Set(p->GetID(), true);
 
-	if (p->typ == Node::clas || p->typ == Node::chr)
+	if (p->GetKind() == Node::Kind::_Class || p->GetKind() == Node::Kind::Char)
     {
-		NewTransition(from, TheState(p->next), p->typ, p->val, p->code);
+		NewTransition(from, TheState(p->GetNext()), p->GetKind(), p->GetVal(), p->GetTransitionCode());
 	} 
-    else if (p->typ == Node::alt)
+    else if (p->GetKind() == Node::Kind::Alt)
     {
-		Step(from, p->sub, stepped); 
-        Step(from, p->down, stepped);
+		Step(from, p->GetSub(), stepped); 
+        Step(from, p->GetDown(), stepped);
 	}
-    else if (p->typ == Node::iter)
+    else if (p->GetKind() == Node::Kind::Iter)
     {
-		if (tab->DelSubGraph(p->sub))
+		if (tab->DelSubGraph(p->GetSub()))
         {
 			parser->SemanticError(L"contents of {...} must not be deletable");
 			return;
 		}
-		if (p->next != nullptr && !(stepped[p->next->n])) 
-            Step(from, p->next, stepped);
-		Step(from, p->sub, stepped);
-		if (p->state != from)
+		if (p->GetNext() != nullptr && !(stepped[p->GetNext()->GetID()])) 
+            Step(from, p->GetNext(), stepped);
+		Step(from, p->GetSub(), stepped);
+		if (p->GetState() != from)
         {
 			BitSet newStepped(tab->nodes.size());
-			Step(p->state, p, newStepped);
+			Step(p->GetState(), p, newStepped);
 		}
 	} 
-    else if (p->typ == Node::opt)
+    else if (p->GetKind() == Node::Kind::Opt)
     {
-		if (p->next != nullptr && !(stepped[p->next->n])) 
-            Step(from, p->next, stepped);
-		Step(from, p->sub, stepped);
+		if (p->GetNext() != nullptr && !(stepped[p->GetNext()->GetID()])) 
+            Step(from, p->GetNext(), stepped);
+		Step(from, p->GetSub(), stepped);
 	}
 }
 
@@ -237,65 +237,65 @@ void DFA::NumberNodes(Node * p, State * state, bool renumIter)
 {
 	if (p == nullptr) 
         return;
-	if (p->state != nullptr) 
+	if (p->GetState() != nullptr) 
         return; // already visited;
-	if ((state == nullptr) || ((p->typ == Node::iter) && renumIter)) 
+	if ((state == nullptr) || ((p->GetKind() == Node::Kind::Iter) && renumIter)) 
         state = NewState();
-	p->state = state;
+	p->SetState(state);
 	if (tab->DelGraph(p)) 
         state->endOf = curSy;
 
-	if (p->typ == Node::clas || p->typ == Node::chr)
+	if (p->GetKind() == Node::Kind::_Class || p->GetKind() == Node::Kind::Char)
     {
-		NumberNodes(p->next, nullptr, false);
+		NumberNodes(p->GetNext(), nullptr, false);
 	} 
-    else if (p->typ == Node::opt)
+    else if (p->GetKind() == Node::Kind::Opt)
     {
-		NumberNodes(p->next, nullptr, false);
-		NumberNodes(p->sub, state, true);
+		NumberNodes(p->GetNext(), nullptr, false);
+		NumberNodes(p->GetSub(), state, true);
 	} 
-    else if (p->typ == Node::iter)
+    else if (p->GetKind() == Node::Kind::Iter)
     {
-		NumberNodes(p->next, state, true);
-		NumberNodes(p->sub, state, true);
+		NumberNodes(p->GetNext(), state, true);
+		NumberNodes(p->GetSub(), state, true);
 	} 
-    else if (p->typ == Node::alt)
+    else if (p->GetKind() == Node::Kind::Alt)
     {
-		NumberNodes(p->next, nullptr, false);
-		NumberNodes(p->sub, state, true);
-		NumberNodes(p->down, state, renumIter);
+		NumberNodes(p->GetNext(), nullptr, false);
+		NumberNodes(p->GetSub(), state, true);
+		NumberNodes(p->GetDown(), state, renumIter);
 	}
 }
 
 void DFA::FindTrans(Node *p, bool start, BitSet & marked)
 {
-	if (p == nullptr || marked[p->n]) 
+	if (p == nullptr || marked[p->GetID()]) 
         return;
-	marked.Set(p->n, true);
+	marked.Set(p->GetID(), true);
 	if (start)
     {
 		BitSet stepped(tab->nodes.size());
-		Step(p->state, p, stepped); // start of group of equally numbered nodes
+		Step(p->GetState(), p, stepped); // start of group of equally numbered nodes
 	}
 
-	if (p->typ == Node::clas || p->typ == Node::chr)
+	if (p->GetKind() == Node::Kind::_Class || p->GetKind() == Node::Kind::Char)
     {
-		FindTrans(p->next, true, marked);
+		FindTrans(p->GetNext(), true, marked);
 	} 
-    else if (p->typ == Node::opt) 
+    else if (p->GetKind() == Node::Kind::Opt) 
     {
-		FindTrans(p->next, true, marked); 
-        FindTrans(p->sub, false, marked);
+		FindTrans(p->GetNext(), true, marked); 
+        FindTrans(p->GetSub(), false, marked);
 	} 
-    else if (p->typ == Node::iter)
+    else if (p->GetKind() == Node::Kind::Iter)
     {
-		FindTrans(p->next, false, marked); 
-        FindTrans(p->sub, false, marked);
+		FindTrans(p->GetNext(), false, marked); 
+        FindTrans(p->GetSub(), false, marked);
 	} 
-    else if (p->typ == Node::alt)
+    else if (p->GetKind() == Node::Kind::Alt)
     {
-		FindTrans(p->sub, false, marked); 
-        FindTrans(p->down, false, marked);
+		FindTrans(p->GetSub(), false, marked); 
+        FindTrans(p->GetDown(), false, marked);
 	}
 }
 
@@ -309,7 +309,7 @@ void DFA::ConvertToStates(Node *p, Symbol *sym)
     }
 	NumberNodes(curGraph, firstState, true);
 	FindTrans(curGraph, true, BitSet(tab->nodes.size()));
-	if (p->typ == Node::iter)
+	if (p->GetKind() == Node::Kind::Iter)
     {
 		BitSet stepped(tab->nodes.size());
 		Step(firstState, p, stepped);
@@ -329,7 +329,7 @@ void DFA::MatchLiteral(std::wstring const & s, Symbol * sym)
 		a = FindAction(state, sUnescaped[i]);
 		if (a == nullptr) 
             break;
-		state = a->target->state;
+		state = a->target->GetState();
 	}
 	// if s was not totally consumed or leads to a non-final state => make new DFA from it
 	if (i != len || state->endOf == nullptr)
@@ -340,7 +340,7 @@ void DFA::MatchLiteral(std::wstring const & s, Symbol * sym)
 	for (; i < len; i++)
     { // make new DFA for s[i..len-1]
 		State *to = NewState();
-		NewTransition(state, to, Node::chr, sUnescaped[i], Node::normalTrans);
+		NewTransition(state, to, Node::Kind::Char, sUnescaped[i], Node::TransCode::NormalTrans);
 		state = to;
 	}
 	Symbol *matchedSym = state->endOf;
@@ -348,7 +348,7 @@ void DFA::MatchLiteral(std::wstring const & s, Symbol * sym)
     {
 		state->endOf = sym;
 	} 
-    else if (matchedSym->GetTokenKind() == Symbol::TokenKind::FixedToken || (a != nullptr && a->tc == Node::contextTrans))
+    else if (matchedSym->GetTokenKind() == Symbol::TokenKind::FixedToken || (a != nullptr && a->tc == Node::TransCode::ContextTrans))
     {
 		// s matched a token with a fixed definition or a token with an appendix that will be cut off
         std::wostringstream stream;
@@ -394,7 +394,7 @@ void DFA::SplitActions(State * state, Action * a, Action * b)
 		setb -= setc;
 		a->ShiftWith(&seta, tab);
 		b->ShiftWith(&setb, tab);
-		c = new Action(0, 0, Node::normalTrans);  // typ and sym are set in ShiftWith
+		c = new Action(Node::Kind::Undefined, 0, Node::TransCode::NormalTrans);  // typ and sym are set in ShiftWith
 		c->AddTargets(a);
 		c->AddTargets(b);
 		c->ShiftWith(&setc, tab);
@@ -404,8 +404,8 @@ void DFA::SplitActions(State * state, Action * a, Action * b)
 
 bool DFA::Overlap(Action * a, Action * b)
 {
-	if (a->typ == Node::chr)
-		if (b->typ == Node::chr) 
+	if (a->typ == Node::Kind::Char)
+		if (b->typ == Node::Kind::Char) 
             return (a->sym == b->sym);
 		else
         {
@@ -415,7 +415,7 @@ bool DFA::Overlap(Action * a, Action * b)
 	else
     {
         CharSet const & seta = tab->CharClassSet(a->sym);
-		if (b->typ == Node::chr) 
+		if (b->typ == Node::Kind::Char) 
             return seta.Get(b->sym);
 		else 
         {
@@ -453,7 +453,7 @@ void DFA::MeltStates(State *state)
             {
 				State *s = NewState(); s->endOf = endOf; s->ctx = ctx;
 				for (Target *targ = action->target; targ != nullptr; targ = targ->next)
-					s->MeltWith(targ->state);
+					s->MeltWith(targ->GetState());
 				do
                 {
                     changed = MakeUnique(s);
@@ -461,7 +461,7 @@ void DFA::MeltStates(State *state)
 				melt = NewMelted(targets, s);
 			}
 			action->target->next = nullptr;
-			action->target->state = melt->state;
+			action->target->SetState(melt->GetState());
 		}
 	}
 }
@@ -470,8 +470,8 @@ void DFA::FindCtxStates()
 {
 	for (State *state = firstState; state != nullptr; state = state->next)
 		for (Action *a = state->firstAction; a != nullptr; a = a->next)
-			if (a->tc == Node::contextTrans) 
-                a->target->state->ctx = true;
+			if (a->tc == Node::TransCode::ContextTrans) 
+                a->target->GetState()->ctx = true;
 }
 
 void DFA::MakeDeterministic()
@@ -518,15 +518,15 @@ void DFA::PrintStates()
             else
                 fwprintf(trace, L"                    ");
 
-			if (action->typ == Node::clas) 
+			if (action->typ == Node::Kind::_Class) 
                 fwprintf(trace, L"%ls", tab->classes[action->sym]->GetName().c_str());
 			else 
                 fwprintf(trace, L"%3s", Ch((wchar_t)action->sym).c_str());
 			for (Target *targ = action->target; targ != nullptr; targ = targ->next)
             {
-				fwprintf(trace, L"%3zd", targ->state->nr);
+				fwprintf(trace, L"%3zd", targ->GetState()->nr);
 			}
-			if (action->tc == Node::contextTrans) 
+			if (action->tc == Node::TransCode::ContextTrans) 
                 fwprintf(trace, L" context\n"); 
             else 
                 fwprintf(trace, L"\n");
@@ -541,9 +541,9 @@ void DFA::PrintStates()
 Action* DFA::FindAction(State * state, wchar_t ch)
 {
 	for (Action * a = state->firstAction; a != nullptr; a = a->next)
-		if (a->typ == Node::chr && ch == a->sym) 
+		if (a->typ == Node::Kind::Char && ch == a->sym) 
             return a;
-		else if (a->typ == Node::clas)
+		else if (a->typ == Node::Kind::_Class)
         {
 			CharSet const & s = tab->CharClassSet(a->sym);
 			if (s.Get(ch)) 
@@ -560,7 +560,7 @@ void DFA::GetTargetStates(Action * a, BitSet & targets, Symbol* & endOf, bool & 
 	ctx = false;
 	for (Target *t = a->target; t != nullptr; t = t->next)
     {
-		size_t stateNr = t->state->nr;
+		size_t stateNr = t->GetState()->nr;
 		if (stateNr <= lastSimState)
         {
             targets.Set(stateNr, true);
@@ -569,19 +569,19 @@ void DFA::GetTargetStates(Action * a, BitSet & targets, Symbol* & endOf, bool & 
         { 
             targets |= MeltedSet(stateNr);
         }
-		if (t->state->endOf != nullptr)
+		if (t->GetState()->endOf != nullptr)
         {
-			if (endOf == nullptr || endOf == t->state->endOf) 
+			if (endOf == nullptr || endOf == t->GetState()->endOf) 
             {
-				endOf = t->state->endOf;
+				endOf = t->GetState()->endOf;
 			}
 			else
             {
-				wprintf(L"Tokens %ls and %ls cannot be distinguished\n", endOf->GetName().c_str(), t->state->endOf->GetName().c_str());
+				wprintf(L"Tokens %ls and %ls cannot be distinguished\n", endOf->GetName().c_str(), t->GetState()->endOf->GetName().c_str());
 				errors->count++;
 			}
 		}
-		if (t->state->ctx)
+		if (t->GetState()->ctx)
         {
 			ctx = true;
 			// The following check seems to be unnecessary. It reported an error
@@ -615,8 +615,8 @@ BitSet const & DFA::MeltedSet(size_t nr)
 	Melted * m = firstMelted;
 	while (m != nullptr)
     {
-		if (m->state->nr == nr) 
-            return m->set; 
+		if (m->GetState()->nr == nr) 
+            return m->GetSet(); 
         else 
             m = m->next;
 	}
@@ -626,7 +626,7 @@ BitSet const & DFA::MeltedSet(size_t nr)
 Melted * DFA::StateWithSet(BitSet const & s)
 {
 	for (Melted * m = firstMelted; m != nullptr; m = m->next)
-		if (s == m->set)
+		if (s == m->GetSet())
             return m;
 	return nullptr;
 }
@@ -639,20 +639,20 @@ std::wstring DFA::CommentStr(Node * p)
 	StringBuilder s = StringBuilder();
 	while (p != nullptr)
     {
-		if (p->typ == Node::chr)
+		if (p->GetKind() == Node::Kind::Char)
         {
-			s.Append((wchar_t)p->val);
+			s.Append(p->GetVal());
 		}
-        else if (p->typ == Node::clas)
+        else if (p->GetKind() == Node::Kind::_Class)
         {
-			CharSet const & set = tab->CharClassSet(p->val);
+			CharSet const & set = tab->CharClassSet(p->GetVal());
 			if (set.Count() != 1) 
                 parser->SemanticError(L"character set contains more than 1 character");
 			s.Append(set.First());
 		}
 		else 
             parser->SemanticError(L"comment delimiters may not be structured");
-		p = p->next;
+		p = p->GetNext();
 	}
 	if (s.GetLength() == 0 || s.GetLength() > 2)
     {
@@ -799,7 +799,7 @@ void DFA::GenLiterals()
 					wchar_t c = name[k];
 					fwprintf(gen, (c >= 32 && c <= 127) ? L"%lc" : L"\\x%04x", c);
 				}
-				fwprintf(gen, L", %zd);\n", sym->GetSymbolNumber());
+				fwprintf(gen, L", %zd);\n", sym->GetID());
 			}
 		}
 	}
@@ -856,7 +856,7 @@ void DFA::CheckLabels()
     {
 		for (action = state->firstAction; action != nullptr; action = action->next)
         {
-			existLabel[action->target->state->nr] = true;
+			existLabel[action->target->GetState()->nr] = true;
 		}
 	}
 }
@@ -870,7 +870,7 @@ void DFA::WriteState(State * state)
 
 	if (endOf != nullptr && state->firstAction != nullptr)
     {
-		fwprintf(gen, L"\t\t\trecEnd = pos; recKind = %zd;\n", endOf->GetSymbolNumber());
+		fwprintf(gen, L"\t\t\trecEnd = pos; recKind = %zd;\n", endOf->GetID());
 	}
 	bool ctxEnd = state->ctx;
 
@@ -880,7 +880,7 @@ void DFA::WriteState(State * state)
             fwprintf(gen, L"\t\t\tif (");
 		else 
             fwprintf(gen, L"\t\t\telse if (");
-		if (action->typ == Node::chr)
+		if (action->typ == Node::Kind::Char)
         {
 			std::wstring res = ChCond((wchar_t)action->sym);
 			fwprintf(gen, L"%ls", res.c_str());
@@ -889,13 +889,13 @@ void DFA::WriteState(State * state)
             PutRange(tab->CharClassSet(action->sym));
 		fwprintf(gen, L") {");
 
-		if (action->tc == Node::contextTrans)
+		if (action->tc == Node::TransCode::ContextTrans)
         {
 			fwprintf(gen, L"apx++; "); ctxEnd = false;
 		} 
         else if (state->ctx)
 			fwprintf(gen, L"apx = 0; ");
-		fwprintf(gen, L"AddCh(); goto case_%zd;", action->target->state->nr);
+		fwprintf(gen, L"AddCh(); goto case_%zd;", action->target->GetState()->nr);
 		fwprintf(gen, L"}\n");
 	}
 	if (state->firstAction == nullptr)
@@ -918,7 +918,7 @@ void DFA::WriteState(State * state)
 	} 
     else
     {
-		fwprintf(gen, L"t->kind = %zd; ", endOf->GetSymbolNumber());
+		fwprintf(gen, L"t->kind = %zd; ", endOf->GetID());
 		if (endOf->GetTokenKind() == Symbol::TokenKind::ClassLitToken)
         {
 			if (ignoreCase)
@@ -942,8 +942,8 @@ void DFA::WriteStartTab()
 	bool firstRange = true;
 	for (Action *action = firstState->firstAction; action != nullptr; action = action->next)
     {
-		size_t targetState = action->target->state->nr;
-		if (action->typ == Node::chr)
+		size_t targetState = action->target->GetState()->nr;
+		if (action->typ == Node::Kind::Char)
         {
 			fwprintf(gen, L"\tstart.set(%d, %zd);\n", action->sym, targetState);
 		} 
@@ -1014,7 +1014,7 @@ void DFA::WriteScanner()
 
 	g.CopyFramePart(L"-->declarations");
 	fwprintf(gen, L"\tmaxT = %zd;\n", tab->terminals.size() - 1);
-	fwprintf(gen, L"\tnoSym = %zd;\n", tab->noSym->GetSymbolNumber());
+	fwprintf(gen, L"\tnoSym = %zd;\n", tab->noSym->GetID());
 	WriteStartTab();
 	GenLiterals();
 

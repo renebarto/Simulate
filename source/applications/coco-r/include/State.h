@@ -28,12 +28,11 @@ Coco/R itself) does not fall under the GNU General Public License.
 
 #pragma once
 
-#include "Symbol.h"
-
 namespace Coco
 {
 
 class Action;
+class Symbol;
 
 class State  				// state of finite automaton
 {
@@ -47,7 +46,7 @@ public:
 	State();
 	void AddAction(Action *act);
 	void DetachAction(Action *act);
-	void MeltWith(State *s);
+	void MeltWith(State * s);
 };
 
 } // namespace Coco

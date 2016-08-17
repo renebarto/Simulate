@@ -64,13 +64,13 @@ Tab::Tab(Parser *parser)
 	this->parser = parser;
 	trace = parser->trace;
 	errors = parser->errors;
-	eofSy = NewSym(Node::t, L"EOF", 0);
-	dummyNode = NewNode(Node::eps, (Symbol*)nullptr, 0);
+	eofSy = NewSym(Node::Kind::Terminal, L"EOF", 0);
+	dummyNode = NewNode(Node::Kind::Eps, nullptr, nullptr, wchar_t{ 0 }, 0);
 	literals = new HashTable();
 	checkEOF = true;
 }
 
-Symbol* Tab::NewSym(int typ, std::wstring const & name, size_t line)
+Symbol* Tab::NewSym(Node::Kind typ, std::wstring const & name, size_t line)
 {
     std::wstring symName = name;
 	if (symName.length() == 2 && symName[0] == '"')
@@ -80,18 +80,18 @@ Symbol* Tab::NewSym(int typ, std::wstring const & name, size_t line)
 	}
 	Symbol *sym = new Symbol(typ, symName, line);
 
-	if (typ == Node::t)
+	if (typ == Node::Kind::Terminal)
     {
-		sym->SetSymbolNumber(terminals.size()); 
+		sym->SetID(terminals.size()); 
         terminals.push_back(sym);
 	}
-    else if (typ == Node::pr)
+    else if (typ == Node::Kind::Pragma)
     {
 		pragmas.push_back(sym);
 	}
-    else if (typ == Node::nt)
+    else if (typ == Node::Kind::NonTerminal)
     {
-		sym->SetSymbolNumber(nonterminals.size()); 
+		sym->SetID(nonterminals.size()); 
         nonterminals.push_back(sym);
 	}
 
@@ -122,17 +122,19 @@ size_t Tab::Num(Node const * p)
 	if (p == nullptr) 
         return 0; 
     else 
-        return p->n;
+        return p->GetID();
 }
 
 void Tab::PrintSym(Symbol *sym)
 {
 	std::wstring paddedName = Name(sym->GetName());
-	fwprintf(trace, L"%3zd %14ls %hs", sym->GetSymbolNumber(), paddedName.c_str(), nTyp[sym->GetSymbolType()]);
+	fwprintf(trace, L"%3zd %14ls %hs", sym->GetID(), paddedName.c_str(), nTyp[int(sym->GetSymbolType())]);
 
-	if (sym->GetAttrPos() == nullptr) 
-        fwprintf(trace, L" false "); else fwprintf(trace, L" true  ");
-	if (sym->GetSymbolType() == Node::nt)
+	if (sym->GetAttrPos() == Position::Null) 
+        fwprintf(trace, L" false "); 
+    else 
+        fwprintf(trace, L" true  ");
+	if (sym->GetSymbolType() == Node::Kind::NonTerminal)
     {
 		fwprintf(trace, L"%5zd", Num(sym->GetGraph()));
 		if (sym->IsDeletable()) fwprintf(trace, L" true  "); else fwprintf(trace, L" false ");
@@ -187,7 +189,7 @@ void Tab::PrintSet(BitSet const & s, int indent)
 	for (int i = 0; i < terminals.size(); i++)
     {
 		sym = terminals[i];
-		if (s[sym->GetSymbolNumber()])
+		if (s[sym->GetID()])
         {
 			size_t len = sym->GetName().length();
 			if (col + len >= 80)
@@ -207,63 +209,70 @@ void Tab::PrintSet(BitSet const & s, int indent)
 //  Syntax graph management
 //---------------------------------------------------------------------
 
-Node* Tab::NewNode(int typ, Symbol *sym, size_t line)
+Node * Tab::NewNode(Node::Kind typ, Node * sub, Symbol * sym, wchar_t val, size_t line)
 {
-	Node* node = new Node(typ, sym, line);
-	node->n = nodes.size();
+    Node* node = new Node(typ, sub, sym, val, line);
+	node->SetID(nodes.size());
 	nodes.push_back(node);
 	return node;
 }
 
-
-Node* Tab::NewNode(int typ, Node* sub)
+Node * Tab::NewNode(Node::Kind typ)
 {
-	Node* node = NewNode(typ, (Symbol*)nullptr, 0);
-	node->sub = sub;
+    return NewNode(typ, nullptr, nullptr, wchar_t{ 0 }, 0);
+}
+
+Node * Tab::NewNode(Node::Kind typ, Node * sub)
+{
+    Node* node = NewNode(typ, sub, nullptr, wchar_t{ 0 }, size_t{ 0 });
 	return node;
 }
 
-Node* Tab::NewNode(int typ, int val, size_t line)
+Node * Tab::NewNode(Node::Kind typ, int val, size_t line)
 {
-	Node* node = NewNode(typ, (Symbol*)nullptr, line);
-	node->val = val;
+	Node* node = NewNode(typ, nullptr, nullptr, wchar_t(val), line);
 	return node;
 }
 
 
 void Tab::MakeFirstAlt(Graph *g)
 {
-	g->l = NewNode(Node::alt, g->l); g->l->line = g->l->sub->line;
-	g->r->up = true;
-	g->l->next = g->r;
+	g->l = NewNode(Node::Kind::Alt, g->l); 
+    g->l->SetLine(g->l->GetSub()->GetLine());
+	g->r->NextUp();
+	g->l->SetNext(g->r);
 	g->r = g->l;
 }
 
 // The result will be in g1
 void Tab::MakeAlternative(Graph *g1, Graph *g2)
 {
-	g2->l = NewNode(Node::alt, g2->l); g2->l->line = g2->l->sub->line;
-	g2->l->up = true;
-	g2->r->up = true;
+	g2->l = NewNode(Node::Kind::Alt, g2->l); 
+    g2->l->SetLine(g2->l->GetSub()->GetLine());
+	g2->l->NextUp();
+	g2->r->NextUp();
 	Node * p = g1->l; 
-    while (p->down != nullptr) 
-        p = p->down;
-	p->down = g2->l;
+    while (p->GetDown() != nullptr) 
+        p = p->GetDown();
+	p->SetDown(g2->l);
 	p = g1->r; 
-    while (p->next != nullptr) 
-        p = p->next;
+    while (p->GetNext() != nullptr) 
+        p = p->GetNext();
 	// append alternative to g1 end list
-	p->next = g2->l;
+	p->SetNext(g2->l);
 	// append g2 end list to g1 end list
-	g2->l->next = g2->r;
+	g2->l->SetNext(g2->r);
 }
 
 // The result will be in g1
 void Tab::MakeSequence(Graph *g1, Graph *g2)
 {
-	Node * p = g1->r->next; g1->r->next = g2->l; // link head node
-	while (p != nullptr) {  // link substructure
-		Node *q = p->next; p->next = g2->l;
+	Node * p = g1->r->GetNext(); 
+    g1->r->SetNext(g2->l); // link head node
+	while (p != nullptr)
+    {  // link substructure
+		Node *q = p->GetNext(); 
+        p->SetNext(g2->l);
 		p = q;
 	}
 	g1->r = g2->r;
@@ -271,22 +280,23 @@ void Tab::MakeSequence(Graph *g1, Graph *g2)
 
 void Tab::MakeIteration(Graph *g)
 {
-	g->l = NewNode(Node::iter, g->l);
-	g->r->up = true;
+	g->l = NewNode(Node::Kind::Iter, g->l);
+	g->r->NextUp();
 	Node * p = g->r;
 	g->r = g->l;
 	while (p != nullptr)
     {
-		Node *q = p->next; p->next = g->l;
+		Node *q = p->GetNext(); 
+        p->SetNext(g->l);
 		p = q;
 	}
 }
 
 void Tab::MakeOption(Graph *g)
 {
-	g->l = NewNode(Node::opt, g->l);
-	g->r->up = true;
-	g->l->next = g->r;
+	g->l = NewNode(Node::Kind::Opt, g->l);
+	g->r->NextUp();
+	g->l->SetNext(g->r);
 	g->r = g->l;
 }
 
@@ -295,7 +305,8 @@ void Tab::Finish(Graph *g)
 	Node * p = g->r;
 	while (p != nullptr)
     {
-		Node *q = p->next; p->next = nullptr;
+		Node *q = p->GetNext(); 
+        p->SetNext(nullptr);
 		p = q;
 	}
 }
@@ -303,7 +314,7 @@ void Tab::Finish(Graph *g)
 void Tab::DeleteNodes()
 {
     nodes = {};
-	dummyNode = NewNode(Node::eps, (Symbol*)nullptr, 0);
+    dummyNode = NewNode(Node::Kind::Eps, nullptr, nullptr, wchar_t{ 0 }, 0);
 }
 
 Graph* Tab::StrToGraph(std::wstring const & str)
@@ -316,10 +327,12 @@ Graph* Tab::StrToGraph(std::wstring const & str)
 	g->r = dummyNode;
 	for (int i = 0; i < s.length(); i++)
     {
-		Node * p = NewNode(Node::chr, (int)s[i], 0);
-		g->r->next = p; g->r = p;
+		Node * p = NewNode(Node::Kind::Char, (int)s[i], 0);
+		g->r->SetNext(p); 
+        g->r = p;
 	}
-	g->l = dummyNode->next; dummyNode->next = nullptr;
+	g->l = dummyNode->GetNext(); 
+    dummyNode->SetNext(nullptr);
 	return g;
 }
 
@@ -328,21 +341,21 @@ void Tab::SetContextTrans(Node * p)
 { // set transition code in the graph rooted at p
 	while (p != nullptr)
     {
-		if (p->typ == Node::chr || p->typ == Node::clas)
+		if (p->GetKind() == Node::Kind::Char || p->GetKind() == Node::Kind::_Class)
         {
-			p->code = Node::contextTrans;
+			p->SetTransitionCode(Node::TransCode::ContextTrans);
 		}
-        else if (p->typ == Node::opt || p->typ == Node::iter)
+        else if (p->GetKind() == Node::Kind::Opt || p->GetKind() == Node::Kind::Iter)
         {
-			SetContextTrans(p->sub);
+			SetContextTrans(p->GetSub());
 		} 
-        else if (p->typ == Node::alt)
+        else if (p->GetKind() == Node::Kind::Alt)
         {
-			SetContextTrans(p->sub); SetContextTrans(p->down);
+			SetContextTrans(p->GetSub()); SetContextTrans(p->GetDown());
 		}
-		if (p->up) 
+		if (p->IsNextUp()) 
             break;
-		p = p->next;
+		p = p->GetNext();
 	}
 }
 
@@ -350,28 +363,28 @@ void Tab::SetContextTrans(Node * p)
 
 bool Tab::DelGraph(Node const * p)
 {
-	return p == nullptr || (DelNode(p) && DelGraph(p->next));
+	return p == nullptr || (DelNode(p) && DelGraph(p->GetNext()));
 }
 
 bool Tab::DelSubGraph(Node const * p)
 {
-	return p == nullptr || (DelNode(p) && (p->up || DelSubGraph(p->next)));
+	return p == nullptr || (DelNode(p) && (p->IsNextUp() || DelSubGraph(p->GetNext())));
 }
 
 bool Tab::DelNode(Node const * p)
 {
-	if (p->typ == Node::nt)
+	if (p->GetKind() == Node::Kind::NonTerminal)
     {
-		return p->sym->IsDeletable();
+		return p->GetSym()->IsDeletable();
 	}
-	else if (p->typ == Node::alt)
+	else if (p->GetKind() == Node::Kind::Alt)
     {
-		return DelSubGraph(p->sub) || (p->down != nullptr && DelSubGraph(p->down));
+		return DelSubGraph(p->GetSub()) || (p->GetDown() != nullptr && DelSubGraph(p->GetDown()));
 	}
 	else
     {
-		return p->typ == Node::iter || p->typ == Node::opt || p->typ == Node::sem
-				|| p->typ == Node::eps || p->typ == Node::rslv || p->typ == Node::sync;
+        return p->GetKind() == Node::Kind::Iter || p->GetKind() == Node::Kind::Opt || p->GetKind() == Node::Kind::Sem || 
+               p->GetKind() == Node::Kind::Eps || p->GetKind() == Node::Kind::Resolve || p->GetKind() == Node::Kind::Sync;
 	}
 }
 
@@ -379,21 +392,23 @@ bool Tab::DelNode(Node const * p)
 
 long Tab::Ptr(Node * p, bool up)
 {
-	if (p == nullptr) return 0;
-	else if (up) return -long(p->n);
-	else return long(p->n);
+	if (p == nullptr)
+        return 0;
+	else if (up) 
+        return -long(p->GetID());
+	else return long(p->GetID());
 }
 
-std::wstring Tab::Pos(Position * pos) 
+std::wstring Tab::Pos(Position const & pos) 
 {
     std::wostringstream stream;
-	if (pos == nullptr)
+	if (pos == Position::Null)
     {
 		stream << L"     ";
 	}
     else
     {
-		stream << std::setw(5) << pos->beg;
+		stream << std::setw(5) << pos.BeginOffset();
 	}
 	return stream.str();
 }
@@ -419,47 +434,47 @@ void Tab::PrintNodes()
 	for (int i = 0; i < nodes.size(); i++)
     {
 		p = nodes[i];
-		fwprintf(trace, L"%4zd %hs ", p->n, (nTyp[p->typ]));
-		if (p->sym != nullptr)
+		fwprintf(trace, L"%4zd %hs ", p->GetID(), (nTyp[int(p->GetKind())]));
+		if (p->GetSym() != nullptr)
         {
-			std::wstring paddedName = Name(p->sym->GetName());
+			std::wstring paddedName = Name(p->GetSym()->GetName());
 			fwprintf(trace, L"%12s ", paddedName.c_str());
 		}
-        else if (p->typ == Node::clas)
+        else if (p->GetKind() == Node::Kind::_Class)
         {
-			CharClass * c = classes[p->val];
+			CharClass * c = classes[p->GetVal()];
 			std::wstring paddedName = Name(c->GetName());
 			fwprintf(trace, L"%12s ", paddedName.c_str());
 		} 
         else 
             fwprintf(trace, L"             ");
-		fwprintf(trace, L"%5d ", Ptr(p->next, p->up));
+		fwprintf(trace, L"%5d ", Ptr(p->GetNext(), p->IsNextUp()));
 
-		if (p->typ == Node::t || p->typ == Node::nt || p->typ == Node::wt)
+		if (p->GetKind() == Node::Kind::Terminal || p->GetKind() == Node::Kind::NonTerminal || p->GetKind() == Node::Kind::WeakTerminal)
         {
-			fwprintf(trace, L"             %5s", Pos(p->pos).c_str());
+			fwprintf(trace, L"             %5s", Pos(p->GetPosition()).c_str());
 		}
-        if (p->typ == Node::chr)
+        if (p->GetKind() == Node::Kind::Char)
         {
-			fwprintf(trace, L"%5d %5d       ", p->val, p->code);
+			fwprintf(trace, L"%5d %5d       ", p->GetVal(), p->GetTransitionCode());
 		}
-        if (p->typ == Node::clas)
+        if (p->GetKind() == Node::Kind::_Class)
         {
-			fwprintf(trace, L"      %5d       ", p->code);
+			fwprintf(trace, L"      %5d       ", p->GetTransitionCode());
 		}
-        if (p->typ == Node::alt || p->typ == Node::iter || p->typ == Node::opt)
+        if (p->GetKind() == Node::Kind::Alt || p->GetKind() == Node::Kind::Iter || p->GetKind() == Node::Kind::Opt)
         {
-			fwprintf(trace, L"%5d %5d       ", Ptr(p->down, false), Ptr(p->sub, false));
+			fwprintf(trace, L"%5d %5d       ", Ptr(p->GetDown(), false), Ptr(p->GetSub(), false));
 		}
-        if (p->typ == Node::sem)
+        if (p->GetKind() == Node::Kind::Sem)
         {
-			fwprintf(trace, L"             %5s", Pos(p->pos).c_str());
+			fwprintf(trace, L"             %5s", Pos(p->GetPosition()).c_str());
 		}
-        if (p->typ == Node::eps || p->typ == Node::any || p->typ == Node::sync)
+        if (p->GetKind() == Node::Kind::Eps || p->GetKind() == Node::Kind::Any || p->GetKind() == Node::Kind::Sync)
         {
 			fwprintf(trace, L"                  ");
 		}
-		fwprintf(trace, L"%5zd\n", p->line);
+		fwprintf(trace, L"%5zd\n", p->GetLine());
 	}
 	fwprintf(trace, L"\n");
 }
@@ -573,41 +588,41 @@ void Tab::WriteCharClasses() const
 BitSet Tab::First0(Node const * p, BitSet & mark)
 {
 	BitSet fs(terminals.size());
-	while (p != nullptr && !(mark[p->n]))
+	while (p != nullptr && !(mark[p->GetID()]))
     {
-		mark.Set(p->n, true);
-		if (p->typ == Node::nt)
+		mark.Set(p->GetID(), true);
+		if (p->GetKind() == Node::Kind::NonTerminal)
         {
-			if (p->sym->IsFirstReady())
+			if (p->GetSym()->IsFirstReady())
             {
-				fs |= p->sym->GetFirst();
+				fs |= p->GetSym()->GetFirst();
 			}
             else
             {
-				fs |= First0(p->sym->GetGraph(), mark);
+				fs |= First0(p->GetSym()->GetGraph(), mark);
 			}
 		}
-		else if (p->typ == Node::t || p->typ == Node::wt)
+		else if (p->GetKind() == Node::Kind::Terminal || p->GetKind() == Node::Kind::WeakTerminal)
         {
-			fs.Set(p->sym->GetSymbolNumber(), true);
+			fs.Set(p->GetSym()->GetID(), true);
 		}
-		else if (p->typ == Node::any)
+		else if (p->GetKind() == Node::Kind::Any)
         {
-			fs |= p->set;
+			fs |= p->GetSet();
 		}
-		else if (p->typ == Node::alt)
+		else if (p->GetKind() == Node::Kind::Alt)
         {
-			fs |= First0(p->sub, mark);
-			fs |= First0(p->down, mark);
+			fs |= First0(p->GetSub(), mark);
+			fs |= First0(p->GetDown(), mark);
 		}
-		else if (p->typ == Node::iter || p->typ == Node::opt)
+		else if (p->GetKind() == Node::Kind::Iter || p->GetKind() == Node::Kind::Opt)
         {
-			fs |= First0(p->sub, mark);
+			fs |= First0(p->GetSub(), mark);
 		}
 
 		if (!DelNode(p)) 
             break;
-		p = p->next;
+		p = p->GetNext();
 	}
 	return fs;
 }
@@ -619,8 +634,10 @@ BitSet Tab::First(Node const * p)
 	if (ddt[3])
     {
 		fwprintf(trace, L"\n");
-		if (p != nullptr) fwprintf(trace, L"First: node = %zd\n", p->n);
-		else fwprintf(trace, L"First: node = null\n");
+		if (p != nullptr) 
+            fwprintf(trace, L"First: node = %zd\n", p->GetID());
+		else 
+            fwprintf(trace, L"First: node = null\n");
 		PrintSet(fs, 0);
 	}
 	return fs;
@@ -647,43 +664,43 @@ void Tab::CompFirstSets()
 
 void Tab::CompFollow(Node const * p)
 {
-	while (p != nullptr && !((*visited)[p->n]))
+	while (p != nullptr && !((*visited)[p->GetID()]))
     {
-		visited->Set(p->n, true);
-		if (p->typ == Node::nt)
+		visited->Set(p->GetID(), true);
+		if (p->GetKind() == Node::Kind::NonTerminal)
         {
-			BitSet s = First(p->next);
-			p->sym->SetFollow(p->sym->GetFollow() | s);
-			if (DelGraph(p->next))
-				p->sym->GetNts().Set(curSy->GetSymbolNumber(), true);
+			BitSet s = First(p->GetNext());
+			p->GetSym()->SetFollow(p->GetSym()->GetFollow() | s);
+			if (DelGraph(p->GetNext()))
+				p->GetSym()->GetNts().Set(curSy->GetID(), true);
 		}
-        else if (p->typ == Node::opt || p->typ == Node::iter)
+        else if (p->GetKind() == Node::Kind::Opt || p->GetKind() == Node::Kind::Iter)
         {
-			CompFollow(p->sub);
+			CompFollow(p->GetSub());
 		}
-        else if (p->typ == Node::alt)
+        else if (p->GetKind() == Node::Kind::Alt)
         {
-			CompFollow(p->sub); CompFollow(p->down);
+			CompFollow(p->GetSub()); CompFollow(p->GetDown());
 		}
-		p = p->next;
+		p = p->GetNext();
 	}
 }
 
 void Tab::Complete(Symbol *sym)
 {
-	if (!((*visited)[sym->GetSymbolNumber()]))
+	if (!((*visited)[sym->GetID()]))
     {
-		visited->Set(sym->GetSymbolNumber(), true);
+		visited->Set(sym->GetID(), true);
 		Symbol *s;
 		for (int i = 0; i < nonterminals.size(); i++)
         {
 			s = nonterminals[i];
-			if (sym->GetNts()[s->GetSymbolNumber()])
+			if (sym->GetNts()[s->GetID()])
             {
 				Complete(s);
 				sym->SetFollow(sym->GetFollow() | s->GetFollow());
 				if (sym == curSy) 
-                    sym->GetNts().Set(s->GetSymbolNumber(), false);
+                    sym->GetNts().Set(s->GetID(), false);
 			}
 		}
 	}
@@ -699,7 +716,7 @@ void Tab::CompFollowSets()
 		sym->SetFollow(BitSet(terminals.size()));
 		sym->SetNts(BitSet(nonterminals.size()));
 	}
-	gramSy->GetFollow().Set(eofSy->GetSymbolNumber(), true);
+	gramSy->GetFollow().Set(eofSy->GetID(), true);
 	visited = new BitSet(nodes.size());
 	for (i=0; i<nonterminals.size(); i++)
     {  // get direct successors of nonterminals
@@ -719,20 +736,21 @@ void Tab::CompFollowSets()
 
 Node* Tab::LeadingAny(Node * p)
 {
-	if (p == nullptr) return nullptr;
+	if (p == nullptr) 
+        return nullptr;
 	Node *a = nullptr;
-	if (p->typ == Node::any) 
+	if (p->GetKind() == Node::Kind::Any) 
         a = p;
-	else if (p->typ == Node::alt) 
+	else if (p->GetKind() == Node::Kind::Alt) 
     {
-		a = LeadingAny(p->sub);
+		a = LeadingAny(p->GetSub());
 		if (a == nullptr) 
-            a = LeadingAny(p->down);
+            a = LeadingAny(p->GetDown());
 	}
-	else if (p->typ == Node::opt || p->typ == Node::iter) 
-        a = LeadingAny(p->sub);
-	if (a == nullptr && DelNode(p) && !p->up) 
-        a = LeadingAny(p->next);
+	else if (p->GetKind() == Node::Kind::Opt || p->GetKind() == Node::Kind::Iter) 
+        a = LeadingAny(p->GetSub());
+	if (a == nullptr && DelNode(p) && !p->IsNextUp()) 
+        a = LeadingAny(p->GetNext());
 	return a;
 }
 
@@ -741,30 +759,30 @@ void Tab::FindAS(Node const * p)
 	Node *a;
 	while (p != nullptr)
     {
-		if (p->typ == Node::opt || p->typ == Node::iter)
+		if (p->GetKind() == Node::Kind::Opt || p->GetKind() == Node::Kind::Iter)
         {
-			FindAS(p->sub);
-			a = LeadingAny(p->sub);
+			FindAS(p->GetSub());
+			a = LeadingAny(p->GetSub());
 			if (a != nullptr) 
-                a->set -= First(p->next);
+                a->SetSet(a->GetSet() - First(p->GetNext()));
 		}
-        else if (p->typ == Node::alt)
+        else if (p->GetKind() == Node::Kind::Alt)
         {
 			BitSet s1(terminals.size());
 			Node const * q = p;
 			while (q != nullptr)
             {
-				FindAS(q->sub);
-				a = LeadingAny(q->sub);
+				FindAS(q->GetSub());
+				a = LeadingAny(q->GetSub());
 				if (a != nullptr)
                 {
-					a->set -= (First(q->down) | s1);
+					a->SetSet(a->GetSet() - (First(q->GetDown()) | s1));
 				}
                 else
                 {
-					s1 |= First(q->sub);
+					s1 |= First(q->GetSub());
 				}
-				q = q->down;
+				q = q->GetDown();
 			}
 		}
 
@@ -774,17 +792,17 @@ void Tab::FindAS(Node const * p)
 		// A = [a]. A ANY
 		if (DelNode(p))
         {
-			a = LeadingAny(p->next);
+			a = LeadingAny(p->GetNext());
 			if (a != nullptr)
             {
-				Node const *q = (p->typ == Node::nt) ? p->sym->GetGraph() : p->sub;
-				a->set -= First(q);
+				Node const *q = (p->GetKind() == Node::Kind::NonTerminal) ? p->GetSym()->GetGraph() : p->GetSub();
+				a->SetSet(a->GetSet() - First(q));
 			}
 		}
 
-		if (p->up)
+		if (p->IsNextUp())
             break;
-		p = p->next;
+		p = p->GetNext();
 	}
 }
 
@@ -809,7 +827,7 @@ BitSet Tab::Expected(Node * p, Symbol * curSy)
 // does not look behind resolvers; only called during LL(1) test and in CheckRes
 BitSet Tab::Expected0(Node * p, Symbol * curSy)
 {
-	if (p->typ == Node::rslv) 
+	if (p->GetKind() == Node::Kind::Resolve) 
         return BitSet(terminals.size());
 	else 
         return Expected(p, curSy);
@@ -817,30 +835,30 @@ BitSet Tab::Expected0(Node * p, Symbol * curSy)
 
 void Tab::CompSync(Node * p)
 {
-	while (p != nullptr && !(visited->Get(p->n)))
+	while (p != nullptr && !(visited->Get(p->GetID())))
     {
-		visited->Set(p->n, true);
-		if (p->typ == Node::sync)
+		visited->Set(p->GetID(), true);
+		if (p->GetKind() == Node::Kind::Sync)
         {
-			BitSet s = Expected(p->next, curSy);
-			s.Set(eofSy->GetSymbolNumber(), true);
+			BitSet s = Expected(p->GetNext(), curSy);
+			s.Set(eofSy->GetID(), true);
 			*allSyncSets |= s;
-			p->set = s;
+			p->SetSet(s);
 		} 
-        else if (p->typ == Node::alt)
+        else if (p->GetKind() == Node::Kind::Alt)
         {
-			CompSync(p->sub); CompSync(p->down);
+			CompSync(p->GetSub()); CompSync(p->GetDown());
 		} 
-        else if (p->typ == Node::opt || p->typ == Node::iter)
-			CompSync(p->sub);
-		p = p->next;
+        else if (p->GetKind() == Node::Kind::Opt || p->GetKind() == Node::Kind::Iter)
+			CompSync(p->GetSub());
+		p = p->GetNext();
 	}
 }
 
 void Tab::CompSyncSets()
 {
 	allSyncSets = new BitSet(terminals.size());
-	allSyncSets->Set(eofSy->GetSymbolNumber(), true);
+	allSyncSets->Set(eofSy->GetID(), true);
 	visited = new BitSet(nodes.size());
 
 	Symbol *sym;
@@ -858,10 +876,11 @@ void Tab::SetupAnys()
 	for (int i = 0; i < nodes.size(); i++)
     {
 		p = nodes[i];
-		if (p->typ == Node::any)
+		if (p->GetKind() == Node::Kind::Any)
         {
-			p->set = BitSet(terminals.size(), true);
-			p->set.Set(eofSy->GetSymbolNumber(), false);
+            BitSet set(terminals.size(), true);
+            set.Set(eofSy->GetID(), false);
+			p->SetSet(set);
 		}
 	}
 }
@@ -899,7 +918,7 @@ void Tab::RenumberPragmas()
 	for (int i = 0; i < pragmas.size(); i++)
     {
 		sym = pragmas[i];
-		sym->SetSymbolNumber(n++);
+		sym->SetID(n++);
 	}
 }
 
@@ -937,10 +956,10 @@ void Tab::CompSymbolSets()
 		for (int i = 0; i < nodes.size(); i++)
         {
 			p = nodes[i];
-			if (p->typ == Node::any || p->typ == Node::sync)
+			if (p->GetKind() == Node::Kind::Any || p->GetKind() == Node::Kind::Sync)
             {
-				fwprintf(trace, L"%4zd %4hs ", p->n, nTyp[p->typ]);
-				PrintSet(p->set, 11);
+				fwprintf(trace, L"%4zd %4hs ", p->GetID(), nTyp[int(p->GetKind())]);
+				PrintSet(p->GetSet(), 11);
 			}
 		}
 	}
@@ -1080,23 +1099,24 @@ bool Tab::GrammarOk()
 
 void Tab::GetSingles(Node const * p, std::vector<Symbol const *> & singles)
 {
-	if (p == nullptr) return;  // end of graph
-	if (p->typ == Node::nt)
+	if (p == nullptr)
+        return;  // end of graph
+	if (p->GetKind() == Node::Kind::NonTerminal)
     {
-		if (p->up || DelGraph(p->next)) 
-            singles.push_back(p->sym);
+		if (p->IsNextUp() || DelGraph(p->GetNext())) 
+            singles.push_back(p->GetSym());
 	} 
-    else if (p->typ == Node::alt || p->typ == Node::iter || p->typ == Node::opt)
+    else if (p->GetKind() == Node::Kind::Alt || p->GetKind() == Node::Kind::Iter || p->GetKind() == Node::Kind::Opt)
     {
-		if (p->up || DelGraph(p->next))
+		if (p->IsNextUp() || DelGraph(p->GetNext()))
         {
-			GetSingles(p->sub, singles);
-			if (p->typ == Node::alt) 
-                GetSingles(p->down, singles);
+			GetSingles(p->GetSub(), singles);
+			if (p->GetKind() == Node::Kind::Alt) 
+                GetSingles(p->GetDown(), singles);
 		}
 	}
-	if (!p->up && DelNode(p)) 
-        GetSingles(p->next, singles);
+	if (!p->IsNextUp() && DelNode(p)) 
+        GetSingles(p->GetNext(), singles);
 }
 
 bool Tab::NoCircularProductions()
@@ -1160,7 +1180,8 @@ bool Tab::NoCircularProductions()
 void Tab::LL1Error(int cond, Symbol const * sym)
 {
 	wprintf(L"  LL1 warning in %ls: ", curSy->GetName().c_str());
-	if (sym != nullptr) wprintf(L"%ls is ", sym->GetName().c_str());
+	if (sym != nullptr)
+        wprintf(L"%ls is ", sym->GetName().c_str());
 	switch (cond)
     {
 		case 1: wprintf(L"start of several alternatives\n"); break;
@@ -1177,7 +1198,7 @@ void Tab::CheckOverlap(BitSet const & s1, BitSet const & s2, int cond)
 	for (int i = 0; i < terminals.size(); i++)
     {
 		sym = terminals[i];
-		if (s1[sym->GetSymbolNumber()] && s2[sym->GetSymbolNumber()])
+		if (s1[sym->GetID()] && s2[sym->GetID()])
         {
 			LL1Error(cond, sym);
 		}
@@ -1188,40 +1209,40 @@ void Tab::CheckAlts(Node const * p)
 {
 	while (p != nullptr)
     {
-		if (p->typ == Node::alt)
+		if (p->GetKind() == Node::Kind::Alt)
         {
 			Node const * q = p;
 			BitSet s1(terminals.size());
 			while (q != nullptr)
             { // for all alternatives
-				BitSet s2 = Expected0(q->sub, curSy);
+				BitSet s2 = Expected0(q->GetSub(), curSy);
 				CheckOverlap(s1, s2, 1);
 				s1 |= s2;
-				CheckAlts(q->sub);
-				q = q->down;
+				CheckAlts(q->GetSub());
+				q = q->GetDown();
 			}
 		} 
-        else if (p->typ == Node::opt || p->typ == Node::iter)
+        else if (p->GetKind() == Node::Kind::Opt || p->GetKind() == Node::Kind::Iter)
         {
-			if (DelSubGraph(p->sub)) 
+			if (DelSubGraph(p->GetSub())) 
                 LL1Error(4, nullptr); // e.g. [[...]]
 			else
             {
-				BitSet s1 = Expected0(p->sub, curSy);
-				BitSet s2 = Expected(p->next, curSy);
+				BitSet s1 = Expected0(p->GetSub(), curSy);
+				BitSet s2 = Expected(p->GetNext(), curSy);
 				CheckOverlap(s1, s2, 2);
 			}
-			CheckAlts(p->sub);
+			CheckAlts(p->GetSub());
 		} 
-        else if (p->typ == Node::any)
+        else if (p->GetKind() == Node::Kind::Any)
         {
-			if (p->set.Elements() == 0) 
+			if (p->GetSet().Elements() == 0) 
                 LL1Error(3, nullptr);
 			// e.g. {ANY} ANY or [ANY] ANY or ( ANY | ANY )
 		}
-		if (p->up) 
+		if (p->IsNextUp()) 
             break;
-		p = p->next;
+		p = p->GetNext();
 	}
 }
 
@@ -1240,7 +1261,7 @@ void Tab::CheckLL1()
 
 void Tab::ResErr(Node const * p, std::wstring const & msg)
 {
-	errors->Warning(p->line, p->pos->col, msg);
+	errors->Warning(p->GetLine(), p->GetPosition().Column(), msg);
 }
 
 void Tab::CheckRes(Node const * p, bool rslvAllowed)
@@ -1248,46 +1269,46 @@ void Tab::CheckRes(Node const * p, bool rslvAllowed)
 	while (p != nullptr)
     {
 		Node const * q;
-		if (p->typ == Node::alt)
+		if (p->GetKind() == Node::Kind::Alt)
         {
 			BitSet expected(terminals.size());
-			for (q = p; q != nullptr; q = q->down)
-				expected |= Expected0(q->sub, curSy);
+			for (q = p; q != nullptr; q = q->GetDown())
+				expected |= Expected0(q->GetSub(), curSy);
 			BitSet soFar(terminals.size());
-			for (q = p; q != nullptr; q = q->down)
+			for (q = p; q != nullptr; q = q->GetDown())
             {
-				if (q->sub->typ == Node::rslv)
+				if (q->GetSub()->GetKind() == Node::Kind::Resolve)
                 {
-					BitSet fs = Expected(q->sub->next, curSy);
+					BitSet fs = Expected(q->GetSub()->GetNext(), curSy);
 					if (fs.Overlaps(soFar))
-						ResErr(q->sub, L"Warning: Resolver will never be evaluated. Place it at previous conflicting alternative.");
+						ResErr(q->GetSub(), L"Warning: Resolver will never be evaluated. Place it at previous conflicting alternative.");
 					if (!fs.Overlaps(expected))
-						ResErr(q->sub, L"Warning: Misplaced resolver: no LL(1) conflict.");
+						ResErr(q->GetSub(), L"Warning: Misplaced resolver: no LL(1) conflict.");
 				} 
                 else
-                    soFar |= Expected(q->sub, curSy);
-				CheckRes(q->sub, true);
+                    soFar |= Expected(q->GetSub(), curSy);
+				CheckRes(q->GetSub(), true);
 			}
-		} else if (p->typ == Node::iter || p->typ == Node::opt)
+		} else if (p->GetKind() == Node::Kind::Iter || p->GetKind() == Node::Kind::Opt)
         {
-			if (p->sub->typ == Node::rslv)
+			if (p->GetSub()->GetKind() == Node::Kind::Resolve)
             {
-				BitSet fs = First(p->sub->next);
-				BitSet fsNext = Expected(p->next, curSy);
+				BitSet fs = First(p->GetSub()->GetNext());
+				BitSet fsNext = Expected(p->GetNext(), curSy);
 				if (!fs.Overlaps(fsNext))
-					ResErr(p->sub, L"Warning: Misplaced resolver: no LL(1) conflict.");
+					ResErr(p->GetSub(), L"Warning: Misplaced resolver: no LL(1) conflict.");
 			}
-			CheckRes(p->sub, true);
+			CheckRes(p->GetSub(), true);
 		}
-        else if (p->typ == Node::rslv)
+        else if (p->GetKind() == Node::Kind::Resolve)
         {
 			if (!rslvAllowed)
 				ResErr(p, L"Warning: Misplaced resolver: no alternative.");
 		}
 
-		if (p->up) 
+		if (p->IsNextUp()) 
             break;
-		p = p->next;
+		p = p->GetNext();
 		rslvAllowed = false;
 	}
 }
@@ -1326,20 +1347,20 @@ void Tab::MarkReachedNts(Node const * p)
 {
 	while (p != nullptr)
     {
-		if (p->typ == Node::nt && !((*visited)[p->sym->GetSymbolNumber()]))
+		if (p->GetKind() == Node::Kind::NonTerminal && !((*visited)[p->GetSym()->GetID()]))
         { // new nt reached
-			visited->Set(p->sym->GetSymbolNumber(), true);
-			MarkReachedNts(p->sym->GetGraph());
+			visited->Set(p->GetSym()->GetID(), true);
+			MarkReachedNts(p->GetSym()->GetGraph());
 		} 
-        else if (p->typ == Node::alt || p->typ == Node::iter || p->typ == Node::opt)
+        else if (p->GetKind() == Node::Kind::Alt || p->GetKind() == Node::Kind::Iter || p->GetKind() == Node::Kind::Opt)
         {
-			MarkReachedNts(p->sub);
-			if (p->typ == Node::alt) 
-                MarkReachedNts(p->down);
+			MarkReachedNts(p->GetSub());
+			if (p->GetKind() == Node::Kind::Alt) 
+                MarkReachedNts(p->GetDown());
 		}
-		if (p->up) 
+		if (p->IsNextUp()) 
             break;
-		p = p->next;
+		p = p->GetNext();
 	}
 }
 
@@ -1347,13 +1368,13 @@ bool Tab::AllNtReached()
 {
 	bool ok = true;
 	visited = new BitSet(nonterminals.size());
-	visited->Set(gramSy->GetSymbolNumber(), true);
+	visited->Set(gramSy->GetID(), true);
 	MarkReachedNts(gramSy->GetGraph());
 	Symbol *sym;
 	for (int i=0; i<nonterminals.size(); i++)
     {
 		sym = nonterminals[i];
-		if (!((*visited)[sym->GetSymbolNumber()]))
+		if (!((*visited)[sym->GetID()]))
         {
 			ok = false; errors->count++;
 			wprintf(L"  %ls cannot be reached\n", sym->GetName().c_str());
@@ -1368,14 +1389,14 @@ bool Tab::IsTerm(Node const * p, BitSet const & mark)
 { // true if graph can be derived to terminals
 	while (p != nullptr)
     {
-		if (p->typ == Node::nt && !(mark[p->sym->GetSymbolNumber()]))
+		if (p->GetKind() == Node::Kind::NonTerminal && !(mark[p->GetSym()->GetID()]))
             return false;
-		if (p->typ == Node::alt && !IsTerm(p->sub, mark)
-		&& (p->down == nullptr || !IsTerm(p->down, mark))) 
-            return false;
-		if (p->up)
+		if (p->GetKind() == Node::Kind::Alt && !IsTerm(p->GetSub(), mark) && 
+            (p->GetDown() == nullptr || !IsTerm(p->GetDown(), mark))) 
+                return false;
+		if (p->IsNextUp())
             break;
-		p = p->next;
+		p = p->GetNext();
 	}
 	return true;
 }
@@ -1395,16 +1416,16 @@ bool Tab::AllNtToTerm()
 		for (i = 0; i < nonterminals.size(); i++) 
         {
 			sym = nonterminals[i];
-			if (!(mark[sym->GetSymbolNumber()]) && IsTerm(sym->GetGraph(), mark)) 
+			if (!(mark[sym->GetID()]) && IsTerm(sym->GetGraph(), mark)) 
             {
-				mark.Set(sym->GetSymbolNumber(), true); changed = true;
+				mark.Set(sym->GetID(), true); changed = true;
 			}
 		}
 	} while (changed);
 	for (i = 0; i < nonterminals.size(); i++)
     {
 		sym = nonterminals[i];
-		if (!(mark[sym->GetSymbolNumber()]))
+		if (!(mark[sym->GetID()]))
         {
 			ok = false; errors->count++;
 			wprintf(L"  %ls cannot be derived to terminals\n", sym->GetName().c_str());
@@ -1440,15 +1461,15 @@ void Tab::XRef()
 	for (i = 0; i< nodes.size(); i++)
     {
 		n = nodes[i];
-		if (n->typ == Node::t || n->typ == Node::wt || n->typ == Node::nt)
+		if (n->GetKind() == Node::Kind::Terminal || n->GetKind() == Node::Kind::WeakTerminal || n->GetKind() == Node::Kind::NonTerminal)
         {
-			ArrayList *list = (ArrayList*)(xref->Get(n->sym));
+			ArrayList *list = (ArrayList*)(xref->Get(n->GetSym()));
 			if (list == nullptr)
             {
                 list = new ArrayList(); 
-                xref->Set(n->sym, list);
+                xref->Set(n->GetSym(), list);
             }
-			int *intg = new int(int(n->line));
+			int *intg = new int(int(n->GetLine()));
 			list->Add(intg);
 		}
 	}

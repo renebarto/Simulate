@@ -29,6 +29,7 @@ Coco/R itself) does not fall under the GNU General Public License.
 #pragma once
 
 #include <stdio.h>
+#include "BitSet.h"
 #include "Position.h"
 #include "State.h"
 #include "Scanner.h"
@@ -37,49 +38,77 @@ namespace Coco
 {
 
 class Symbol;
-class BitSet;
 
 class Node
 {
 public:
-	// constants for node kinds
-	static int t;      // terminal symbol
-	static int pr;     // pragma
-	static int nt;     // nonterminal symbol
-	static int clas;   // character class
-	static int chr;    // character
-	static int wt;     // weak terminal symbol
-	static int any;    // 
-	static int eps;    // empty
-	static int sync;   // synchronization symbol
-	static int sem;    // semantic action: (. .)
-	static int alt;    // alternative: |
-	static int iter;   // iteration: { }
-	static int opt;    // option: [ ]
-	static int rslv;   // resolver expr
+    enum class Kind
+    {
+        Undefined = 0,
+        Terminal = 1,       // terminal symbol
+        Pragma = 2,         // pragma
+        NonTerminal = 3,    // nonterminal symbol
+        _Class = 4,         // character class
+        Char = 5,           // character
+        WeakTerminal = 6,   // weak terminal symbol
+        Any = 7,            //
+        Eps = 8,            // empty
+        Sync = 9,           // synchronization symbol
+        Sem = 10,           // semantic action: (. .)
+        Alt = 11,           // alternative: |
+        Iter = 12,          // iteration: { }
+        Opt = 13,           // option: [ ]
+        Resolve = 14,       // resolver expr
+    };
+    enum class TransCode
+    {
+        NormalTrans = 0,// transition codes
+        ContextTrans = 1,
+    };
 	
-	static int normalTrans;		// transition codes
-	static int contextTrans;
 
-	size_t   n;			// node number
-	int      typ;		// t, nt, wt, chr, clas, any, eps, sem, sync, alt, iter, opt, rslv
-	Node     *next;		// to successor node
-	Node     *down;		// alt: to next alternative
-	Node     *sub;		// alt, iter, opt: to first node of substructure
-	bool     up;			// true: "next" leads to successor in enclosing structure
-	Symbol   *sym;		// nt, t, wt: symbol represented by this node
-	wchar_t  val;		// chr:  ordinal character value
-						// clas: index of character class
-	int      code;		// chr, clas: transition code
-	BitSet   set;		// any, sync: the set represented by this node
-	Position *pos;		// nt, t, wt: pos of actual attributes
-	                    // sem:       pos of semantic action in source text
-						// rslv:       pos of resolver in source text
-	size_t   line;		// source text line number of item in this node
-	State    *state;	// DFA state corresponding to this node
-												// (only used in DFA.ConvertToStates)
+	Node(Kind typ, Node * sub, Symbol *sym, wchar_t val, size_t line);
+    size_t GetID() const { return id; }
+    void SetID(size_t value) { id = value; }
+    Kind GetKind() const { return typ; }
+    const Position & GetPosition() const { return pos; }
+    void SetPosition(const Position & value) { pos = value; }
+    Node * GetNext() const { return next; }
+    void SetNext(Node * value) { next = value; }
+    Node * GetDown() const { return down; }
+    void SetDown(Node * value) { down = value; }
+    Node * GetSub() const { return sub; }
+    bool IsNextUp() const { return up; }
+    void NextUp() { up = true; }
+    wchar_t GetVal() const { return val; }
+    Symbol * GetSym() const { return sym; }
+    TransCode GetTransitionCode() const { return code; }
+    void SetTransitionCode(TransCode value) { code = value; }
+    BitSet const & GetSet() const { return set; }
+    void SetSet(BitSet const & value) { set = value; }
+    size_t GetLine() const { return line; }
+    void SetLine(size_t value) { line = value; }
+    State * GetState() const { return state; }
+    void SetState(State * value) { state = value; }
 
-	Node(int typ, Symbol *sym, size_t line);
+private:
+	size_t      id;			// node number
+	Kind        typ;		// t, nt, wt, chr, clas, any, eps, sem, sync, alt, iter, opt, rslv
+	Node        *next;		// to successor node
+	Node        *down;		// alt: to next alternative
+	Node        *sub;		// alt, iter, opt: to first node of substructure
+	bool        up;			// true: "next" leads to successor in enclosing structure
+	Symbol      *sym;		// nt, t, wt: symbol represented by this node
+	wchar_t     val;		// chr:  ordinal character value
+						    // clas: index of character class
+	TransCode   code;		// chr, clas: transition code
+	BitSet      set;		// any, sync: the set represented by this node
+	size_t      line;		// source text line number of item in this node
+	State       * state;    // DFA state corresponding to this node
+							// (only used in DFA.ConvertToStates)
+	Position    pos;		// nt, t, wt: pos of actual attributes
+	                        // sem:       pos of semantic action in source text
+						    // rslv:       pos of resolver in source text
 }; 
 
 } // namespace Coco

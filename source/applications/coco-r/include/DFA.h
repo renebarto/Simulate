@@ -77,12 +77,12 @@ public:
 
 	//---------- State handling
 	State* NewState();
-	void NewTransition(State *from, State *to, int typ, int sym, int tc);
+	void NewTransition(State * from, State * to, Node::Kind typ, int sym, Node::TransCode tc);
 	void CombineShifts();
-	void FindUsedStates(State *state, BitSet & used);
+	void FindUsedStates(State * state, BitSet & used);
 	void DeleteRedundantStates();
-	State* TheState(Node *p);
-	void Step(State *from, Node *p, BitSet & stepped);
+	State * TheState(Node *p);
+	void Step(State * from, Node *p, BitSet & stepped);
 	void NumberNodes(Node *p, State *state, bool renumIter);
 	void FindTrans(Node *p, bool start, BitSet & marked);
 	void ConvertToStates(Node *p, Symbol *sym);

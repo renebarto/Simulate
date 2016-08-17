@@ -46,19 +46,24 @@ void ParserGen::Indent(int n)
 // use a switch if more than 5 alternatives and none starts with a resolver, and no LL1 warning
 bool ParserGen::UseSwitch(Node const * p)
 {
-	if (p->typ != Node::alt) return false;
+	if (p->GetKind() != Node::Kind::Alt) 
+        return false;
 	int nAlts = 0;
 	BitSet s1(tab->terminals.size());	
 	while (p != nullptr)
     {
-    	BitSet s2 = tab->Expected0(p->sub, curSy);
+    	BitSet s2 = tab->Expected0(p->GetSub(), curSy);
 		// must not optimize with switch statement, if there are ll1 warnings
-		if (s1.Overlaps(s2)) { return false; }
+		if (s1.Overlaps(s2))
+        {
+            return false; 
+        }
 		s1 |= s2;
 		++nAlts;
 		// must not optimize with switch-statement, if alt uses a resolver expression
-		if (p->sub->typ == Node::rslv) return false;
-		p = p->down;
+		if (p->GetSub()->GetKind() == Node::Kind::Resolve) 
+            return false;
+		p = p->GetDown();
 	}
 	return nAlts > 5;
 }
@@ -99,18 +104,20 @@ void ParserGen::GenNamespaceClose(int nrOfNs)
 	}
 }
 
-void ParserGen::CopySourcePart(Position *pos, int indent) 
+void ParserGen::CopySourcePart(Position const & pos, int indent) 
 {
 	// Copy text described by pos from atg to gen
 	int ch, i;
-	if (pos != nullptr) {
-		buffer->SetPos(pos->beg); ch = buffer->Read();
-		if (tab->emitLines && pos->line)
+    if (pos != Position::Null)
+    {
+		buffer->SetPos(pos.BeginOffset()); 
+        ch = buffer->Read();
+		if (tab->emitLines && pos.Line())
         {
-			fwprintf(gen, L"\n#line %zd \"%hs\"\n", pos->line, tab->srcName.c_str());
+			fwprintf(gen, L"\n#line %zd \"%hs\"\n", pos.Line(), tab->srcName.c_str());
 		}
 		Indent(indent);
-		while (buffer->GetPos() <= pos->end)
+		while (buffer->GetPos() <= pos.EndOffset())
         {
 			while (ch == CR || ch == LF)
             {  // eol is either CR or CRLF or LF
@@ -123,12 +130,12 @@ void ParserGen::CopySourcePart(Position *pos, int indent)
                 { 
                     ch = buffer->Read(); 
                 } // skip LF
-				for (i = 1; i <= pos->col &&(ch == ' ' || ch == '\t'); i++)
+				for (i = 1; i <= pos.Column() &&(ch == ' ' || ch == '\t'); i++)
                 {
 					// skip blanks at beginning of line
 					ch = buffer->Read();
 				}
-				if (buffer->GetPos() > pos->end) goto done;
+				if (buffer->GetPos() > pos.EndOffset()) goto done;
 			}
 			fwprintf(gen, L"%lc", ch);
 			ch = buffer->Read();
@@ -136,7 +143,7 @@ void ParserGen::CopySourcePart(Position *pos, int indent)
 		done:
 		if (indent > 0)
             fwprintf(gen, L"\n");
-	}
+    }
 }
 
 void ParserGen::GenErrorMsg(int errTyp, Symbol *sym)
@@ -178,8 +185,8 @@ size_t ParserGen::NewCondSet(BitSet const & s)
 
 void ParserGen::GenCond(BitSet const & s, Node const * p)
 {
-	if (p->typ == Node::rslv) 
-        CopySourcePart(p->pos, 0);
+	if (p->GetKind() == Node::Kind::Resolve) 
+        CopySourcePart(p->GetPosition(), 0);
 	else
     {
 		size_t n = s.Elements();
@@ -191,7 +198,7 @@ void ParserGen::GenCond(BitSet const & s, Node const * p)
 			for (int i = 0; i < tab->terminals.size(); i++)
             {
 				sym = tab->terminals[i];
-				if (s[sym->GetSymbolNumber()])
+				if (s[sym->GetID()])
                 {
 					fwprintf(gen, L"la->kind == ");
 					WriteSymbolOrCode(gen, sym);
@@ -211,7 +218,7 @@ void ParserGen::PutCaseLabels(BitSet const & s)
 	for (int i = 0; i < tab->terminals.size(); i++)
     {
 		sym = tab->terminals[i];
-		if (s[sym->GetSymbolNumber()])
+		if (s[sym->GetID()])
         {
 			fwprintf(gen, L"case ");
 			WriteSymbolOrCode(gen, sym);
@@ -226,40 +233,40 @@ void ParserGen::GenCode(Node const * p, int indent, BitSet & isChecked)
     BitSet s1;
 	while (p != nullptr)
     {
-		if (p->typ == Node::nt)
+		if (p->GetKind() == Node::Kind::NonTerminal)
         {
 			Indent(indent);
-			fwprintf(gen, L"%ls(", p->sym->GetName().c_str());
-			CopySourcePart(p->pos, 0);
+			fwprintf(gen, L"%ls(", p->GetSym()->GetName().c_str());
+			CopySourcePart(p->GetPosition(), 0);
 			fwprintf(gen, L");\n");
 		} 
-        else if (p->typ == Node::t) 
+        else if (p->GetKind() == Node::Kind::Terminal) 
         {
 			Indent(indent);
-			// assert: if isChecked[p->sym->n] is true, then isChecked contains only p->sym->n
-			if (isChecked[p->sym->GetSymbolNumber()])
+			// assert: if isChecked[p->GetSym()->n] is true, then isChecked contains only p->GetSym()->n
+			if (isChecked[p->GetSym()->GetID()])
                 fwprintf(gen, L"Get();\n");
 			else 
             {
 				fwprintf(gen, L"Expect(");
-				WriteSymbolOrCode(gen, p->sym);
+				WriteSymbolOrCode(gen, p->GetSym());
 				fwprintf(gen, L");\n");
 			}
 		} 
-        if (p->typ == Node::wt) 
+        if (p->GetKind() == Node::Kind::WeakTerminal) 
         {
 			Indent(indent);
-        	s1 = tab->Expected(p->next, curSy);
+        	s1 = tab->Expected(p->GetNext(), curSy);
 			s1 |= *(tab->allSyncSets);
 			fwprintf(gen, L"ExpectWeak(");
-			WriteSymbolOrCode(gen, p->sym);
+			WriteSymbolOrCode(gen, p->GetSym());
 			fwprintf(gen, L", %zd);\n", NewCondSet(s1));
 		} 
-        if (p->typ == Node::any)
+        if (p->GetKind() == Node::Kind::Any)
         {
 			Indent(indent);
-			size_t acc = p->set.Elements();
-			if (tab->terminals.size() == (acc + 1) || (acc > 0 && (p->set == isChecked)))
+			size_t acc = p->GetSet().Elements();
+			if (tab->terminals.size() == (acc + 1) || (acc > 0 && (p->GetSet() == isChecked)))
             {
 				// either this ANY accepts any terminal(the + 1 = end of file), or exactly what's allowed here
 				fwprintf(gen, L"Get();\n");
@@ -269,35 +276,35 @@ void ParserGen::GenCode(Node const * p, int indent, BitSet & isChecked)
 				GenErrorMsg(altErr, curSy);
 				if (acc > 0)
                 {
-					fwprintf(gen, L"if ("); GenCond(p->set, p); 
+					fwprintf(gen, L"if ("); GenCond(p->GetSet(), p); 
                     fwprintf(gen, L") Get(); else SynErr(%d);\n", errorNr);
 				}
                 else
                     fwprintf(gen, L"SynErr(%d); // ANY node that matches no symbol\n", errorNr);
 			}
 		} 
-        if (p->typ == Node::eps)
+        if (p->GetKind() == Node::Kind::Eps)
         {	// nothing
 		} 
-        if (p->typ == Node::rslv)
+        if (p->GetKind() == Node::Kind::Resolve)
         {	// nothing
 		}
-        if (p->typ == Node::sem)
+        if (p->GetKind() == Node::Kind::Sem)
         {
-			CopySourcePart(p->pos, indent);
+			CopySourcePart(p->GetPosition(), indent);
 		}
-        if (p->typ == Node::sync)
+        if (p->GetKind() == Node::Kind::Sync)
         {
 			Indent(indent);
 			GenErrorMsg(syncErr, curSy);
-			s1 = p->set.Clone();
+			s1 = p->GetSet().Clone();
 			fwprintf(gen, L"while (!("); 
             GenCond(s1, p); 
             fwprintf(gen, L")) {");
 			fwprintf(gen, L"SynErr(%d); Get();", errorNr);
             fwprintf(gen, L"}\n");
 		} 
-        if (p->typ == Node::alt)
+        if (p->GetKind() == Node::Kind::Alt)
         {
 			s1 = tab->First(p);
 			bool equal = s1 == isChecked;
@@ -307,7 +314,7 @@ void ParserGen::GenCode(Node const * p, int indent, BitSet & isChecked)
 			p2 = p;
 			while (p2 != nullptr)
             {
-				s1 = tab->Expected(p2->sub, curSy);
+				s1 = tab->Expected(p2->GetSub(), curSy);
 				Indent(indent);
 				if (useSwitch)
                 {
@@ -316,26 +323,26 @@ void ParserGen::GenCode(Node const * p, int indent, BitSet & isChecked)
                 else if (p2 == p)
                 {
 					fwprintf(gen, L"if ("); 
-                    GenCond(s1, p2->sub); 
+                    GenCond(s1, p2->GetSub()); 
                     fwprintf(gen, L") {\n");
 				}
-                else if (p2->down == nullptr && equal)
+                else if (p2->GetDown() == nullptr && equal)
                 {
                     fwprintf(gen, L"} else {\n");
 				} 
                 else
                 {
 					fwprintf(gen, L"} else if (");
-                    GenCond(s1, p2->sub); 
+                    GenCond(s1, p2->GetSub()); 
                     fwprintf(gen, L") {\n");
 				}
-				GenCode(p2->sub, indent + 1, s1);
+				GenCode(p2->GetSub(), indent + 1, s1);
 				if (useSwitch) 
                 {
 					Indent(indent); fwprintf(gen, L"\tbreak;\n");
 					Indent(indent); fwprintf(gen, L"}\n");
 				}
-				p2 = p2->down;
+				p2 = p2->GetDown();
 			}
 			Indent(indent);
 			if (equal)
@@ -358,23 +365,23 @@ void ParserGen::GenCode(Node const * p, int indent, BitSet & isChecked)
 				}
 			}
 		} 
-        if (p->typ == Node::iter)
+        if (p->GetKind() == Node::Kind::Iter)
         {
 			Indent(indent);
-			p2 = p->sub;
+			p2 = p->GetSub();
 			fwprintf(gen, L"while (");
-			if (p2->typ == Node::wt)
+			if (p2->GetKind() == Node::Kind::WeakTerminal)
             {
-				s1 = tab->Expected(p2->next, curSy);
-				BitSet s2 = tab->Expected(p->next, curSy);
+				s1 = tab->Expected(p2->GetNext(), curSy);
+				BitSet s2 = tab->Expected(p->GetNext(), curSy);
 				fwprintf(gen, L"WeakSeparator(");
-				WriteSymbolOrCode(gen, p2->sym);
+				WriteSymbolOrCode(gen, p2->GetSym());
 				fwprintf(gen, L",%zd,%zd) ", NewCondSet(s1), NewCondSet(s2));
 				s1 = BitSet(tab->terminals.size());  // for inner structure
-				if (p2->up || p2->next == nullptr) 
+				if (p2->IsNextUp() || p2->GetNext() == nullptr) 
                     p2 = nullptr; 
                 else 
-                    p2 = p2->next;
+                    p2 = p2->GetNext();
 			} 
             else
             {
@@ -386,19 +393,19 @@ void ParserGen::GenCode(Node const * p, int indent, BitSet & isChecked)
 			Indent(indent); 
             fwprintf(gen, L"}\n");
 		} 
-        if (p->typ == Node::opt)
+        if (p->GetKind() == Node::Kind::Opt)
         {
-			s1 = tab->First(p->sub);
+			s1 = tab->First(p->GetSub());
 			Indent(indent);
-			fwprintf(gen, L"if ("); GenCond(s1, p->sub); fwprintf(gen, L") {\n");
-			GenCode(p->sub, indent + 1, s1);
+			fwprintf(gen, L"if ("); GenCond(s1, p->GetSub()); fwprintf(gen, L") {\n");
+			GenCode(p->GetSub(), indent + 1, s1);
 			Indent(indent); fwprintf(gen, L"}\n");
 		}
-		if (p->typ != Node::eps && p->typ != Node::sem && p->typ != Node::sync)
+		if (p->GetKind() != Node::Kind::Eps && p->GetKind() != Node::Kind::Sem && p->GetKind() != Node::Kind::Sync)
 			isChecked.SetAll(false);
-		if (p->up) 
+		if (p->IsNextUp()) 
             break;
-		p = p->next;
+		p = p->GetNext();
 	}
 }
 
@@ -429,7 +436,7 @@ void ParserGen::GenTokensHeader()
             fwprintf(gen , L",\n");
         }
 
-		fwprintf(gen , L"\t\t_%ls=%zd", sym->GetName().c_str(), sym->GetSymbolNumber());
+		fwprintf(gen , L"\t\t_%ls=%zd", sym->GetName().c_str(), sym->GetID());
 	}
 
 	// pragmas
@@ -441,7 +448,7 @@ void ParserGen::GenTokensHeader()
             fwprintf(gen , L",\n");
 
 		sym = tab->pragmas[i];
-		fwprintf(gen , L"\t\t_%ls=%zd", sym->GetName().c_str(), sym->GetSymbolNumber());
+		fwprintf(gen , L"\t\t_%ls=%zd", sym->GetName().c_str(), sym->GetID());
 	}
 
 	fwprintf(gen, L"\n\t};\n");
@@ -465,7 +472,7 @@ void ParserGen::WriteSymbolOrCode(FILE *gen, Symbol const * sym)
 {
 	if (!isalpha(sym->GetName()[0]))
     {
-		fwprintf(gen, L"%zd /* %ls */", sym->GetSymbolNumber(), sym->GetName().c_str());
+		fwprintf(gen, L"%zd /* %ls */", sym->GetID(), sym->GetName().c_str());
 	} 
     else 
     {
@@ -515,7 +522,7 @@ void ParserGen::InitSets()
 		for (int k = 0; k < tab->terminals.size(); k++)
         {
 			sym = tab->terminals[k];
-			if (s[sym->GetSymbolNumber()]) 
+			if (s[sym->GetID()]) 
                 fwprintf(gen, L"T,"); 
             else 
                 fwprintf(gen, L"x,");
@@ -558,7 +565,7 @@ void ParserGen::WriteParser()
 
 	g.CopyFramePart(L"-->headerdef");
 
-	if (usingPos != nullptr)
+	if (usingPos != Position::Null)
     {
         CopySourcePart(usingPos, 0); fwprintf(gen, L"\n");
     }
@@ -632,7 +639,7 @@ ParserGen::ParserGen(Parser *parser)
 	trace = parser->trace;
 	buffer = parser->scanner->buffer;
 	errorNr = -1;
-	usingPos = nullptr;
+    usingPos = {};
 
     symSet = {};
     err = {};

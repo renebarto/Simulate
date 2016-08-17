@@ -28,17 +28,22 @@ Coco/R itself) does not fall under the GNU General Public License.
 
 #pragma once
 
-namespace Coco {
+namespace Coco
+{
 
 class State;
 
 class Target  				// set of states that are reached by an action
 {
 public:
-	Target (State *s);
+	Target (State * s);
 
-	State *state;				// target state
+    State * GetState() const { return state; }
+    void SetState(State * value) { state = value; }
 	Target *next;
+
+private:
+	State * state;				// target state
 
 };
 

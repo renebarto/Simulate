@@ -136,7 +136,7 @@ void Parser::Coco()
     }
     if (la->pos != beg)
     {
-        pgen->usingPos = new Position(beg, t->pos + wcslen(t->val), 0, line);
+        pgen->usingPos = Position(beg, t->pos + wcslen(t->val), 0, line);
     }
         
     Expect(TokenType::COMPILER);
@@ -151,7 +151,7 @@ void Parser::Coco()
     {
         Get();
     }
-    tab->semDeclPos = new Position(beg, la->pos, 0, line); 
+    tab->semDeclPos = Position(beg, la->pos, 0, line); 
     if (TokenType(la->kind) == TokenType::IGNORECASE)
     {
         Get();
@@ -167,13 +167,13 @@ void Parser::Coco()
     {
         Get();
         while (TokenType(la->kind) == TokenType::Identifier || TokenType(la->kind) == TokenType::String || TokenType(la->kind) == TokenType::Char)
-            TokenDecl(Node::t);
+            TokenDecl(Node::Kind::Terminal);
     }
     if (TokenType(la->kind) == TokenType::PRAGMAS)
     {
         Get();
         while (TokenType(la->kind) == TokenType::Identifier || TokenType(la->kind) == TokenType::String || TokenType(la->kind) == TokenType::Char)
-            TokenDecl(Node::pr);
+            TokenDecl(Node::Kind::Pragma);
     }
     while (TokenType(la->kind) == TokenType::COMMENTS)
     {
@@ -212,10 +212,10 @@ void Parser::Coco()
         sym = tab->FindSym(t->val);
         bool undef = (sym == nullptr);
         if (undef) 
-            sym = tab->NewSym(Node::nt, t->val, t->line);
+            sym = tab->NewSym(Node::Kind::NonTerminal, t->val, t->line);
         else
         {
-            if (sym->GetSymbolType() == Node::nt)
+            if (sym->GetSymbolType() == Node::Kind::NonTerminal)
             {
                 if (sym->GetGraph() != nullptr) 
                     SemanticError(L"name declared twice");
@@ -224,13 +224,13 @@ void Parser::Coco()
                 SemanticError(L"this symbol kind not allowed on left side of production");
             sym->SetLine(t->line);
         }
-        bool noAttrs = (sym->GetAttrPos() == nullptr);
-        sym->SetAttrPos(nullptr);
+        bool noAttrs = (sym->GetAttrPos() == Position::Null);
+        sym->SetAttrPos(Position::Null);
             
         if (TokenType(la->kind) == TokenType::AngleBracketOpen /* "<" */ || TokenType(la->kind) == TokenType::AngleBracketOpenDot /* "<." */)
             AttrDecl(sym);
         if (!undef)
-            if (noAttrs != (sym->GetAttrPos() == nullptr))
+            if (noAttrs != (sym->GetAttrPos() == Position::Null))
                 SemanticError(L"attribute mismatch between declaration and use of this symbol");
             
         if (TokenType(la->kind) == TokenType::ParenthesisOpenDot /* "(." */)
@@ -252,10 +252,10 @@ void Parser::Coco()
     else
     {
         sym = tab->gramSy;
-        if (sym->GetAttrPos() != nullptr)
+        if (sym->GetAttrPos() != Position::Null)
             SemanticError(L"grammar symbol must not have attributes");
     }
-    tab->noSym = tab->NewSym(Node::t, L"???", 0); // noSym gets highest number
+    tab->noSym = tab->NewSym(Node::Kind::Terminal, L"???", 0); // noSym gets highest number
     tab->SetupAnys();
     tab->RenumberPragmas();
     if (tab->ddt[2]) 
@@ -306,7 +306,7 @@ void Parser::SetDecl()
     Expect(TokenType::Dot /* "." */);
 }
 
-void Parser::TokenDecl(int typ)
+void Parser::TokenDecl(Node::Kind typ)
 {
     std::wstring name;
     int kind; 
@@ -360,7 +360,7 @@ void Parser::TokenDecl(int typ)
     if (TokenType(la->kind) == TokenType::ParenthesisOpenDot /* "(." */)
     {
         SemText(sym->GetSemPos());
-        if (typ != Node::pr) 
+        if (typ != Node::Kind::Pragma) 
             SemanticError(L"semantic action not allowed here"); 
     }
 }
@@ -423,7 +423,7 @@ void Parser::AttrDecl(Symbol * sym)
         }
         Expect(TokenType::AngleBracketClose /* ">" */);
         if (t->pos > beg)
-            sym->SetAttrPos(new Position(beg, t->pos, col, line)); 
+            sym->SetAttrPos(Position(beg, t->pos, col, line)); 
     } 
     else if (TokenType(la->kind) == TokenType::AngleBracketOpenDot /* "<." */)
     {
@@ -443,13 +443,13 @@ void Parser::AttrDecl(Symbol * sym)
         }
         Expect(TokenType::AngleBracketCloseDot /* ".>" */);
         if (t->pos > beg)
-            sym->SetAttrPos(new Position(beg, t->pos, col, line)); 
+            sym->SetAttrPos(Position(beg, t->pos, col, line)); 
     } 
     else 
         SyntaxError(TokenType::InvalidAttrDecl);
 }
 
-void Parser::SemText(Position *& pos)
+Position Parser::SemText(Position const & pos)
 {
     Expect(TokenType::ParenthesisOpenDot /* "(." */);
     size_t beg = la->pos; 
@@ -471,7 +471,7 @@ void Parser::SemText(Position *& pos)
         }
     }
     Expect(TokenType::ParenthesisCloseDot /* ".)" */);
-    pos = new Position(beg, t->pos, col, line); 
+    return Position(beg, t->pos, col, line); 
 }
 
 void Parser::Expression(Graph *& g)
@@ -605,8 +605,8 @@ void Parser::Term(Graph *& g)
     {
         if (TokenType(la->kind) == TokenType::IF)
         {
-            rslv = tab->NewNode(Node::rslv, nullptr, la->line); 
-            Resolver(rslv->pos);
+            rslv = tab->NewNode(Node::Kind::Resolve, 0, la->line);
+            rslv->SetPosition(Resolver(rslv->GetPosition()));
             g = new Graph(rslv); 
         }
         Factor(g2);
@@ -622,15 +622,15 @@ void Parser::Term(Graph *& g)
     } 
     else if (StartOf(TokenType::END))
     {
-        g = new Graph(tab->NewNode(Node::eps, nullptr, 0)); 
+        g = new Graph(tab->NewNode(Node::Kind::Eps)); 
     }
     else
         SyntaxError(TokenType::InvalidTerm);
     if (g == nullptr) // invalid start of Term
-        g = new Graph(tab->NewNode(Node::eps, nullptr, 0)); 
+        g = new Graph(tab->NewNode(Node::Kind::Eps)); 
 }
 
-void Parser::Resolver(Position *& pos)
+Position Parser::Resolver(Position const & pos)
 {
     Expect(TokenType::IF);
     Expect(TokenType::ParenthesisOpen /* "(" */);
@@ -638,14 +638,14 @@ void Parser::Resolver(Position *& pos)
     size_t col = la->col; 
     size_t line = la->line; 
     Condition();
-    pos = new Position(beg, t->pos, col, line); 
+    return Position(beg, t->pos, col, line); 
 }
 
 void Parser::Factor(Graph *& g)
 {
     std::wstring name;
     int kind; 
-    Position *pos; 
+    Position pos; 
     bool weak = false; 
     g = nullptr;
         
@@ -669,10 +669,10 @@ void Parser::Factor(Graph *& g)
             if (undef)
             {
                 if (kind == id)
-                    sym = tab->NewSym(Node::nt, name, 0);  // forward nt
+                    sym = tab->NewSym(Node::Kind::NonTerminal, name, 0);  // forward nt
                 else if (genScanner)
                 { 
-                    sym = tab->NewSym(Node::t, name, t->line);
+                    sym = tab->NewSym(Node::Kind::Terminal, name, t->line);
                     dfa->MatchLiteral(sym->GetName(), sym);
                 } 
                 else
@@ -681,17 +681,17 @@ void Parser::Factor(Graph *& g)
                     sym = tab->eofSy;  // dummy
                 }
             }
-            int typ = sym->GetSymbolType();
-            if (typ != Node::t && typ != Node::nt)
+            Node::Kind typ = sym->GetSymbolType();
+            if (typ != Node::Kind::Terminal && typ != Node::Kind::NonTerminal)
                 SemanticError(L"this symbol kind is not allowed in a production");
             if (weak)
             {
-                if (typ == Node::t)
-                    typ = Node::wt;
+                if (typ == Node::Kind::Terminal)
+                    typ = Node::Kind::WeakTerminal;
                 else 
                     SemanticError(L"only terminals may be weak");
             }
-            Node *p = tab->NewNode(typ, sym, t->line);
+            Node *p = tab->NewNode(typ, nullptr, sym, wchar_t{ 0 }, t->line);
             g = new Graph(p);
             
             if (TokenType(la->kind) == TokenType::AngleBracketOpen /* "<" */ || TokenType(la->kind) == TokenType::AngleBracketOpenDot /* "<." */)
@@ -701,8 +701,8 @@ void Parser::Factor(Graph *& g)
                     SemanticError(L"a literal must not have attributes"); 
             }
             if (undef)
-                sym->SetAttrPos(p->pos);  // dummy
-            else if ((p->pos == nullptr) != (sym->GetAttrPos() == nullptr))
+                sym->SetAttrPos(p->GetPosition());  // dummy
+            else if ((p->GetPosition() == Position::Null) != (sym->GetAttrPos() == Position::Null))
                 SemanticError(L"attribute mismatch between declaration and use of this symbol");
             
             break;
@@ -733,22 +733,22 @@ void Parser::Factor(Graph *& g)
     case TokenType::ParenthesisOpenDot /* "(." */:
         {
             SemText(pos);
-            Node *p = tab->NewNode(Node::sem, nullptr, 0);
-            p->pos = pos;
+            Node *p = tab->NewNode(Node::Kind::Sem);
+            p->SetPosition(pos);
             g = new Graph(p);			 
             break;
         }
     case TokenType::ANY:
         {
             Get();
-            Node *p = tab->NewNode(Node::any, nullptr, 0);  // p.set is set in tab->SetupAnys
+            Node *p = tab->NewNode(Node::Kind::Any);  // p.set is set in tab->SetupAnys
             g = new Graph(p);			
             break;
         }
     case TokenType::SYNC:
         {
             Get();
-            Node *p = tab->NewNode(Node::sync, nullptr, 0);
+            Node *p = tab->NewNode(Node::Kind::Sync);
             g = new Graph(p);			
             break;
         }
@@ -756,7 +756,7 @@ void Parser::Factor(Graph *& g)
         break;
     }
     if (g == nullptr) // invalid start of Factor
-        g = new Graph(tab->NewNode(Node::eps, nullptr, 0));
+        g = new Graph(tab->NewNode(Node::Kind::Eps));
 }
 
 void Parser::Attribs(Node *p)
@@ -781,7 +781,7 @@ void Parser::Attribs(Node *p)
         }
         Expect(TokenType::AngleBracketClose /* ">" */);
         if (t->pos > beg) 
-            p->pos = new Position(beg, t->pos, col, line); 
+            p->SetPosition(Position(beg, t->pos, col, line)); 
     } 
     else if (TokenType(la->kind) == TokenType::AngleBracketOpenDot /* "<." */)
     {
@@ -803,7 +803,7 @@ void Parser::Attribs(Node *p)
         }
         Expect(TokenType::AngleBracketCloseDot /* ".>" */);
         if (t->pos > beg) 
-            p->pos = new Position(beg, t->pos, col, line); 
+            p->SetPosition(Position(beg, t->pos, col, line)); 
     } 
     else 
         SyntaxError(TokenType::InvalidAttribs);
@@ -860,8 +860,7 @@ void Parser::TokenFactor(Graph *& g)
                 SemanticError(L"undefined name");
                 c = tab->NewCharClass(name, CharSet());
             }
-            Node *p = tab->NewNode(Node::clas, nullptr, 0); 
-            p->val = wchar_t(c->GetClassID());
+            Node *p = tab->NewNode(Node::Kind::_Class, wchar_t(c->GetClassID()), 0); 
             g = new Graph(p);
             tokenString = noString;
         } 
@@ -899,7 +898,7 @@ void Parser::TokenFactor(Graph *& g)
     else 
         SyntaxError(TokenType::InvalidTokenFactor);
     if (g == nullptr) // invalid start of TokenFactor
-        g = new Graph(tab->NewNode(Node::eps, nullptr, 0)); 
+        g = new Graph(tab->NewNode(Node::Kind::Eps)); 
 }
 
 

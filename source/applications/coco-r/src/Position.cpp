@@ -31,12 +31,52 @@ Coco/R itself) does not fall under the GNU General Public License.
 namespace Coco
 {
 
+const Position Position::Null;
+
+Position::Position()
+    : beg()
+    , end()
+    , col()
+    , line()
+{
+}
+
 Position::Position(size_t beg, size_t end, size_t col, size_t line)
     : beg(beg)
     , end(end)
     , col(col)
     , line(line)
 {
+}
+
+Position::Position(Position const & other)
+    : beg(other.beg)
+    , end(other.end)
+    , col(other.col)
+    , line(other.line)
+{
+}
+
+Position & Position::operator =(Position const & other)
+{
+    if (this != &other)
+    {
+        this->beg = other.beg;
+        this->end = other.end;
+        this->col = other.col;
+        this->line = other.line;
+    }
+    return *this;
+}
+
+Position::operator bool() const
+{
+    return !this ->operator !();
+}
+
+bool Position::operator !() const
+{
+    return (beg == 0) && (end == 0);
 }
 
 } // namespace Coco

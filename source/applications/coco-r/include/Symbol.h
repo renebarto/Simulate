@@ -29,13 +29,12 @@ Coco/R itself) does not fall under the GNU General Public License.
 #pragma once
 
 #include "Position.h"
+#include "Node.h"
 #include "Scanner.h"
 #include "BitSet.h"
 
 namespace Coco
 {
-
-class Node;
 
 class Symbol
 {
@@ -48,12 +47,12 @@ public:
         ClassLitToken = 3,  // e.g. letter {letter} but without literals that have the same structure
     };
 
-	Symbol(int typ, std::wstring const & name, size_t line);
+	Symbol(Node::Kind typ, std::wstring const & name, size_t line);
 
     std::wstring const & GetName() const { return name; }
-    size_t GetSymbolNumber() const { return n; }
-    void SetSymbolNumber(size_t value) { n = value; }
-    int GetSymbolType() const { return typ; }
+    size_t GetID() const { return id; }
+    void SetID(size_t value) { id = value; }
+    Node::Kind GetSymbolType() const { return typ; }
     TokenKind GetTokenKind() const { return tokenKind; }
     void SetTokenKind(TokenKind value) { tokenKind = value; }
     size_t GetLine() const { return line; }
@@ -72,13 +71,14 @@ public:
     BitSet const & GetNts() const { return nts; }
     BitSet & GetNts() { return nts; }
     void SetNts(BitSet const & value) { nts = value; }
-    Position * GetAttrPos() { return attrPos; }
-    void SetAttrPos(Position * value) { attrPos = value; }
-    Position *& GetSemPos() { return semPos; }
+    Position const & GetAttrPos() { return attrPos; }
+    void SetAttrPos(Position const & value) { attrPos = value; }
+    Position const & GetSemPos() const { return semPos; }
+    Position & GetSemPos() { return semPos; }
 
 private:
-    size_t          n;          // symbol number
-	int             typ;        // t, nt, pr, unknown, rslv /* ML 29_11_2002 slv added */ /* AW slv --> rslv */
+    size_t          id;          // symbol number
+	Node::Kind      typ;        // t, nt, pr, unknown, rslv /* ML 29_11_2002 slv added */ /* AW slv --> rslv */
 	std::wstring    name;       // symbol name
 	Node            *graph;     // nt: to first node of syntax graph
 	TokenKind       tokenKind;  // t:  token kind (fixedToken, classToken, ...)
@@ -88,8 +88,8 @@ private:
 	BitSet          follow;     // nt: terminal followers
 	BitSet          nts;        // nt: nonterminals whose followers have to be added to this sym
 	size_t          line;       // source text line number of item in this node
-	Position        *attrPos;   // nt: position of attributes in source text (or null)
-	Position        *semPos;    // pr: pos of semantic action in source text (or null)
+	Position        attrPos;    // nt: position of attributes in source text (or null)
+	Position        semPos;     // pr: pos of semantic action in source text (or null)
 	                            // nt: pos of local declarations in source text (or null)
 
 };

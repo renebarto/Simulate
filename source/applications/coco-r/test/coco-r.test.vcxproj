@@ -199,6 +199,7 @@
     <ClCompile Include="src\Test\TestCharClass.cpp" />
     <ClCompile Include="src\Test\TestCharSet.cpp" />
     <ClCompile Include="src\Test\TestCocor.cpp" />
+    <ClCompile Include="src\Test\TestPosition.cpp" />
     <ClCompile Include="src\Test\TestToken.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

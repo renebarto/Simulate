@@ -28,44 +28,24 @@ Coco/R itself) does not fall under the GNU General Public License.
 
 #include "Node.h"
 
-namespace Coco {
+namespace Coco
+{
 
-// constants for node kinds
-int Node::t    =  1;  // terminal symbol
-int Node::pr   =  2;  // pragma
-int Node::nt   =  3;  // nonterminal symbol
-int Node::clas =  4;  // character class
-int Node::chr  =  5;  // character
-int Node::wt   =  6;  // weak terminal symbol
-int Node::any  =  7;  // 
-int Node::eps  =  8;  // empty
-int Node::sync =  9;  // synchronization symbol
-int Node::sem  = 10;  // semantic action: (. .)
-int Node::alt  = 11;  // alternative: |
-int Node::iter = 12;  // iteration: { }
-int Node::opt  = 13;  // option: [ ]
-int Node::rslv = 14;  // resolver expr
-
-int Node::normalTrans  = 0;		// transition codes
-int Node::contextTrans = 1;
-
-
-Node::Node(int typ, Symbol *sym, size_t line) {
-	this->n     = 0;
-	this->next  = nullptr;
-	this->down  = nullptr;
-	this->sub   = nullptr;
-	this->up    = false;
-	this->val   = 0;
-	this->code  = 0;
-    this->set   = {};
-	this->pos   = nullptr;
-	this->state = nullptr;
-	this->state = 0;
-
-	this->typ = typ; 
-    this->sym = sym; 
-    this->line = line;
+Node::Node(Node::Kind typ, Node * sub, Symbol *sym, wchar_t val, size_t line)
+    : id(0)
+    , typ(typ)
+    , next(nullptr)
+    , down(nullptr)
+    , sub(sub)
+    , up(false)
+    , sym(sym)
+    , val(val)
+    , code()
+    , set()
+    , line(line)
+    , state(nullptr)
+    , pos()
+{
 }
 
 }; // namespace

@@ -49,28 +49,28 @@ class BitSet;
 class Tab
 {
 public:
-	Position *semDeclPos;       // position of global semantic declarations
+	Position semDeclPos;        // position of global semantic declarations
 	CharSet ignored;            // characters ignored by the scanner
-	bool ddt[10];                  // debug and test switches
+	bool ddt[10];               // debug and test switches
 	Symbol *gramSy;             // root nonterminal; filled by ATG
 	Symbol *eofSy;              // end of file symbol
 	Symbol *noSym;              // used in case of an error
-	BitSet *allSyncSets;      // union of all synchronisation sets
+	BitSet *allSyncSets;        // union of all synchronisation sets
 	HashTable *literals;        // symbols that are used as literals
 
-	std::string srcName;            // name of the atg file (including path)
-	std::string srcDir;             // directory path of the atg file
-	std::string nsName;             // namespace for generated files
-	std::string frameDir;           // directory containing the frame files
-	std::string outDir;             // directory for generated files
-	bool checkEOF;               // should coco generate a check for EOF at
-	                             // the end of Parser.Parse():
-	bool emitLines;              // emit line directives in generated parser
+	std::string srcName;        // name of the atg file (including path)
+	std::string srcDir;         // directory path of the atg file
+	std::string nsName;         // namespace for generated files
+	std::string frameDir;       // directory containing the frame files
+	std::string outDir;         // directory for generated files
+	bool checkEOF;              // should coco generate a check for EOF at
+	                            // the end of Parser.Parse():
+	bool emitLines;             // emit line directives in generated parser
 
-	BitSet *visited;                // mark list for graph traversals
-	Symbol *curSy;                     // current symbol in computation of sets
+	BitSet *visited;            // mark list for graph traversals
+	Symbol *curSy;              // current symbol in computation of sets
 
-	Parser *parser;                    // other Coco objects
+	Parser *parser;             // other Coco objects
 	FILE* trace;
 
 	Errors *errors;
@@ -96,7 +96,7 @@ public:
 
 	static const char* tKind[];
 
-	Symbol* NewSym(int typ, std::wstring const & name, size_t line);
+	Symbol* NewSym(Node::Kind typ, std::wstring const & name, size_t line);
 	Symbol* FindSym(std::wstring const & name);
 	size_t Num(Node const * p);
 	void PrintSym(Symbol *sym);
@@ -107,9 +107,10 @@ public:
 	//  Syntax graph management
 	//---------------------------------------------------------------------
 
-	Node* NewNode(int typ, Symbol *sym, size_t line);
-	Node* NewNode(int typ, Node* sub);
-	Node* NewNode(int typ, int val, size_t line);
+    Node * NewNode(Node::Kind typ, Node * sub, Symbol * sym, wchar_t val, size_t line);
+    Node * NewNode(Node::Kind typ);
+	Node * NewNode(Node::Kind typ, Node* sub);
+	Node * NewNode(Node::Kind typ, int val, size_t line);
 	void MakeFirstAlt(Graph *g);
 	void MakeAlternative(Graph *g1, Graph *g2);
 	void MakeSequence(Graph *g1, Graph *g2);
@@ -129,7 +130,7 @@ public:
 	//----------------- graph printing ----------------------
 
 	long Ptr(Node * p, bool up);
-	std::wstring Pos(Position *pos);
+	std::wstring Pos(Position const & pos);
 	std::wstring Name(std::wstring const & name);
 	void PrintNodes();
 

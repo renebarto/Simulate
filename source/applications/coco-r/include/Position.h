@@ -28,17 +28,40 @@ Coco/R itself) does not fall under the GNU General Public License.
 
 #pragma once
 
-namespace Coco {
+namespace Coco
+{
 
 class Position
 {  // position of source code stretch (e.g. semantic action, resolver expressions)
 public:
+    static const Position Null;
+    Position();
+    Position(size_t beg, size_t end, size_t col, size_t line);
+    Position(Position const & other);
+
+    Position & operator = (Position const & other);
+
+    operator bool() const;
+    bool operator !() const;
+    bool operator == (Position const & other) const
+    {
+        return (beg == other.beg) && (end == other.end) &&
+               (col == other.col) && (line == other.line);
+    }
+    bool operator != (Position const & other) const
+    {
+        return ! operator ==(other);
+    }
+    size_t BeginOffset() const { return beg; }
+    size_t EndOffset() const { return end; }
+    size_t Line() const { return line; }
+    size_t Column() const { return col; }
+
+private:
 	size_t beg;      // start relative to the beginning of the file
 	size_t end;      // end of stretch
 	size_t col;      // column number of start position
 	size_t line;     // line number of beginnnig of source code stretch
-
-	Position(size_t beg, size_t end, size_t col, size_t line);
 };
 
 } // namespace Coco
