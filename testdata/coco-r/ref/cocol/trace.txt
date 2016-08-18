@@ -1,0 +1,960 @@
+Graph nodes:
+----------------------------------------------------
+   n type name          next  down   sub   pos  line
+                               val  code
+----------------------------------------------------
+   0 eps                   0                       0
+   1 t    "COMPILER"       2                      18
+   2 nt   Goal             4                      18
+   3 nt   Characters      -6                      19
+   4 opt                   6     0     3           0
+   5 nt   Ignorable       -8                      20
+   6 opt                   8     0     5           0
+   7 nt   Tokens          -9                      21
+   8 opt                   9     0     7           0
+   9 nt   Productions     10                      22
+  10 t    "END"           11                      23
+  11 nt   Goal            12                      23
+  12 t    "."              0                      23
+  13 t    identifier       0                      24
+  14 t    "CHARACTERS"    16                      25
+  15 nt   NamedCharSet   -16                      25
+  16 iter                  0     0    15           0
+  17 nt   SetIdent        18                      26
+  18 t    "="             19                      26
+  19 nt   CharacterSet    20                      26
+  20 t    "."              0                      26
+  21 nt   SimpleSet       28                      27
+  22 t    "+"             23                      27
+  23 nt   SimpleSet      -28                      27
+  24 t    "-"             25                      27
+  25 nt   SimpleSet      -28                      27
+  26 alt                 -28    27    22          27
+  27 alt                 -28     0    24          27
+  28 iter                  0     0    26           0
+  29 nt   SetIdent         0                      28
+  30 t    string           0                      28
+  31 alt                   0    32    29          28
+  32 alt                   0    37    30          28
+  33 nt   SingleChar      36                      28
+  34 t    ".."            35                      28
+  35 nt   SingleChar       0                      28
+  36 opt                   0     0    34           0
+  37 alt                   0    39    33          28
+  38 t    "ANY"            0                      28
+  39 alt                   0     0    38          28
+  40 t    "CHR"           41                      29
+  41 t    "("             42                      29
+  42 t    number          43                      29
+  43 t    ")"              0                      29
+  44 t    identifier       0                      30
+  45 t    "IGNORE"        46                      31
+  46 nt   CharacterSet     0                      31
+  47 t    "TOKENS"        49                      32
+  48 nt   Token          -49                      32
+  49 iter                  0     0    48           0
+  50 nt   TokenIdent      51                      33
+  51 t    "="             52                      33
+  52 nt   TokenExpr       53                      33
+  53 t    "."              0                      33
+  54 nt   TokenTerm       57                      34
+  55 t    "|"             56                      34
+  56 nt   TokenTerm      -57                      34
+  57 iter                  0     0    55           0
+  58 nt   TokenFactor     60                      35
+  59 nt   TokenFactor    -60                      35
+  60 iter                 65     0    59           0
+  61 t    "CONTEXT"       62                      35
+  62 t    "("             63                      35
+  63 nt   TokenExpr       64                      35
+  64 t    ")"              0                      35
+  65 opt                   0     0    61           0
+  66 nt   TokenSymbol      0                      36
+  67 t    "("             68                      36
+  68 nt   TokenExpr       69                      36
+  69 t    ")"              0                      36
+  70 alt                   0    71    66          36
+  71 alt                   0    75    67          36
+  72 t    "["             73                      36
+  73 nt   TokenExpr       74                      36
+  74 t    "]"              0                      36
+  75 alt                   0    79    72          36
+  76 t    "{"             77                      36
+  77 nt   TokenExpr       78                      36
+  78 t    "}"              0                      36
+  79 alt                   0     0    76          36
+  80 nt   SetIdent         0                      37
+  81 t    string           0                      37
+  82 alt                   0    83    80          37
+  83 alt                   0     0    81          37
+  84 t    identifier       0                      38
+  85 t    "PRODUCTIONS    87                      39
+  86 nt   Production     -87                      39
+  87 iter                  0     0    86           0
+  88 nt   NonTerminal     89                      40
+  89 t    "="             90                      40
+  90 nt   Expression      91                      40
+  91 t    "."              0                      40
+  92 nt   Term            95                      41
+  93 t    "|"             94                      41
+  94 nt   Term           -95                      41
+  95 iter                  0     0    93           0
+  96 nt   Factor          98                      42
+  97 nt   Factor         -98                      42
+  98 iter                  0     0    97           0
+  99 nt   Symbol           0                      43
+ 100 t    "("            101                      43
+ 101 nt   Expression     102                      43
+ 102 t    ")"              0                      43
+ 103 alt                   0   104    99          43
+ 104 alt                   0   108   100          43
+ 105 t    "["            106                      43
+ 106 nt   Expression     107                      43
+ 107 t    "]"              0                      43
+ 108 alt                   0   112   105          43
+ 109 t    "{"            110                      43
+ 110 nt   Expression     111                      43
+ 111 t    "}"              0                      43
+ 112 alt                   0     0   109          43
+ 113 t    string           0                      44
+ 114 nt   NonTerminal      0                      44
+ 115 alt                   0   116   113          44
+ 116 alt                   0   118   114          44
+ 117 nt   TokenIdent       0                      44
+ 118 alt                   0     0   117          44
+ 119 t    identifier       0                      45
+
+
+First: node = 1
+"COMPILER" 
+
+First: node = 13
+identifier 
+
+First: node = 14
+"CHARACTERS" 
+
+First: node = 45
+"IGNORE" 
+
+First: node = 47
+"TOKENS" 
+
+First: node = 85
+"PRODUCTIONS" 
+
+First: node = 17
+identifier 
+
+First: node = 44
+identifier 
+
+First: node = 21
+identifier string "ANY" "CHR" 
+
+First: node = 31
+identifier string "ANY" "CHR" 
+
+First: node = 40
+"CHR" 
+
+First: node = 50
+identifier 
+
+First: node = 84
+identifier 
+
+First: node = 54
+identifier string "(" "[" "{" 
+
+First: node = 58
+identifier string "(" "[" "{" 
+
+First: node = 70
+identifier string "(" "[" "{" 
+
+First: node = 82
+identifier string 
+
+First: node = 88
+identifier 
+
+First: node = 119
+identifier 
+
+First: node = 92
+identifier string "(" "[" "{" 
+
+First: node = 96
+identifier string "(" "[" "{" 
+
+First: node = 103
+identifier string "(" "[" "{" 
+
+First: node = 115
+identifier string 
+
+First: node = 22
+"+" 
+
+First: node = 24
+"-" 
+
+First: node = 29
+identifier 
+
+First: node = 30
+string 
+
+First: node = 33
+"CHR" 
+
+First: node = 38
+"ANY" 
+
+First: node = 66
+identifier string 
+
+First: node = 67
+"(" 
+
+First: node = 72
+"[" 
+
+First: node = 76
+"{" 
+
+First: node = 80
+identifier 
+
+First: node = 81
+string 
+
+First: node = 99
+identifier string 
+
+First: node = 100
+"(" 
+
+First: node = 105
+"[" 
+
+First: node = 109
+"{" 
+
+First: node = 113
+string 
+
+First: node = 114
+identifier 
+
+First: node = 117
+identifier 
+
+First: node = 4
+"CHARACTERS" "IGNORE" "TOKENS" "PRODUCTIONS" 
+
+First: node = 6
+"IGNORE" "TOKENS" "PRODUCTIONS" 
+
+First: node = 8
+"TOKENS" "PRODUCTIONS" 
+
+First: node = 9
+"PRODUCTIONS" 
+
+First: node = 10
+"END" 
+
+First: node = 12
+"." 
+
+First: node = 16
+identifier 
+
+First: node = null
+-- empty set --
+
+First: node = 49
+identifier 
+
+First: node = 87
+identifier 
+
+First: node = 18
+"=" 
+
+First: node = 20
+"." 
+
+First: node = 28
+"+" "-" 
+
+First: node = 28
+"+" "-" 
+
+First: node = 28
+"+" "-" 
+
+First: node = null
+-- empty set --
+
+First: node = 36
+".." 
+
+First: node = null
+-- empty set --
+
+First: node = 51
+"=" 
+
+First: node = 53
+"." 
+
+First: node = 57
+"|" 
+
+First: node = 57
+"|" 
+
+First: node = 60
+identifier string "(" "CONTEXT" "[" "{" 
+
+First: node = 60
+identifier string "(" "CONTEXT" "[" "{" 
+
+First: node = 64
+")" 
+
+First: node = null
+-- empty set --
+
+First: node = 69
+")" 
+
+First: node = 74
+"]" 
+
+First: node = 78
+"}" 
+
+First: node = null
+-- empty set --
+
+First: node = 89
+"=" 
+
+First: node = 91
+"." 
+
+First: node = 95
+"|" 
+
+First: node = 95
+"|" 
+
+First: node = 98
+identifier string "(" "[" "{" 
+
+First: node = 98
+identifier string "(" "[" "{" 
+
+First: node = null
+-- empty set --
+
+First: node = 102
+")" 
+
+First: node = 107
+"]" 
+
+First: node = 111
+"}" 
+
+First: node = null
+-- empty set --
+
+First: node = null
+-- empty set --
+
+Cross reference list:
+--------------------
+
+  "("            29   35   36   43
+  ")"            29   35   36   43
+  "+"            27
+  "-"            27
+  "."            23   26   33   40
+  ".."           28
+  "="            26   33   40
+  "ANY"          28
+  "CHARACTERS"   25
+  "CHR"          29
+  "COMPILER"     18
+  "CONTEXT"      35
+  "END"          23
+  "IGNORE"       31
+  "PRODUCTIONS   39
+  "TOKENS"       32
+  "["            36   43
+  "]"            36   43
+  "{"            36   43
+  "|"            34   41
+  "}"            36   43
+  CharacterSet  -27   26   31
+  Characters    -25   19
+  Cocol         -18
+  Expression    -41   40   43   43   43
+  Factor        -43   42   42
+  Goal          -24   18   23
+  Ignorable     -31   20
+  NamedCharSet  -26   25
+  NonTerminal   -45   40   44
+  Production    -40   39
+  Productions   -39   22
+  SetIdent      -30   26   28   37
+  SimpleSet     -28   27   27   27
+  SingleChar    -29   28   28
+  Symbol        -44   43
+  Term          -42   41   41
+  Token         -33   32
+  TokenExpr     -34   33   35   36   36   36
+  TokenFactor   -36   35   35
+  TokenIdent    -38   33   44
+  TokenSymbol   -37   36
+  TokenTerm     -35   34   34
+  Tokens        -32   21
+  identifier     24   30   38   45
+  number         29
+  string         28   37   44
+
+
+
+First: node = 22
+"+" 
+
+First: node = 24
+"-" 
+
+First: node = 22
+"+" 
+
+First: node = 24
+"-" 
+
+First: node = 29
+identifier 
+
+First: node = 30
+string 
+
+First: node = 33
+"CHR" 
+
+First: node = 38
+"ANY" 
+
+First: node = 29
+identifier 
+
+First: node = 30
+string 
+
+First: node = 33
+"CHR" 
+
+First: node = 38
+"ANY" 
+
+First: node = 66
+identifier string 
+
+First: node = 67
+"(" 
+
+First: node = 72
+"[" 
+
+First: node = 76
+"{" 
+
+First: node = 66
+identifier string 
+
+First: node = 67
+"(" 
+
+First: node = 72
+"[" 
+
+First: node = 76
+"{" 
+
+First: node = 80
+identifier 
+
+First: node = 81
+string 
+
+First: node = 80
+identifier 
+
+First: node = 81
+string 
+
+First: node = 99
+identifier string 
+
+First: node = 100
+"(" 
+
+First: node = 105
+"[" 
+
+First: node = 109
+"{" 
+
+First: node = 99
+identifier string 
+
+First: node = 100
+"(" 
+
+First: node = 105
+"[" 
+
+First: node = 109
+"{" 
+
+First: node = 113
+string 
+
+First: node = 114
+identifier 
+
+First: node = 117
+identifier 
+
+First: node = 113
+string 
+
+First: node = 114
+identifier 
+
+First: node = 117
+identifier 
+
+First: node = 3
+"CHARACTERS" 
+
+First: node = 6
+"IGNORE" "TOKENS" "PRODUCTIONS" 
+
+First: node = 5
+"IGNORE" 
+
+First: node = 8
+"TOKENS" "PRODUCTIONS" 
+
+First: node = 7
+"TOKENS" 
+
+First: node = 9
+"PRODUCTIONS" 
+
+First: node = 15
+identifier 
+
+First: node = null
+-- empty set --
+
+First: node = 48
+identifier 
+
+First: node = null
+-- empty set --
+
+First: node = 86
+identifier 
+
+First: node = null
+-- empty set --
+
+First: node = 26
+"+" "-" 
+
+First: node = null
+-- empty set --
+
+First: node = 22
+"+" 
+
+First: node = 24
+"-" 
+
+First: node = 29
+identifier 
+
+First: node = 30
+string 
+
+First: node = 33
+"CHR" 
+
+First: node = 34
+".." 
+
+First: node = null
+-- empty set --
+
+First: node = 38
+"ANY" 
+
+First: node = 55
+"|" 
+
+First: node = null
+-- empty set --
+
+First: node = 59
+identifier string "(" "[" "{" 
+
+First: node = 65
+"CONTEXT" 
+
+First: node = 61
+"CONTEXT" 
+
+First: node = null
+-- empty set --
+
+First: node = 66
+identifier string 
+
+First: node = 67
+"(" 
+
+First: node = 72
+"[" 
+
+First: node = 76
+"{" 
+
+First: node = 80
+identifier 
+
+First: node = 81
+string 
+
+First: node = 93
+"|" 
+
+First: node = null
+-- empty set --
+
+First: node = 97
+identifier string "(" "[" "{" 
+
+First: node = null
+-- empty set --
+
+First: node = 99
+identifier string 
+
+First: node = 100
+"(" 
+
+First: node = 105
+"[" 
+
+First: node = 109
+"{" 
+
+First: node = 113
+string 
+
+First: node = 114
+identifier 
+
+First: node = 117
+identifier 
+
+First: node = 3
+"CHARACTERS" 
+
+First: node = 5
+"IGNORE" 
+
+First: node = 7
+"TOKENS" 
+
+First: node = 15
+identifier 
+
+First: node = 48
+identifier 
+
+First: node = 86
+identifier 
+
+First: node = 26
+"+" "-" 
+
+First: node = 26
+"+" "-" 
+
+First: node = 22
+"+" 
+
+First: node = 24
+"-" 
+
+First: node = 22
+"+" 
+
+First: node = 24
+"-" 
+
+First: node = 31
+identifier string "ANY" "CHR" 
+
+First: node = 29
+identifier 
+
+First: node = 30
+string 
+
+First: node = 33
+"CHR" 
+
+First: node = 38
+"ANY" 
+
+First: node = 29
+identifier 
+
+First: node = 30
+string 
+
+First: node = 33
+"CHR" 
+
+First: node = 34
+".." 
+
+First: node = 38
+"ANY" 
+
+First: node = 55
+"|" 
+
+First: node = 59
+identifier string "(" "[" "{" 
+
+First: node = 61
+"CONTEXT" 
+
+First: node = 70
+identifier string "(" "[" "{" 
+
+First: node = 66
+identifier string 
+
+First: node = 67
+"(" 
+
+First: node = 72
+"[" 
+
+First: node = 76
+"{" 
+
+First: node = 66
+identifier string 
+
+First: node = 67
+"(" 
+
+First: node = 72
+"[" 
+
+First: node = 76
+"{" 
+
+First: node = 82
+identifier string 
+
+First: node = 80
+identifier 
+
+First: node = 81
+string 
+
+First: node = 80
+identifier 
+
+First: node = 81
+string 
+
+First: node = 93
+"|" 
+
+First: node = 97
+identifier string "(" "[" "{" 
+
+First: node = 103
+identifier string "(" "[" "{" 
+
+First: node = 99
+identifier string 
+
+First: node = 100
+"(" 
+
+First: node = 105
+"[" 
+
+First: node = 109
+"{" 
+
+First: node = 99
+identifier string 
+
+First: node = 100
+"(" 
+
+First: node = 105
+"[" 
+
+First: node = 109
+"{" 
+
+First: node = 115
+identifier string 
+
+First: node = 113
+string 
+
+First: node = 114
+identifier 
+
+First: node = 117
+identifier 
+
+First: node = 113
+string 
+
+First: node = 114
+identifier 
+
+First: node = 117
+identifier 
+
+---------- states ----------
+                 0: letter  1
+                    digit  5
+                    L'"'  2
+                     39  3
+                    L'.' 17
+                    L'='  6
+                    L'+'  7
+                    L'-'  8
+                    L'(' 10
+                    L')' 11
+                    L'|' 12
+                    L'[' 13
+                    L']' 14
+                    L'{' 15
+                    L'}' 16
+E(identifier  )  1: #A  1
+                 2: noQuote2  2
+                    L'"'  4
+                 3: noQuote1  3
+                     39  4
+E(string      )  4:
+E(number      )  5: digit  5
+E("="         )  6:
+E("+"         )  7:
+E("-"         )  8:
+E(".."        )  9:
+E("("         ) 10:
+E(")"         ) 11:
+E("|"         ) 12:
+E("["         ) 13:
+E("]"         ) 14:
+E("{"         ) 15:
+E("}"         ) 16:
+E("."         ) 17: L'.'  9
+
+---------- character classes ----------
+letter    : 'A' .. 'Z' 'a' .. 'z' 
+digit     : '0' .. '9' 
+tab       : 9 
+cr        : 13 
+lf        : 10 
+noQuote2  : 0 .. 9 11 .. 12 14 .. '!' '#' .. 65535 
+noQuote1  : 0 .. 9 11 .. 12 14 .. '&' '(' .. 65535 
+#A        : '0' .. '9' 'A' .. 'Z' 'a' .. 'z' 
+
+
+26 terminals
+49 symbols
+120 nodes
+2 sets
+Symbol Table:
+------------
+
+ nr name          typ  hasAt graph  del    line tokenKind
+  0   EOF          t    false                 0 fixedToken
+  1   identifier   t    false                13 classLitToken
+  2   string       t    false                14 classToken
+  3   number       t    false                15 classToken
+  4   "COMPILER"   t    false                18 litToken
+  5   "END"        t    false                23 litToken
+  6   "."          t    false                23 fixedToken
+  7   "CHARACTERS" t    false                25 litToken
+  8   "="          t    false                26 fixedToken
+  9   "+"          t    false                27 fixedToken
+ 10   "-"          t    false                27 fixedToken
+ 11   ".."         t    false                28 fixedToken
+ 12   "ANY"        t    false                28 litToken
+ 13   "CHR"        t    false                29 litToken
+ 14   "("          t    false                29 fixedToken
+ 15   ")"          t    false                29 fixedToken
+ 16   "IGNORE"     t    false                31 litToken
+ 17   "TOKENS"     t    false                32 litToken
+ 18   "|"          t    false                34 fixedToken
+ 19   "CONTEXT"    t    false                35 litToken
+ 20   "["          t    false                36 fixedToken
+ 21   "]"          t    false                36 fixedToken
+ 22   "{"          t    false                36 fixedToken
+ 23   "}"          t    false                36 fixedToken
+ 24   "PRODUCTIONS t    false                39 litToken
+ 25   ???          t    false                 0 fixedToken
+  0   Cocol        nt   false     1 false    18 fixedToken
+  1   Goal         nt   false    13 false    24 fixedToken
+  2   Characters   nt   false    14 false    25 fixedToken
+  3   Ignorable    nt   false    45 false    31 fixedToken
+  4   Tokens       nt   false    47 false    32 fixedToken
+  5   Productions  nt   false    85 false    39 fixedToken
+  6   NamedCharSet nt   false    17 false    26 fixedToken
+  7   SetIdent     nt   false    44 false    30 fixedToken
+  8   CharacterSet nt   false    21 false    27 fixedToken
+  9   SimpleSet    nt   false    31 false    28 fixedToken
+ 10   SingleChar   nt   false    40 false    29 fixedToken
+ 11   Token        nt   false    50 false    33 fixedToken
+ 12   TokenIdent   nt   false    84 false    38 fixedToken
+ 13   TokenExpr    nt   false    54 false    34 fixedToken
+ 14   TokenTerm    nt   false    58 false    35 fixedToken
+ 15   TokenFactor  nt   false    70 false    36 fixedToken
+ 16   TokenSymbol  nt   false    82 false    37 fixedToken
+ 17   Production   nt   false    88 false    40 fixedToken
+ 18   NonTerminal  nt   false   119 false    45 fixedToken
+ 19   Expression   nt   false    92 false    41 fixedToken
+ 20   Term         nt   false    96 false    42 fixedToken
+ 21   Factor       nt   false   103 false    43 fixedToken
+ 22   Symbol       nt   false   115 false    44 fixedToken
+
+Literal Tokens:
+--------------
+
