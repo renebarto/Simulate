@@ -42,6 +42,8 @@ public:
     static std::string TestASCIISmall() { return Core::Path::CombinePath(TestDirectoryAssembler(), "ASCIISmall.txt"); }
     static std::string TestUTF8Small() { return Core::Path::CombinePath(TestDirectoryAssembler(), "UTF8Small.txt"); }
     static std::string TestUTF8SmallBOM() { return Core::Path::CombinePath(TestDirectoryAssembler(), "UTF16SmallBOM.txt"); }
+    static std::string TestSimple() { return Core::Path::CombinePath(TestDirectoryAssembler(), "Simple.asm"); }
+    static std::string TestMultiply() { return Core::Path::CombinePath(TestDirectoryAssembler(), "Multiply.asm"); }
 };
 
 } // namespace Test

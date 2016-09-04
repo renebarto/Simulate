@@ -5,30 +5,31 @@
 namespace Assembler
 {
 
+template <class Base>
 class StartStates
 {
 public:
-    using Map = std::map<wchar_t, size_t>;
+    using Map = std::map<wchar_t, Base>;
 
     StartStates()
         : map()
     {}
-    void Set(wchar_t key, size_t val)
+    void Set(wchar_t key, Base val)
     {
         if (map.find(key) == map.end())
         {
-            map.insert(std::pair<wchar_t, size_t>(key, val));
+            map.insert(std::pair<wchar_t, Base>(key, val));
             return;
         }
-        throw std::runtime_error("Key already existent");
+        throw std::invalid_argument("Key already existent");
 	}
 
-	size_t Get(wchar_t key, size_t defaultVal)
+	Base Get(wchar_t key)
     {
         Map::const_iterator it = map.find(key);
         if (it == map.end())
         {
-            return defaultVal;
+            return Base{};
         }
         return it->second;
 	}
