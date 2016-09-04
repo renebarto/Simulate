@@ -19,32 +19,28 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="export\simple-processor\AbstractSyntaxTree.h" />
-    <ClInclude Include="export\simple-processor\assembler.h" />
-    <ClInclude Include="export\simple-processor\emulator.h" />
-    <ClInclude Include="export\simple-processor\imemory.h" />
-    <ClInclude Include="export\simple-processor\machine.h" />
-    <ClInclude Include="export\simple-processor\simpleemulator.h" />
-    <ClInclude Include="export\simple-processor\simplemachine.h" />
-    <ClInclude Include="export\simple-processor\ram.h" />
-    <ClInclude Include="export\simple-processor\processor.h" />
-    <ClInclude Include="export\simple-processor\rom.h" />
-    <ClInclude Include="export\simple-processor\simpleprocessor.h" />
-    <ClInclude Include="export\simple-processor\stringreader.h" />
-    <ClInclude Include="export\simple-processor\stringwriter.h" />
-    <ClInclude Include="export\simple-processor\Translator.h" />
+    <ClInclude Include="export\Assembler.h" />
+    <ClInclude Include="export\AssemblerMessage.h" />
+    <ClInclude Include="export\Buffer.h" />
+    <ClInclude Include="export\CharClass.h" />
+    <ClInclude Include="export\CharSet.h" />
+    <ClInclude Include="export\KeywordMap.h" />
+    <ClInclude Include="export\Location.h" />
+    <ClInclude Include="export\Scanner.h" />
+    <ClInclude Include="export\StartStates.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\AbstractSyntaxTree.cpp" />
-    <ClCompile Include="src\assembler.cpp" />
-    <ClCompile Include="src\simpleemulator.cpp" />
-    <ClCompile Include="src\simpleprocessor.cpp" />
-    <ClCompile Include="src\Translator.cpp" />
+    <ClCompile Include="src\Assembler.cpp" />
+    <ClCompile Include="src\Buffer.cpp" />
+    <ClCompile Include="src\CharClass.cpp" />
+    <ClCompile Include="src\CharSet.cpp" />
+    <ClCompile Include="src\Location.cpp" />
+    <ClCompile Include="src\Scanner.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1239D32B-A30B-4587-968A-85F60751F027}</ProjectGuid>
+    <ProjectGuid>{2451DC79-65E9-4463-BC3A-026AC95DBFE7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>simpleprocessor</RootNamespace>
+    <RootNamespace>assembler</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -93,22 +89,18 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</OutDir>
-    <IntDir>$(SolutionDir)build/obj/$(Platform)/$(Configuration)/$(ProjectName)/</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</OutDir>
     <IntDir>$(SolutionDir)build/obj/$(Platform)/$(Configuration)/$(ProjectName)/</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</OutDir>
+    <IntDir>$(SolutionDir)build/obj/$(Platform)/$(Configuration)/$(ProjectName)/</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</OutDir>
     <IntDir>$(SolutionDir)build/obj/$(Platform)/$(Configuration)/$(ProjectName)/</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</OutDir>
     <IntDir>$(SolutionDir)build/obj/$(Platform)/$(Configuration)/$(ProjectName)/</IntDir>
   </PropertyGroup>
@@ -118,13 +110,11 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)/export;$(ProjectDir)/include;$(ProjectDir)/../../components/processor/export;$(ProjectDir)/../../components/processor/include;$(ProjectDir)/../../components/unit-test-c++/export;$(ProjectDir)/../../components/osal/export;$(ProjectDir)/../../components/core/export</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)/export;$(ProjectDir)/include;$(ProjectDir)/../simple-processor/export;$(ProjectDir)/../osal/export;$(ProjectDir)/../core/export</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -133,13 +123,11 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)/export;$(ProjectDir)/include;$(ProjectDir)/../../components/processor/export;$(ProjectDir)/../../components/processor/include;$(ProjectDir)/../../components/unit-test-c++/export;$(ProjectDir)/../../components/osal/export;$(ProjectDir)/../../components/core/export</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)/export;$(ProjectDir)/include;$(ProjectDir)/../simple-processor/export;$(ProjectDir)/../osal/export;$(ProjectDir)/../core/export</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -150,16 +138,13 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)/export;$(ProjectDir)/include;$(ProjectDir)/../../components/processor/export;$(ProjectDir)/../../components/processor/include;$(ProjectDir)/../../components/unit-test-c++/export;$(ProjectDir)/../../components/osal/export;$(ProjectDir)/../../components/core/export</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)/export;$(ProjectDir)/include;$(ProjectDir)/../simple-processor/export;$(ProjectDir)/../osal/export;$(ProjectDir)/../core/export</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -170,16 +155,13 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)/export;$(ProjectDir)/include;$(ProjectDir)/../../components/processor/export;$(ProjectDir)/../../components/processor/include;$(ProjectDir)/../../components/unit-test-c++/export;$(ProjectDir)/../../components/osal/export;$(ProjectDir)/../../components/core/export</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)/export;$(ProjectDir)/include;$(ProjectDir)/../simple-processor/export;$(ProjectDir)/../osal/export;$(ProjectDir)/../core/export</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)build/lib/$(Platform)/$(Configuration)/</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

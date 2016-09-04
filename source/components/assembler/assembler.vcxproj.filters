@@ -15,40 +15,52 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="unistd.h">
+    <ClInclude Include="export\Assembler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="getopt.h">
+    <ClInclude Include="export\CharClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pthread.h">
+    <ClInclude Include="export\CharSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sched.h">
+    <ClInclude Include="export\Location.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Parser.h">
+    <ClInclude Include="export\AssemblerMessage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scanner.h">
+    <ClInclude Include="export\Buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="export\KeywordMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="export\StartStates.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="export\Scanner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Parser.cpp">
+    <ClCompile Include="src\CharClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Scanner.cpp">
+    <ClCompile Include="src\CharSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="assembler.cpp">
+    <ClCompile Include="src\Location.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="assembler-test.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="assembler.atg" />
+    <ClCompile Include="src\Assembler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Buffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scanner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

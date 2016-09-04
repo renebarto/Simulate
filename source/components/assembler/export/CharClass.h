@@ -28,38 +28,26 @@ Coco/R itself) does not fall under the GNU General Public License.
 
 #pragma once
 
-#include "Node.h"
+#include <string>
+#include "CharSet.h"
 
-namespace Coco
+namespace Assembler
 {
 
-class Graph
+class CharClass
 {
 public:
-	Node *l;	// left end of graph = head
-	Node *r;	// right end of graph = list of nodes to be linked to successor graph
 
-	Graph()
-        : l(nullptr)
-        , r(nullptr)
-    {
-	}
+	CharClass(std::wstring const & name, CharSet const & s, size_t id);
 
-	Graph(Node * left, Node * right)
-        : l(left)
-        , r(right)
-    {
-	}
+    CharSet const & GetCharSet() { return set; }
+    std::wstring const & GetName() { return name; }
+    size_t GetClassID() { return n; }
 
-	Graph(Node * p)
-        : l(p)
-        , r(p)
-    {
-	}
-
-	virtual ~Graph()
-    {
-	}
+private:
+	size_t n;           // class number
+	std::wstring name;  // class name
+	CharSet set;        // set representing the class
 };
 
-}; // namespace Coco
+} // namespace Assembler

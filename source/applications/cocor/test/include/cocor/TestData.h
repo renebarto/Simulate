@@ -45,6 +45,8 @@ public:
     static std::string TestDirectoryCocorRefAssembler() { return Core::Path::CombinePath(TestDirectoryCocorRef(), "assembler"); }
     static std::string TestDirectoryCocorOutputCocol() { return Core::Path::InsertPathSeparator(Core::Path::CombinePath(TestDirectoryCocorOutput(), "cocol"), ""); }
     static std::string TestDirectoryCocorRefCocol() { return Core::Path::CombinePath(TestDirectoryCocorRef(), "cocol"); }
+    static std::string TestDirectoryCocorOutputAssembler2() { return Core::Path::InsertPathSeparator(Core::Path::CombinePath(TestDirectoryCocorOutput(), "assembler2"), ""); }
+    static std::string TestDirectoryCocorRefAssembler2() { return Core::Path::CombinePath(TestDirectoryCocorRef(), "assembler2"); }
     static std::string TestTraceFileName() { return "trace.txt"; }
     static std::string TestParserHFileName() { return "Parser.h"; }
     static std::string TestParserCPPFileName() { return "Parser.cpp"; }
@@ -72,6 +74,17 @@ public:
     static std::string TestCocolParserCPPOut() { return Core::Path::CombinePath(TestDirectoryCocorOutputCocol(), TestParserCPPFileName()); }
     static std::string TestCocolScannerHOut() { return Core::Path::CombinePath(TestDirectoryCocorOutputCocol(), TestScannerHFileName()); }
     static std::string TestCocolScannerCPPOut() { return Core::Path::CombinePath(TestDirectoryCocorOutputCocol(), TestScannerCPPFileName()); }
+
+    static std::string TestAssembler2TraceRef() { return Core::Path::CombinePath(TestDirectoryCocorRefAssembler2(), TestTraceFileName()); }
+    static std::string TestAssembler2ParserHRef() { return Core::Path::CombinePath(TestDirectoryCocorRefAssembler2(), TestParserHFileName()); }
+    static std::string TestAssembler2ParserCPPRef() { return Core::Path::CombinePath(TestDirectoryCocorRefAssembler2(), TestParserCPPFileName()); }
+    static std::string TestAssembler2ScannerHRef() { return Core::Path::CombinePath(TestDirectoryCocorRefAssembler2(), TestScannerHFileName()); }
+    static std::string TestAssembler2ScannerCPPRef() { return Core::Path::CombinePath(TestDirectoryCocorRefAssembler2(), TestScannerCPPFileName()); }
+    static std::string TestAssembler2TraceOut() { return Core::Path::CombinePath(TestDirectoryCocorOutputAssembler2(), TestTraceFileName()); }
+    static std::string TestAssembler2ParserHOut() { return Core::Path::CombinePath(TestDirectoryCocorOutputAssembler2(), TestParserHFileName()); }
+    static std::string TestAssembler2ParserCPPOut() { return Core::Path::CombinePath(TestDirectoryCocorOutputAssembler2(), TestParserCPPFileName()); }
+    static std::string TestAssembler2ScannerHOut() { return Core::Path::CombinePath(TestDirectoryCocorOutputAssembler2(), TestScannerHFileName()); }
+    static std::string TestAssembler2ScannerCPPOut() { return Core::Path::CombinePath(TestDirectoryCocorOutputAssembler2(), TestScannerCPPFileName()); }
 };
 
 } // namespace Test

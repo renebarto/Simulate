@@ -32,7 +32,7 @@
     <ClCompile Include="Scanner.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="assembler.cocol">
+    <CustomBuild Include="assembler.atg">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>

@@ -15,40 +15,37 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="unistd.h">
+    <ClInclude Include="include\CommandLineOptionsParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="getopt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="pthread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sched.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Parser.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Scanner.h">
+    <ClInclude Include="include\TestData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Parser.cpp">
+    <ClCompile Include="src\CommandLineOptionsParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Scanner.cpp">
+    <ClCompile Include="src\Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="assembler.cpp">
+    <ClCompile Include="src\Assembler\TestCharClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="assembler-test.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="assembler.atg" />
+    <ClCompile Include="src\Assembler\TestCharSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assembler\TestLocation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assembler\TestAssemblerMessage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assembler\TestBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assembler\TestScanner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

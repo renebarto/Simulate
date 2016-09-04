@@ -54,6 +54,9 @@
     <ClInclude Include="export\simple-processor\assembler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="export\simple-processor\machine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AbstractSyntaxTree.cpp">
