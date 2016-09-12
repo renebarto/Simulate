@@ -166,16 +166,34 @@
     <ClInclude Include="include\TestData.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Assembler\TestAbstractSyntaxTree.cpp" />
     <ClCompile Include="src\Assembler\TestAssemblerMessage.cpp" />
     <ClCompile Include="src\Assembler\TestBuffer.cpp" />
     <ClCompile Include="src\Assembler\TestCharClass.cpp" />
     <ClCompile Include="src\Assembler\TestCharSet.cpp" />
+    <ClCompile Include="src\Assembler\TestErrorHandler.cpp" />
     <ClCompile Include="src\Assembler\TestKeywordMap.cpp" />
     <ClCompile Include="src\Assembler\TestLocation.cpp" />
+    <ClCompile Include="src\Assembler\TestParser.cpp" />
     <ClCompile Include="src\Assembler\TestScanner.cpp" />
     <ClCompile Include="src\Assembler\TestStartStates.cpp" />
+    <ClCompile Include="src\Assembler\TestSymbolMap.cpp" />
+    <ClCompile Include="src\Assembler\TestToken.cpp" />
     <ClCompile Include="src\CommandLineOptionsParser.cpp" />
     <ClCompile Include="src\Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\..\..\testdata\assembler\ASCIISmall.txt" />
+    <Text Include="..\..\..\..\testdata\assembler\UTF16SmallBOM.txt" />
+    <Text Include="..\..\..\..\testdata\assembler\UTF8Small.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\testdata\assembler\Multiply.asm">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+    <None Include="..\..\..\..\testdata\assembler\Simple.asm">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

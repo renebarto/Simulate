@@ -1,18 +1,13 @@
 #pragma once
 
-#include <iostream>
-#include <vector>
-#include "AssemblerMessage.h"
-#include "CharClass.h"
-#include "Scanner.h"
-#include "Token.h"
-#include "simple-processor/simplemachine.h"
+#include "CPUParser.h"
 
 namespace Assembler
 {
 
-enum class OpcodeType : uint8_t
+enum class OpcodeType : uint16_t
 {
+    Invalid = 0xFFFF,
     NOP = 0x00,
     LXI = 0x01,
     STAX = 0x02,
@@ -108,25 +103,95 @@ enum class OpcodeType : uint8_t
     JK = 0xFD,   // undocumented: Jump to location addr if K flag is set. if (KFLag) PC = addr
 };
 
+enum class Register8Type : uint8_t
+{
+    Invalid = 0xFF,
+    B = 0x00,
+    C = 0x01,
+    D = 0x02,
+    E = 0x03,
+    H = 0x04,
+    L = 0x05,
+    M = 0x06,
+    A = 0x07,
+};
 
-class Assembler
+enum class Register16Type : uint8_t
+{
+    Invalid = 0xFF,
+    BC = 0x00,
+    DE = 0x01,
+    HL = 0x02,
+    SP = 0x03,
+    PSW = 0x04,
+};
+
+enum class RSTCode : uint8_t
+{
+    Invalid = 0xFF,
+    RST0 = 0x00,
+    RST1 = 0x01,
+    RST2 = 0x02,
+    RST3 = 0x03,
+    RST4 = 0x04,
+    RST5 = 0x05,
+    RST6 = 0x06,
+    RST7 = 0x07,
+};
+
+enum class OperandState
+{
+    Invalid,
+    Simple,
+    R8_R8,       // ddd, sss
+    R8,         // ddd / sss
+    R8_D8,       // ddd / sss + 8 bit immediate
+    R16_BD,     // rp: BC or DE
+    R16_BDH_PSW,// rp: BC, DE, HL or PSW (PUSH/POP)
+    R16_BDH_SP, // rp: BC, DE, HL or SP
+    R16_BDH_SP_D16,// rp: BC, DE, HL or SP + 16 bit immediate
+    D8,         // 8 bit immediate
+    P8,         // 8 bit immediate port number
+    D16,        // 16 bit immediate
+    A16,        // 16 bit immediate address
+    N,          // Restart code (0-7)
+};
+
+class RSTNode : public ASTNode
 {
 public:
-    Assembler(Simulate::SimpleMachine & machine, std::istream & source, std::wostream & reportStream);
-    virtual ~Assembler();
-    bool Assemble(std::vector<uint8_t> & machineCode);
-    AssemblerMessages const & GetMessages() { return messages; }
+    RSTNode(RSTCode rstCode, std::wstring const & value, Location const & location)
+        : ASTNode(ASTNodeType::RSTCode, value, location)
+        , rstCode(rstCode)
+    {}
+    virtual ~RSTNode() {}
 
-protected:
-    Simulate::SimpleMachine & machine;
-    std::istream & source;
-    AssemblerMessages messages;
-    Scanner scanner;
-    KeywordMap<OpcodeType> opcodeKeywords;
-
-    CharClass ExtractCharacter();
-    Token ExtractToken();
-    bool HandleToken();
+    RSTCode GetRSTCode() const { return rstCode; }
+private:
+    RSTCode rstCode;    
 };
+
+class CPUParserIntel8080_8085 : public CPUParser<OpcodeType, OperandState>
+{
+public:
+	CPUParserIntel8080_8085(CPUType cpuType, Scanner & scanner, ErrorHandler & errorHandler);
+	virtual ~CPUParserIntel8080_8085();
+
+private:
+    KeywordMap<Register8Type> registers8;
+    KeywordMap<Register16Type> registers16;
+    KeywordMap<RSTCode> rstCodes;
+
+    void Init();
+
+    Register8Node<Register8Type>::Ptr CreateRegisterNode(Register8Type registerType, std::wstring const & value, Location const & location);
+    Register16Node<Register16Type>::Ptr CreateRegisterNode(Register16Type registerType, std::wstring const & value, Location const & location);
+    RSTNode::Ptr CreateRSTNode(RSTCode rstCode, std::wstring const & value, Location const & location);
+    void HandleOpcodeAndOperands(LabelNode::Ptr label) override;
+    void HandleOperands(OpcodeNode<OpcodeType>::Ptr opcode, OperandState state) override;
+
+    void ParseExpression8(OpcodeNode<OpcodeType>::Ptr opcode);
+    void ParseExpression16(OpcodeNode<OpcodeType>::Ptr opcode);
+}; // Parser
 
 } // namespace Assembler

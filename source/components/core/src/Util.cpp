@@ -325,6 +325,58 @@ bool HasValidCharactersFloatingPoint(const string & text)
     return true;
 }
 
+bool HasValidCharactersForBase(const wstring & text, int base)
+{
+    if (text.empty())
+        return false;
+    switch (base)
+    {
+    case 2:
+        for (size_t i = 0; i < text.length(); i++)
+        {
+            if (wcschr(L"01", towupper(text[i])) == nullptr)
+                return false;
+        }
+        break;
+    case 8:
+        for (size_t i = 0; i < text.length(); i++)
+        {
+            if (wcschr(L"01234567", towupper(text[i])) == nullptr)
+                return false;
+        }
+        break;
+    case 10:
+        for (size_t i = 0; i < text.length(); i++)
+        {
+            if (wcschr(L"0123456789+-", towupper(text[i])) == nullptr)
+                return false;
+        }
+        break;
+    case 16:
+        for (size_t i = 0; i < text.length(); i++)
+        {
+            if (wcschr(L"0123456789ABCDEF", towupper(text[i])) == nullptr)
+                return false;
+        }
+        break;
+    default:
+        return false;
+    }
+    return true;
+}
+
+bool HasValidCharactersFloatingPoint(const wstring & text)
+{
+    if (text.empty())
+        return false;
+    for (size_t i = 0; i < text.length(); i++)
+    {
+        if (wcschr(L"0123456789.+-Ee", towupper(text[i])) == nullptr)
+            return false;
+    }
+    return true;
+}
+
 bool Util::TryParse(const string & text, int8_t & value, int base /*= 10*/)
 {
     if (!HasValidCharactersForBase(text, base))
@@ -460,6 +512,146 @@ bool Util::TryParse(const string & text, double & value)
         return false;
 
     istringstream stream(text);
+    stream >> value;
+
+    return true;
+}
+
+bool Util::TryParse(const wstring & text, int8_t & value, int base /*= 10*/)
+{
+    if (!HasValidCharactersForBase(text, base))
+        return false;
+
+    long result = wcstol(text.c_str(), nullptr, base);
+    if ((base == 10) && ((result < CHAR_MIN) || (result > CHAR_MAX)))
+        return false;
+    value = (int8_t)result;
+
+    return true;
+}
+
+bool Util::TryParse(const wstring & text, bool & value)
+{
+    if (Core::String::IsEqualIgnoreCase(L"true", text))
+    {
+        value = true;
+        return true;
+    }
+    if (Core::String::IsEqualIgnoreCase(L"false", text))
+    {
+        value = false;
+        return true;
+    }
+
+    return false;
+}
+
+bool Util::TryParse(const wstring & text, uint8_t & value, int base /*= 10*/)
+{
+    if (!HasValidCharactersForBase(text, base))
+        return false;
+
+    long result = wcstol(text.c_str(), nullptr, base);
+    if ((base == 10) && ((result < 0) || (result > UCHAR_MAX)))
+        return false;
+    value = (uint8_t)result;
+
+    return true;
+}
+
+bool Util::TryParse(const wstring & text, int16_t & value, int base /*= 10*/)
+{
+    if (!HasValidCharactersForBase(text, base))
+        return false;
+
+    long result = wcstol(text.c_str(), nullptr, base);
+    if ((base == 10) && ((result < SHRT_MIN) || (result > SHRT_MAX)))
+        return false;
+    value = (int16_t)result;
+
+    return true;
+}
+
+bool Util::TryParse(const wstring & text, uint16_t & value, int base /*= 10*/)
+{
+    if (!HasValidCharactersForBase(text, base))
+        return false;
+
+    long result = wcstol(text.c_str(), nullptr, base);
+    if ((base == 10) && ((result < 0) || (result > USHRT_MAX)))
+        return false;
+    value = (uint16_t)result;
+
+    return true;
+}
+
+bool Util::TryParse(const wstring & text, int32_t & value, int base /*= 10*/)
+{
+    if (!HasValidCharactersForBase(text, base))
+        return false;
+
+    long long result = wcstoll(text.c_str(), nullptr, base);
+    if ((base == 10) && ((result < INT_MIN) || (result > INT_MAX)))
+        return false;
+    value = (int32_t)result;
+
+    return true;
+}
+
+bool Util::TryParse(const wstring & text, uint32_t & value, int base /*= 10*/)
+{
+    if (!HasValidCharactersForBase(text, base))
+        return false;
+
+    unsigned long long result = wcstoull(text.c_str(), nullptr, base);
+    if ((base == 10) && (result > (unsigned long)UINT_MAX))
+        return false;
+    value = (uint32_t)result;
+
+    return true;
+}
+
+bool Util::TryParse(const wstring & text, int64_t & value, int base /*= 10*/)
+{
+    if (!HasValidCharactersForBase(text, base))
+        return false;
+
+    long long result = wcstoull(text.c_str(), nullptr, base);
+    if ((base == 10) && ((result < LLONG_MIN) || (result > LLONG_MAX)))
+        return false;
+    value = (int64_t)result;
+
+    return true;
+}
+
+bool Util::TryParse(const wstring & text, uint64_t & value, int base /*= 10*/)
+{
+    if (!HasValidCharactersForBase(text, base))
+        return false;
+
+    unsigned long long result = wcstoull(text.c_str(), nullptr, base);
+    value = (uint64_t)result;
+
+    return true;
+}
+
+bool Util::TryParse(const wstring & text, float & value)
+{
+    if (!HasValidCharactersFloatingPoint(text))
+        return false;
+
+    wistringstream stream(text);
+    stream >> value;
+
+    return true;
+}
+
+bool Util::TryParse(const wstring & text, double & value)
+{
+    if (!HasValidCharactersFloatingPoint(text))
+        return false;
+
+    wistringstream stream(text);
     stream >> value;
 
     return true;
@@ -735,6 +927,280 @@ string Util::ToString(string value, bool quote)
     stream << value;
     if (quote)
         stream << "\"";
+
+    return stream.str();
+}
+
+wstring Util::ToWString(bool value)
+{
+    return value ? L"true" : L"false";
+}
+
+wstring Util::ToWString(uint8_t value, int base)
+{
+    wostringstream stream;
+
+    switch (base)
+    {
+    case 2:
+    {
+        std::bitset<8> x(value);
+        stream << setfill(L'0') << setw(8) << x;
+    }
+    break;
+    case 8:
+    {
+        stream << oct << setfill(L'0') << setw(3) << (int)value;
+    }
+    break;
+    case 10:
+    {
+        stream << dec << setfill(L'0') << (int)value;
+    }
+    break;
+    case 16:
+    {
+        stream << hex << uppercase << setfill(L'0') << setw(2) << (int)value;
+    }
+    break;
+    default:
+        throw Core::ArgumentException(__func__, __FILE__, __LINE__, "base",
+                                      "Invalid base specified, only 2, 8, 10, 16 supported");
+    }
+    return stream.str();
+}
+
+wstring Util::ToWString(int16_t value, int base)
+{
+    wostringstream stream;
+
+    switch (base)
+    {
+    case 2:
+    {
+        std::bitset<16> x(value);
+        stream << setfill(L'0') << setw(16) << x;
+    }
+    break;
+    case 8:
+    {
+        stream << oct << setfill(L'0') << setw(6) << value;
+    }
+    break;
+    case 10:
+    {
+        stream << dec << setfill(L'0') << value;
+    }
+    break;
+    case 16:
+    {
+        stream << hex << uppercase << setfill(L'0') << setw(4) << value;
+    }
+    break;
+    default:
+        throw Core::ArgumentException(__func__, __FILE__, __LINE__, "base",
+                                      "Invalid base specified, only 2, 8, 10, 16 supported");
+    }
+    return stream.str();
+}
+
+wstring Util::ToWString(uint16_t value, int base)
+{
+    wostringstream stream;
+
+    switch (base)
+    {
+    case 2:
+    {
+        std::bitset<16> x(value);
+        stream << setfill(L'0') << setw(16) << x;
+    }
+    break;
+    case 8:
+    {
+        stream << oct << setfill(L'0') << setw(6) << value;
+    }
+    break;
+    case 10:
+    {
+        stream << dec << setfill(L'0') << value;
+    }
+    break;
+    case 16:
+    {
+        stream << hex << uppercase << setfill(L'0') << setw(4) << value;
+    }
+    break;
+    default:
+        throw Core::ArgumentException(__func__, __FILE__, __LINE__, "base",
+                                      "Invalid base specified, only 2, 8, 10, 16 supported");
+    }
+    return stream.str();
+}
+
+wstring Util::ToWString(int32_t value, int base)
+{
+    wostringstream stream;
+
+    switch (base)
+    {
+    case 2:
+    {
+        std::bitset<32> x(value);
+        stream << setfill(L'0') << setw(32) << x;
+    }
+    break;
+    case 8:
+    {
+        stream << oct << setfill(L'0') << setw(11) << value;
+    }
+    break;
+    case 10:
+    {
+        stream << dec << setfill(L'0') << value;
+    }
+    break;
+    case 16:
+    {
+        stream << hex << uppercase << setfill(L'0') << setw(8) << value;
+    }
+    break;
+    default:
+        throw Core::ArgumentException(__func__, __FILE__, __LINE__, "base",
+                                      "Invalid base specified, only 2, 8, 10, 16 supported");
+    }
+    return stream.str();
+}
+
+wstring Util::ToWString(uint32_t value, int base)
+{
+    wostringstream stream;
+
+    switch (base)
+    {
+    case 2:
+    {
+        std::bitset<32> x(value);
+        stream << setfill(L'0') << setw(32) << x;
+    }
+    break;
+    case 8:
+    {
+        stream << oct << setfill(L'0') << setw(11) << value;
+    }
+    break;
+    case 10:
+    {
+        stream << dec << setfill(L'0') << value;
+    }
+    break;
+    case 16:
+    {
+        stream << hex << uppercase << setfill(L'0') << setw(8) << value;
+    }
+    break;
+    default:
+        throw Core::ArgumentException(__func__, __FILE__, __LINE__, "base",
+                                      "Invalid base specified, only 2, 8, 10, 16 supported");
+    }
+    return stream.str();
+}
+
+wstring Util::ToWString(int64_t value, int base)
+{
+    wostringstream stream;
+
+    switch (base)
+    {
+    case 2:
+    {
+        std::bitset<64> x(value);
+        stream << setfill(L'0') << setw(64) << x;
+    }
+    break;
+    case 8:
+    {
+        stream << oct << setfill(L'0') << setw(22) << value;
+    }
+    break;
+    case 10:
+    {
+        stream << dec << setfill(L'0') << value;
+    }
+    break;
+    case 16:
+    {
+        stream << hex << uppercase << setfill(L'0') << setw(16) << value;
+    }
+    break;
+    default:
+        throw Core::ArgumentException(__func__, __FILE__, __LINE__, "base",
+                                      "Invalid base specified, only 2, 8, 10, 16 supported");
+    }
+    return stream.str();
+}
+
+wstring Util::ToWString(uint64_t value, int base)
+{
+    wostringstream stream;
+
+    switch (base)
+    {
+    case 2:
+    {
+        std::bitset<64> x(value);
+        stream << setfill(L'0') << setw(64) << x;
+    }
+    break;
+    case 8:
+    {
+        stream << oct << setfill(L'0') << setw(22) << value;
+    }
+    break;
+    case 10:
+    {
+        stream << dec << setfill(L'0') << value;
+    }
+    break;
+    case 16:
+    {
+        stream << hex << uppercase << setfill(L'0') << setw(16) << value;
+    }
+    break;
+    default:
+        throw Core::ArgumentException(__func__, __FILE__, __LINE__, "base",
+                                      "Invalid base specified, only 2, 8, 10, 16 supported");
+    }
+    return stream.str();
+}
+
+wstring Util::ToWString(float value, int precision)
+{
+    std::wostringstream stream;
+
+    stream << setprecision(precision) << value;
+
+    return stream.str();
+}
+
+wstring Util::ToWString(double value, int precision)
+{
+    std::wostringstream stream;
+
+    stream << setprecision(precision) << value;
+
+    return stream.str();
+}
+
+wstring Util::ToWString(wstring value, bool quote)
+{
+    std::wostringstream stream;
+
+    if (quote)
+        stream << L"\"";
+    stream << value;
+    if (quote)
+        stream << L"\"";
 
     return stream.str();
 }

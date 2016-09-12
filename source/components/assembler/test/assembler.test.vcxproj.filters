@@ -53,5 +53,29 @@
     <ClCompile Include="src\Assembler\TestStartStates.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Assembler\TestErrorHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assembler\TestParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assembler\TestToken.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assembler\TestSymbolMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assembler\TestAbstractSyntaxTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\..\..\testdata\assembler\ASCIISmall.txt" />
+    <Text Include="..\..\..\..\testdata\assembler\UTF8Small.txt" />
+    <Text Include="..\..\..\..\testdata\assembler\UTF16SmallBOM.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\testdata\assembler\Multiply.asm" />
+    <None Include="..\..\..\..\testdata\assembler\Simple.asm" />
   </ItemGroup>
 </Project>

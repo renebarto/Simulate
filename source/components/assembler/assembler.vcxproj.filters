@@ -45,6 +45,33 @@
     <ClInclude Include="export\Token.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="export\ErrorHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="export\Parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ICPUParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="export\SymbolMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="export\AbstractSyntaxTree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\CPUParserIntel8080_8085.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="export\CPUType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\CPUParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Nodes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\CharClass.cpp">
@@ -66,6 +93,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Token.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ErrorHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AbstractSyntaxTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CPUParserIntel8080_8085.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CPUType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -27,12 +27,12 @@ void AssemblerMessageTest::TearDown()
 
 static const size_t Line = 1;
 static const size_t Column = 2;
-static const std::string Message = "ABC";
+static const std::wstring Message = L"ABC";
 
 TEST_FIXTURE(AssemblerMessageTest, ConstructDefault)
 {
     Location location(Line, Column);
-    AssemblerMessage  message(location, Message);
+    AssemblerMessage message(location, Message);
     EXPECT_EQ(Line, message.GetLocation().GetLine());
     EXPECT_EQ(Column, message.GetLocation().GetColumn());
     EXPECT_EQ(Message, message.GetMessage());

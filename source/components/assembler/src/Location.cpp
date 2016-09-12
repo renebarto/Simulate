@@ -3,6 +3,13 @@
 namespace Assembler
 {
 
+Location::Location()
+    : line(0)
+    , column(0)
+    , charPos(0)
+{
+}
+
 Location::Location(size_t line, size_t column, size_t charPos)
     : line(line)
     , column(column)
@@ -47,6 +54,16 @@ void Location::NewLine()
 {
     ++line;
     column = 0;
+}
+
+bool Location::operator == (Location const & other) const
+{
+    return (line == other.line) && (column == other.column) && (charPos == other.charPos);
+}
+
+bool Location::operator != (Location const & other) const
+{
+    return !operator == (other);
 }
 
 } // namespace Assembler

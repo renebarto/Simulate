@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include "Location.h"
 
 namespace Assembler
@@ -9,16 +10,18 @@ namespace Assembler
 class AssemblerMessage
 {
 public:
-    AssemblerMessage(const Location & location, std::string const & message)
+    AssemblerMessage(const Location & location, std::wstring const & message)
         : location(location)
         , message(message)
     {}
     Location const & GetLocation() const { return location; }
-    std::string const & GetMessage() const { return message; }
+    std::wstring const & GetMessage() const { return message; }
 
 private:
     Location location;
-    std::string message;
+    std::wstring message;
 };
+
+using AssemblerMessages = std::vector<AssemblerMessage>;
 
 } // namespace Assembler

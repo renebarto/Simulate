@@ -2,6 +2,7 @@
 
 #include <map>
 #include <string>
+#include "core/String.h"
 
 namespace Assembler
 {
@@ -17,17 +18,20 @@ public:
     {}
     void Set(std::wstring const & key, Base val)
     {
-        if (map.find(key) == map.end())
+        std::wstring keyUpper = Core::String::ToUpper(key);
+        if (map.find(keyUpper) == map.end())
         {
-            map.insert(std::pair<std::wstring, Base>(key, val));
+            map.insert(std::pair<std::wstring, Base>(keyUpper, val));
             return;
         }
-        throw std::invalid_argument("Key already existent");
+        std::ostringstream stream;
+        stream << "Key already exists: " << Core::String::ToString(key);
+        throw std::invalid_argument(stream.str());
 	}
 
 	Base Get(std::wstring const & key, Base defaultVal)
     {
-        Map::const_iterator it = map.find(key);
+        Map::const_iterator it = map.find(Core::String::ToUpper(key));
         if (it == map.end())
         {
             return defaultVal;

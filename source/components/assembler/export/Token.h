@@ -16,6 +16,8 @@ enum class TokenType : size_t
     BadString = 4,
     Colon = 5,
     Comma = 6,
+    EOL = 7,
+    LocCounter = 8,
     ORGCommand = 10,
     ENDCommand = 11,
     EOTCommand = 12,
@@ -61,6 +63,7 @@ enum class TokenType : size_t
     LOCALDirective = 207,
     PAGEDirective = 208,
     INPAGEDirective = 209,
+    CPUDirective = 210,
 };
 
 class Token
@@ -69,14 +72,19 @@ public:
 	TokenType kind;   // token kind
 	size_t bufferPos; // token position in bytes in the source text (starting at 0)
 	Location location;
-	std::wstring val; // token value
+	std::wstring value; // token value
 
     Token();
+    Token(TokenType kind, std::wstring const & value);
+    Token(TokenType kind, size_t bufferPos, Location const & location, std::wstring const & value);
     Token(Token const & other);
     Token(Token && other);
 	~Token();
     Token & operator = (Token const & other);
     Token & operator = (Token && other);
+
+    bool operator == (Token const & other) const;
+    bool operator != (Token const & other) const;
 
 private:
 };

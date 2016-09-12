@@ -7,7 +7,23 @@ Token::Token()
     : kind(TokenType::Unknown)
 	, bufferPos()
 	, location()
-	, val()
+	, value()
+{
+}
+
+Token::Token(TokenType kind, std::wstring const & value)
+    : kind(kind)
+	, bufferPos()
+	, location()
+	, value(value)
+{
+}
+
+Token::Token(TokenType kind, size_t bufferPos, Location const & location, std::wstring const & value)
+    : kind(kind)
+	, bufferPos(bufferPos)
+	, location(location)
+	, value(value)
 {
 }
 
@@ -15,7 +31,7 @@ Token::Token(Token const & other)
     : kind(other.kind)
 	, bufferPos(other.bufferPos)
 	, location(other.location)
-	, val(other.val)
+	, value(other.value)
 {
 }
 
@@ -23,7 +39,7 @@ Token::Token(Token && other)
     : kind(std::move(other.kind))
 	, bufferPos(std::move(other.bufferPos))
 	, location(std::move(other.location))
-	, val(std::move(other.val))
+	, value(std::move(other.value))
 {
 }
 
@@ -38,7 +54,7 @@ Token & Token::operator = (Token const & other)
         kind = other.kind;
         bufferPos = other.bufferPos;
         location = other.location;
-        val = other.val;
+        value = other.value;
     }
     return *this;
 }
@@ -50,9 +66,19 @@ Token & Token::operator = (Token && other)
         kind = std::move(other.kind);
         bufferPos = std::move(other.bufferPos);
         location = std::move(other.location);
-        val = std::move(other.val);
+        value = std::move(other.value);
     }
     return *this;
+}
+
+bool Token::operator == (Token const & other) const
+{
+    return (kind == other.kind) && (value == other.value);
+}
+
+bool Token::operator != (Token const & other) const
+{
+    return !operator == (other);
 }
 
 } // namespace Assembler

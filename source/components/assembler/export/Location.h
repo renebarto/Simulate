@@ -6,7 +6,8 @@ namespace Assembler
 class Location
 {
 public:
-    Location(size_t line = 1, size_t column = 0, size_t charPos = -1);
+    Location();
+    Location(size_t line, size_t column, size_t charPos = 0);
     Location(const Location & other);
     Location & operator = (const Location & other);
 
@@ -16,6 +17,9 @@ public:
 
     Location & operator++();
     Location operator++(int);
+
+    bool operator == (Location const & other) const;
+    bool operator != (Location const & other) const;
 
     void NewLine();
 

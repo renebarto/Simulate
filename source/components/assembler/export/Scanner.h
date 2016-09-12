@@ -2,6 +2,7 @@
 
 #include <deque>
 #include "Buffer.h"
+#include "CharSet.h"
 #include "KeywordMap.h"
 #include "Location.h"
 #include "StartStates.h"
@@ -38,6 +39,7 @@ enum class CharType : size_t
     Semicolon = 22,
     Dot = 23,
     Backslash = 24,
+    EOL = 25,
 };
 
 class Scanner
@@ -79,7 +81,9 @@ public:
     wchar_t NextCh();
     Token NextToken();
     Token Scan();
-    Token Peek();
+    void  Pushback(Token const & token);
+
+    std::wostream & GetReportStream() { return reportStream; }    
 
 private:
     wchar_t currentChar;
@@ -87,9 +91,15 @@ private:
 	size_t bufferPos;
     Buffer buffer;
     KeywordMap<TokenType> assemblerKeywords;
-	StartStates<CharType> startStates;
+	StartStates<wchar_t, CharType> startStates;
+    CharSet binaryNumber;
+    CharSet octalNumber;
+    CharSet decimalNumber;
+    CharSet hexNumber;
     std::wostream & reportStream;
-    std::deque<Token> prefetchedTokens;
+    std::deque<Token> queuedTokens;
+
+    bool CheckAgainstCharSet(std::wstring const & text, CharSet const & set);
 };
 
 } // namespace Assembler

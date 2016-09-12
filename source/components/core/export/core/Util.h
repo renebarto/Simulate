@@ -88,7 +88,36 @@ bool TryParse(const std::string & text, Nullable<T> & value)
     }
     value.SetNull();
     return false;
-}std::string ToString(bool value);
+}
+bool TryParse(const std::wstring & text, bool & value);
+bool TryParse(const std::wstring & text, int8_t & value, int base = 10);
+bool TryParse(const std::wstring & text, uint8_t & value, int base = 10);
+bool TryParse(const std::wstring & text, int16_t & value, int base = 10);
+bool TryParse(const std::wstring & text, uint16_t & value, int base = 10);
+bool TryParse(const std::wstring & text, int32_t & value, int base = 10);
+bool TryParse(const std::wstring & text, uint32_t & value, int base = 10);
+bool TryParse(const std::wstring & text, int64_t & value, int base = 10);
+bool TryParse(const std::wstring & text, uint64_t & value, int base = 10);
+bool TryParse(const std::wstring & text, float & value);
+bool TryParse(const std::wstring & text, double & value);
+inline bool TryParse(const std::wstring & text, std::wstring & value)
+{
+    value = text;
+    return true;
+}
+template <class T>
+bool TryParse(const std::wstring & text, Nullable<T> & value)
+{
+    T parsedValue;
+    if (TryParse(text, parsedValue))
+    {
+        value = parsedValue;
+        return true;
+    }
+    value.SetNull();
+    return false;
+}
+std::string ToString(bool value);
 std::string ToString(uint8_t value, int base = 10);
 std::string ToString(int16_t value, int base = 10);
 std::string ToString(uint16_t value, int base = 10);
@@ -102,6 +131,25 @@ std::string ToString(std::string value, bool quote = true);
 template <class T> std::string ToString(T value)
 {
     std::ostringstream stream;
+
+    stream << value;
+
+    return stream.str();
+}
+std::wstring ToWString(bool value);
+std::wstring ToWString(uint8_t value, int base = 10);
+std::wstring ToWString(int16_t value, int base = 10);
+std::wstring ToWString(uint16_t value, int base = 10);
+std::wstring ToWString(int32_t value, int base = 10);
+std::wstring ToWString(uint32_t value, int base = 10);
+std::wstring ToWString(int64_t value, int base = 10);
+std::wstring ToWString(uint64_t value, int base = 10);
+std::wstring ToWString(float value, int precision = 16);
+std::wstring ToWString(double value, int precision = 16);
+std::wstring ToWString(std::wstring value, bool quote = true);
+template <class T> std::wstring ToWString(T value)
+{
+    std::wostringstream stream;
 
     stream << value;
 

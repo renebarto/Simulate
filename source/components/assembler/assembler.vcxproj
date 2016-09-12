@@ -19,23 +19,37 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="export\AbstractSyntaxTree.h" />
     <ClInclude Include="export\Assembler.h" />
     <ClInclude Include="export\AssemblerMessage.h" />
     <ClInclude Include="export\Buffer.h" />
     <ClInclude Include="export\CharClass.h" />
     <ClInclude Include="export\CharSet.h" />
+    <ClInclude Include="export\CPUType.h" />
+    <ClInclude Include="export\ErrorHandler.h" />
     <ClInclude Include="export\KeywordMap.h" />
     <ClInclude Include="export\Location.h" />
+    <ClInclude Include="export\Parser.h" />
     <ClInclude Include="export\Scanner.h" />
     <ClInclude Include="export\StartStates.h" />
+    <ClInclude Include="export\SymbolMap.h" />
     <ClInclude Include="export\Token.h" />
+    <ClInclude Include="include\CPUParser.h" />
+    <ClInclude Include="include\ICPUParser.h" />
+    <ClInclude Include="include\CPUParserIntel8080_8085.h" />
+    <ClInclude Include="include\Nodes.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\AbstractSyntaxTree.cpp" />
     <ClCompile Include="src\Assembler.cpp" />
     <ClCompile Include="src\Buffer.cpp" />
     <ClCompile Include="src\CharClass.cpp" />
     <ClCompile Include="src\CharSet.cpp" />
+    <ClCompile Include="src\CPUType.cpp" />
+    <ClCompile Include="src\ErrorHandler.cpp" />
     <ClCompile Include="src\Location.cpp" />
+    <ClCompile Include="src\Parser.cpp" />
+    <ClCompile Include="src\CPUParserIntel8080_8085.cpp" />
     <ClCompile Include="src\Scanner.cpp" />
     <ClCompile Include="src\Token.cpp" />
   </ItemGroup>

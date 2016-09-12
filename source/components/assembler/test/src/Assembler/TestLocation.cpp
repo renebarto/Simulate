@@ -32,9 +32,9 @@ static const size_t Pos = 3;
 TEST_FIXTURE(LocationTest, ConstructDefault)
 {
     Location location;
-    EXPECT_EQ(size_t{ 1 }, location.GetLine());
+    EXPECT_EQ(size_t{ 0 }, location.GetLine());
     EXPECT_EQ(size_t{ 0 }, location.GetColumn());
-    EXPECT_EQ(size_t{ unsigned long long(-1) }, location.GetCharPos());
+    EXPECT_EQ(size_t{ 0 }, location.GetCharPos());
 }
 
 TEST_FIXTURE(LocationTest, Construct)
@@ -105,6 +105,34 @@ TEST_FIXTURE(LocationTest, NewLine)
     EXPECT_EQ(Line + 1, location.GetLine());
     EXPECT_EQ(size_t{ 0 }, location.GetColumn());
     EXPECT_EQ(Pos, location.GetCharPos());
+}
+
+TEST_FIXTURE(LocationTest, Equal)
+{
+    Location location(Line, Column, Pos);
+    Location ref1(Line, Column, Pos);
+    Location ref2(0, Column, Pos);
+    Location ref3(Line, 0, Pos);
+    Location ref4(Line, Column, 0);
+    
+    EXPECT_TRUE(location == ref1);
+    EXPECT_FALSE(location == ref2);
+    EXPECT_FALSE(location == ref3);
+    EXPECT_FALSE(location == ref4);
+}
+
+TEST_FIXTURE(LocationTest, NotEqual)
+{
+    Location location(Line, Column, Pos);
+    Location ref1(Line, Column, Pos);
+    Location ref2(0, Column, Pos);
+    Location ref3(Line, 0, Pos);
+    Location ref4(Line, Column, 0);
+    
+    EXPECT_FALSE(location != ref1);
+    EXPECT_TRUE(location != ref2);
+    EXPECT_TRUE(location != ref3);
+    EXPECT_TRUE(location != ref4);
 }
 
 } // namespace Test

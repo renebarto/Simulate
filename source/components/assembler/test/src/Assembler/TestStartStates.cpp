@@ -35,7 +35,7 @@ static const size_t ValueNonExistent = size_t(0);
 
 TEST_FIXTURE(StartStatesTest, ConstructDefault)
 {
-    StartStates<size_t> startStates;
+    StartStates<wchar_t, size_t> startStates;
 
     EXPECT_EQ(ValueNonExistent, startStates.Get(Char1));
     EXPECT_EQ(ValueNonExistent, startStates.Get(Char2));
@@ -44,7 +44,7 @@ TEST_FIXTURE(StartStatesTest, ConstructDefault)
 
 TEST_FIXTURE(StartStatesTest, GetSet)
 {
-    StartStates<size_t> startStates;
+    StartStates<wchar_t, size_t> startStates;
 
     startStates.Set(Char1, Value1);
 
@@ -67,7 +67,7 @@ TEST_FIXTURE(StartStatesTest, GetSet)
 
 TEST_FIXTURE(StartStatesTest, SetExistent)
 {
-    StartStates<size_t> startStates;
+    StartStates<wchar_t, size_t> startStates;
 
     startStates.Set(Char1, Value1);
 

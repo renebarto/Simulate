@@ -40,7 +40,7 @@ Scanner::Scanner(std::istream * stream, bool isUserOwned, std::wostream & report
     , assemblerKeywords()
     , startStates()
     , reportStream(reportStream)
-    , prefetchedTokens()
+    , queuedTokens()
 {
     Init();
 }
@@ -53,7 +53,7 @@ Scanner::Scanner(std::string const & path, std::wostream & reportStream)
     , assemblerKeywords()
     , startStates()
     , reportStream(reportStream)
-    , prefetchedTokens()
+    , queuedTokens()
 {
     Init();
 }
@@ -87,7 +87,9 @@ void Scanner::Init()
     startStates.Set(Dot, CharType::Dot);
     startStates.Set(BackSlash, CharType::Backslash);
 	startStates.Set(Buffer::EndOfFile, CharType::EndOfFile);
-	assemblerKeywords.Set(L"ORG", TokenType::ORGCommand);
+	startStates.Set(EOL, CharType::EOL);
+
+    assemblerKeywords.Set(L"ORG", TokenType::ORGCommand);
 	assemblerKeywords.Set(L"END", TokenType::ENDCommand);
 	assemblerKeywords.Set(L"EOT", TokenType::EOTCommand);
 	assemblerKeywords.Set(L"SET", TokenType::SETCommand);
@@ -132,7 +134,28 @@ void Scanner::Init()
 	assemblerKeywords.Set(L"LOCAL", TokenType::LOCALDirective);
 	assemblerKeywords.Set(L"PAGE", TokenType::PAGEDirective);
 	assemblerKeywords.Set(L"INPAGE", TokenType::INPAGEDirective);
+	assemblerKeywords.Set(L"CPU", TokenType::CPUDirective);
+
+	for (wchar_t i = L'0'; i <= L'1'; ++i) binaryNumber.Add(i);
+	for (wchar_t i = L'0'; i <= L'7'; ++i) octalNumber.Add(i);
+	for (wchar_t i = L'0'; i <= L'9'; ++i) decimalNumber.Add(i);
+	for (wchar_t i = L'0'; i <= L'9'; ++i) hexNumber.Add(i);
+	for (wchar_t i = L'A'; i <= L'F'; ++i) hexNumber.Add(i);
+	for (wchar_t i = L'a'; i <= L'f'; ++i) hexNumber.Add(i);
+    location = Location(1, 0, -1);
     currentChar = NextCh();
+}
+
+bool Scanner::CheckAgainstCharSet(std::wstring const & text, CharSet const & set)
+{
+    for (auto ch : text)
+    {
+        if (!set.Contains(ch))
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 wchar_t Scanner::NextCh()
@@ -164,7 +187,7 @@ wchar_t Scanner::NextCh()
 
 Token Scanner::NextToken()
 {
-	while ((currentChar == Space) || (currentChar == Tab) || (currentChar == LF) || (currentChar == CR))
+	while ((currentChar == Space) || (currentChar == Tab))
         currentChar = NextCh();
     Token token;
 	token.bufferPos = bufferPos; 
@@ -180,16 +203,12 @@ Token Scanner::NextToken()
             token.kind = TokenType::EndOfFile;
             break;
         }
-    //case 0:
-//      {
-    //	case_0:
-    //	if (recKind != noSym)
-//          {
-    //		tlen = recEnd - t->bufferPos;
-    //		SetScannerBehindT();
-    //	}
-    //	t->kind = recKind; break;
-    //} // NextCh already done
+    case CharType::EOL:
+        {
+            currentChar = NextCh();
+            token.kind = TokenType::EOL;
+            break;
+        }
     case CharType::Letter:
         {
             tokenType = TokenType::Identifier;
@@ -204,65 +223,124 @@ Token Scanner::NextToken()
                 }
             } while ((type == CharType::Letter) || (type == CharType::Digit));
             token.kind = assemblerKeywords.Get(tokenValue, tokenType);
-            token.val = tokenValue;
+            token.value = tokenValue;
             break;
         }
-    case CharType::Digit:
+    case CharType::Percent:
         {
             tokenType = TokenType::Number;
             CharType type{};
-            do
+            bool done = false;
+            while (!done)
             {
                 currentChar = NextCh();
                 type = CharType(startStates.Get(currentChar));
-                if (type == CharType::Digit)
-                {
+                if ((type == CharType::Digit) && binaryNumber.Contains(currentChar))
                     tokenValue += currentChar;
-                }
-            } while (type == CharType::Digit);
+                else
+                    done = true;
+            }
             token.kind = tokenType;
-            token.val = tokenValue;
-            break;
-        }
-    case CharType::QuestionMark:
-        {
-            tokenType = TokenType::Number;
-            CharType type{};
-            do
-            {
-                currentChar = NextCh();
-                type = CharType(startStates.Get(currentChar));
-                if ((type == CharType::Letter) || (type == CharType::Digit))
-                {
-                    tokenValue += currentChar;
-                }
-            } while ((type == CharType::Letter) || (type == CharType::Digit));
-            token.kind = tokenType;
-            token.val = tokenValue;
+            token.value = tokenValue;
             break;
         }
     case CharType::At:
         {
             tokenType = TokenType::Number;
             CharType type{};
-            do
+            bool done = false;
+            while (!done)
             {
                 currentChar = NextCh();
                 type = CharType(startStates.Get(currentChar));
-                if ((type == CharType::Letter) || (type == CharType::Digit))
-                {
+                if ((type == CharType::Digit) && octalNumber.Contains(currentChar))
                     tokenValue += currentChar;
-                }
-            } while ((type == CharType::Letter) || (type == CharType::Digit));
+                else
+                    done = true;
+            }
             token.kind = tokenType;
-            token.val = tokenValue;
+            token.value = tokenValue;
+            break;
+        }
+    case CharType::Dollar:
+        {
+            CharType type{};
+            bool done = false;
+            std::wstring hexDigits;
+            while (!done)
+            {
+                currentChar = NextCh();
+                type = CharType(startStates.Get(currentChar));
+                if (((type == CharType::Digit) || (type == CharType::Letter)) && hexNumber.Contains(currentChar))
+                    hexDigits += currentChar;
+                else
+                    done = true;
+            }
+            token.kind = (hexDigits.empty()) // Single $ is location counter
+                         ? TokenType::LocCounter
+                         : TokenType::Number;
+            token.value = tokenValue + hexDigits;
+            break;
+        }
+    case CharType::Digit:
+        {
+            tokenType = TokenType::Number;
+            CharType type{};
+            bool done = false;
+            while (!done)
+            {
+                currentChar = NextCh();
+                type = CharType(startStates.Get(currentChar));
+                if (((type == CharType::Digit) || (type == CharType::Letter)) && hexNumber.Contains(currentChar))
+                    tokenValue += currentChar;
+                else
+                {
+                    // Special case: B or b is also considered a value hex digit
+                    if (towupper(tokenValue[tokenValue.length() - 1]) == 'B')
+                    {
+                        std::wstring val = tokenValue.substr(0, tokenValue.length() - 1);
+                        if (!CheckAgainstCharSet(val, binaryNumber))
+                        {
+                            tokenType = TokenType::Unknown;
+                        }
+                    }
+                    else if ((towupper(currentChar) == 'O') || (towupper(currentChar) == 'Q'))
+                    {
+                        if (!CheckAgainstCharSet(tokenValue, octalNumber))
+                        {
+                            tokenType = TokenType::Unknown;
+                        }
+                        tokenValue += currentChar;
+                        currentChar = NextCh();
+                    }
+                    else if (towupper(currentChar) == 'H')
+                    {
+                        if (!CheckAgainstCharSet(tokenValue, hexNumber))
+                        {
+                            tokenType = TokenType::Unknown;
+                        }
+                        tokenValue += currentChar;
+                        currentChar = NextCh();
+                    }
+                    else
+                    {
+                        if (!CheckAgainstCharSet(tokenValue, decimalNumber))
+                        {
+                            tokenType = TokenType::Unknown;
+                        }
+                    }
+                    done = true;
+                }
+            }
+            token.kind = tokenType;
+            token.value = tokenValue;
             break;
         }
     case CharType::Colon:
         {
             tokenType = TokenType::Colon;
             token.kind = tokenType;
-            token.val = currentChar;
+            token.value = currentChar;
             currentChar = NextCh();
             break;
         }
@@ -270,7 +348,7 @@ Token Scanner::NextToken()
         {
             tokenType = TokenType::Comma;
             token.kind = tokenType;
-            token.val = currentChar;
+            token.value = currentChar;
             currentChar = NextCh();
             break;
         }
@@ -278,14 +356,10 @@ Token Scanner::NextToken()
         {
             tokenType = TokenType::String;
             CharType type{};
-            do
+            for (;;)
             {
                 currentChar = NextCh();
-                if ((currentChar != LF) && (currentChar != CR) && (currentChar != DoubleQuote) && (currentChar != BackSlash))
-                {
-                    tokenValue += currentChar;
-                }
-                else if (currentChar == EOL)
+                if ((currentChar == Buffer::EndOfFile) || (currentChar == EOL))
                 {
                     tokenType = TokenType::BadString;
                     break;
@@ -303,23 +377,23 @@ Token Scanner::NextToken()
                         tokenValue += currentChar;
                     }
                 }
-            } while ((currentChar != LF) && (currentChar != CR) && (currentChar != DoubleQuote) && (currentChar != BackSlash));
+                else
+                {
+                    tokenValue += currentChar;
+                }
+            }
             token.kind = tokenType;
-            token.val = tokenValue;
+            token.value = tokenValue;
             break;
         }
     case CharType::SingleQuote:
         {
             tokenType = TokenType::String;
             CharType type{};
-            do
+            for (;;)
             {
                 currentChar = NextCh();
-                if ((currentChar != LF) && (currentChar != CR) && (currentChar != DoubleQuote) && (currentChar != BackSlash))
-                {
-                    tokenValue += currentChar;
-                }
-                else if (currentChar == EOL)
+                if ((currentChar == Buffer::EndOfFile) || (currentChar == EOL))
                 {
                     tokenType = TokenType::BadString;
                     break;
@@ -337,9 +411,13 @@ Token Scanner::NextToken()
                         tokenValue += currentChar;
                     }
                 }
-            } while ((currentChar != LF) && (currentChar != CR) && (currentChar != DoubleQuote) && (currentChar != BackSlash));
+                else
+                {
+                    tokenValue += currentChar;
+                }
+            }
             token.kind = tokenType;
-            token.val = tokenValue;
+            token.value = tokenValue;
             break;
         }
     case CharType::Semicolon:
@@ -349,7 +427,6 @@ Token Scanner::NextToken()
             {
 		        if (currentChar == EOL)
                 {
-                    currentChar = NextCh();
                     token = NextToken();
                     break;
 		        }
@@ -370,23 +447,21 @@ Token Scanner::NextToken()
 
 Token Scanner::Scan()
 {
-	if (prefetchedTokens.size() > 0)
+	if (queuedTokens.size() > 0)
     {
-		Token token = prefetchedTokens.front();
-        prefetchedTokens.pop_front();
+		Token token = queuedTokens.front();
+        queuedTokens.pop_front();
         return token;
 	}
     else
     {
-        return NextToken();;
+        return NextToken();
 	}
 }
 
-Token Scanner::Peek()
+void  Scanner::Pushback(Token const & token)
 {
-    Token token = NextToken();
-    prefetchedTokens.push_back(token);
-    return token;
+    queuedTokens.push_back(token);
 }
 
 } // namespace Assembler
