@@ -74,16 +74,14 @@ public:
     static const wchar_t LF;
     static const wchar_t FF;
 
-    Scanner(std::istream * stream, bool isUserOwned, std::wostream & reportStream);
-    Scanner(std::string const & path, std::wostream & reportStream);
+    Scanner(std::istream * stream, bool isUserOwned);
+    Scanner(std::string const & path);
 
     void Init();
     wchar_t NextCh();
     Token NextToken();
     Token Scan();
     void  Pushback(Token const & token);
-
-    std::wostream & GetReportStream() { return reportStream; }    
 
 private:
     wchar_t currentChar;
@@ -96,7 +94,6 @@ private:
     CharSet octalNumber;
     CharSet decimalNumber;
     CharSet hexNumber;
-    std::wostream & reportStream;
     std::deque<Token> queuedTokens;
 
     bool CheckAgainstCharSet(std::wstring const & text, CharSet const & set);

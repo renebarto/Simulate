@@ -33,9 +33,9 @@ TEST_FIXTURE(AssemblerMessageTest, ConstructDefault)
 {
     Location location(Line, Column);
     AssemblerMessage message(location, Message);
-    EXPECT_EQ(Line, message.GetLocation().GetLine());
-    EXPECT_EQ(Column, message.GetLocation().GetColumn());
-    EXPECT_EQ(Message, message.GetMessage());
+    EXPECT_EQ(Line, message.Loc().GetLine());
+    EXPECT_EQ(Column, message.Loc().GetColumn());
+    EXPECT_EQ(Message, message.Message());
 }
 
 } // namespace Test

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include "Exceptions.h"
 
 namespace Assembler
 {
@@ -21,7 +22,7 @@ public:
             map.insert(std::pair<Key, Base>(key, val));
             return;
         }
-        throw std::invalid_argument("Key already existent");
+        throw AssemblerException("Key already exists");
 	}
 
 	Base Get(Key key)

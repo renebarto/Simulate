@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <sstream>
+#include "Exceptions.h"
 
 namespace Assembler
 {
@@ -52,13 +53,13 @@ void Buffer::SetupBuffer(std::istream * stream, bool isUserOwned)
 {
     if (stream == nullptr)
     {
-        throw std::invalid_argument("Stream is null");
+        throw AssemblerException("Stream is null");
     }
     if (!stream->good())
     {
         if (!isUserOwned)
             delete stream;
-        throw std::runtime_error("Stream is invalid");
+        throw AssemblerException("Stream is invalid");
     }
     this->stream = stream;
     this->isUserOwned = isUserOwned;
@@ -280,7 +281,7 @@ void Buffer::SetPos(size_t newPos)
     {
         std::ostringstream stream;
         stream << "--- buffer out of bounds access, position: " << newPos << std::endl;
-        throw std::runtime_error(stream.str());
+        throw AssemblerException(stream.str());
 	}
 
 	if ((newPos >= bufStart) && (newPos < (bufStart + bufLen)))

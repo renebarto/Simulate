@@ -114,6 +114,20 @@ TEST_FIXTURE(ErrorHandlerTest, Exception)
     EXPECT_EQ(size_t{ 1 }, messages.size());
 }
 
+TEST_FIXTURE(ErrorHandlerTest, Iterator)
+{
+    std::wostringstream stream;
+    AssemblerMessages messages;
+    ErrorHandler handler(stream, messages);
+
+    handler.Exception(L"My Exception");
+    AssemblerMessages::const_iterator it = handler.begin();
+    EXPECT_NE(handler.end(), it);
+    EXPECT_EQ(L"My Exception", it->Message());
+    ++it;
+    EXPECT_EQ(handler.end(), it);
+}
+
 } // namespace Test
 
 } // namespace Assembler

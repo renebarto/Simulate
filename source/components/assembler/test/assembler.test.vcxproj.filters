@@ -65,7 +65,13 @@
     <ClCompile Include="src\Assembler\TestSymbolMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Assembler\TestAbstractSyntaxTree.cpp">
+    <ClCompile Include="src\Assembler\TestASTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assembler\TestASTNode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assembler\TestNodes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

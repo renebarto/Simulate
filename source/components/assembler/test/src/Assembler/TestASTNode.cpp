@@ -10,18 +10,18 @@ namespace Assembler
 namespace Test
 {
 
-class AbstractSyntaxTreeTest : public UnitTestCpp::TestFixture
+class ASTNodeTest : public UnitTestCpp::TestFixture
 {
 public:
 	virtual void SetUp();
 	virtual void TearDown();
 };
 
-void AbstractSyntaxTreeTest::SetUp()
+void ASTNodeTest::SetUp()
 {
 }
 
-void AbstractSyntaxTreeTest::TearDown()
+void ASTNodeTest::TearDown()
 {
 }
 
@@ -32,21 +32,7 @@ static const std::wstring NodeValue2 = L"TWO";
 static const Location Location1(1, 1);
 static const Location Location2(2, 2);
 
-TEST_FIXTURE(AbstractSyntaxTreeTest, TreeConstructDefault)
-{
-    ASTree tree;
-    EXPECT_NULL(tree.FirstNode());
-}
-
-TEST_FIXTURE(AbstractSyntaxTreeTest, TreeAddNode)
-{
-    auto node = std::make_shared<ASTNode>(NodeType1, NodeValue1, Location1);
-    ASTree tree;
-    tree.AddNode(node);
-    EXPECT_EQ(node, tree.FirstNode());
-}
-
-TEST_FIXTURE(AbstractSyntaxTreeTest, NodeConstruct)
+TEST_FIXTURE(ASTNodeTest, NodeConstruct)
 {
     auto node = std::make_shared<ASTNode>(NodeType1, NodeValue1, Location1);
 
@@ -57,7 +43,7 @@ TEST_FIXTURE(AbstractSyntaxTreeTest, NodeConstruct)
     EXPECT_NULL(node->Next());
 }
 
-TEST_FIXTURE(AbstractSyntaxTreeTest, AddChild)
+TEST_FIXTURE(ASTNodeTest, AddChild)
 {
     auto node = std::make_shared<ASTNode>(NodeType1, NodeValue1, Location1);
     auto node2 = std::make_shared<ASTNode>(NodeType2, NodeValue2, Location2);
@@ -70,7 +56,7 @@ TEST_FIXTURE(AbstractSyntaxTreeTest, AddChild)
     EXPECT_NULL(node->Next());
 }
 
-TEST_FIXTURE(AbstractSyntaxTreeTest, AddSibling)
+TEST_FIXTURE(ASTNodeTest, AddSibling)
 {
     auto node = std::make_shared<ASTNode>(NodeType1, NodeValue1, Location1);
     auto node2 = std::make_shared<ASTNode>(NodeType2, NodeValue2, Location2);
@@ -81,6 +67,16 @@ TEST_FIXTURE(AbstractSyntaxTreeTest, AddSibling)
     EXPECT_EQ(Location1, node->Loc());
     EXPECT_NULL(node->FirstChild());
     EXPECT_EQ(node2, node->Next());
+}
+
+TEST_FIXTURE(ASTNodeTest, StreamOperator)
+{
+    ASTNode node(NodeType1, NodeValue1, Location1);
+    std::wostringstream stream;
+
+    stream << node;
+
+    EXPECT_EQ(NodeValue1, stream.str());
 }
 
 } // namespace Test

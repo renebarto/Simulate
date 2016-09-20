@@ -1,18 +1,22 @@
 #include "Parser.h"
 
 #include "CPUParserIntel8080_8085.h"
+#include "CPUAssemblerIntel8080_8085.h"
 
 namespace Assembler
 {
 
-Parser::Parser(Scanner & scanner, AssemblerMessages & messages, std::wostream & errorStream)
+Parser::Parser(Scanner & scanner, AssemblerMessages & messages, std::wostream & errorStream, std::wostream & reportStream)
     : scanner(scanner)
     , errorHandler(errorStream, messages)
-    , reportStream(scanner.GetReportStream())
+    , reportStream(reportStream)
     , currentToken()
     , lastToken()
     , knownCPU()
     , cpuType(CPUType::Undefined)
+    , machineCode()
+    , cpuAssemblerParser()
+    , cpuAssembler()
 {
     Init();
 }
@@ -28,6 +32,27 @@ void Parser::Parse()
     Get();
     ParseAssembler();
     Expect(TokenType::EndOfFile);
+    machineCode.clear();
+    if (cpuAssemblerParser != nullptr)
+    {
+        if ((errorHandler.NumErrors() == 0) && (errorHandler.NumExceptions() == 0))
+        {
+            cpuAssembler = CreateAssembler();
+            cpuAssembler->Generate(cpuAssemblerParser->GetAST(), machineCode);
+        }
+        else
+            cpuAssemblerParser->PrintWithErrors();
+    }
+    else
+        PrintErrors();
+}
+
+void Parser::PrintErrors()
+{
+    for (auto message : errorHandler)
+    {
+        reportStream << L"Error: " << message.Loc() << L" - " << message.Message() << std::endl;
+    }
 }
 
 void Parser::Init()
@@ -85,7 +110,6 @@ void Parser::ParseAssembler()
         else
         {
             Get();
-            Expect(TokenType::EOL);
             scanner.Pushback(currentToken);
             cpuAssemblerParser = CreateAssemblerParser();
             cpuAssemblerParser->Parse();
@@ -94,7 +118,7 @@ void Parser::ParseAssembler()
     else
         SyntaxError(TokenType::Identifier);
     Get();
-    while (currentToken.kind == TokenType::EOL)
+    while (currentToken.kind != TokenType::EndOfFile)
     {
         Get();
     }
@@ -103,7 +127,7 @@ void Parser::ParseAssembler()
 ASTree const & Parser::GetAST() const
 {
     if (cpuAssemblerParser == nullptr)
-        throw std::runtime_error("No CPU parser instantiated");
+        throw AssemblerException("No CPU parser instantiated");
     return cpuAssemblerParser->GetAST();
 }
 
@@ -113,13 +137,30 @@ std::unique_ptr<ICPUParser> Parser::CreateAssemblerParser()
     {
     case CPUType::Intel8080:
     case CPUType::Intel8085:
-        return std::unique_ptr<ICPUParser>(new CPUParserIntel8080_8085(cpuType, scanner, errorHandler));
+        return std::unique_ptr<ICPUParser>(new CPUParserIntel8080_8085(cpuType, scanner, errorHandler, reportStream));
     default:
         {
             std::wostringstream stream;
             stream << L"Unsupported CPU type: " << cpuType;
             SemanticError(stream.str());
             return std::unique_ptr<ICPUParser>();
+        }
+    }
+}
+
+std::unique_ptr<ICPUAssembler> Parser::CreateAssembler()
+{
+    switch (cpuType)
+    {
+    case CPUType::Intel8080:
+    case CPUType::Intel8085:
+        return std::unique_ptr<ICPUAssembler>(new CPUAssemblerIntel8080_8085(cpuType, errorHandler, reportStream));
+    default:
+        {
+            std::wostringstream stream;
+            stream << L"Unsupported CPU type: " << cpuType;
+            SemanticError(stream.str());
+            return std::unique_ptr<ICPUAssembler>();
         }
     }
 }

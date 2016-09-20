@@ -135,6 +135,30 @@ TEST_FIXTURE(LocationTest, NotEqual)
     EXPECT_TRUE(location != ref4);
 }
 
+TEST_FIXTURE(LocationTest, StreamOperatorString)
+{
+    std::ostringstream stream;
+
+    Location location(Line, Column, Pos);
+    stream << location;
+
+    std::ostringstream ref;
+    ref << Line << ":" << Column;
+    EXPECT_EQ(ref.str(), stream.str());
+}
+
+TEST_FIXTURE(LocationTest, StreamOperatorwString)
+{
+    std::wostringstream stream;
+
+    Location location(Line, Column, Pos);
+    stream << location;
+
+    std::wostringstream ref;
+    ref << Line << L":" << Column;
+    EXPECT_EQ(ref.str(), stream.str());
+}
+
 } // namespace Test
 
 } // namespace Assembler

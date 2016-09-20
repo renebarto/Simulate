@@ -5,7 +5,7 @@
 namespace Assembler
 {
 
-const size_t ErrorHandler::MinErrorDistance = 2;
+const size_t ErrorHandler::MinErrorDistance = 1;
 
 ErrorHandler::ErrorHandler(std::wostream & stream, AssemblerMessages & messages)
     : stream(stream)
@@ -29,6 +29,9 @@ void ErrorHandler::SyntaxError(Location const & location, TokenType tokenType)
     case TokenType::BadString:              s = L"BadString expected"; break;
     case TokenType::Colon:                  s = L"':' expected"; break;
     case TokenType::Comma:                  s = L"',' expected"; break;
+    case TokenType::EOL:                    s = L"EOL expected"; break;
+    case TokenType::LocCounter:             s = L"'$' expected"; break;
+    case TokenType::Comment:                s = L"Comment expected"; break;
     case TokenType::ORGCommand:             s = L"\"ORG\" expected"; break;
     case TokenType::ENDCommand:             s = L"\"END\" expected"; break;
     case TokenType::EOTCommand:             s = L"\"EOT\" expected"; break;
@@ -89,7 +92,7 @@ void ErrorHandler::SyntaxError(Location const & location, TokenType tokenType)
 void ErrorHandler::Error(Location const & location, std::wstring const & s)
 {
     if (errorDistance >= MinErrorDistance) 
-        stream << L"Error: " << location.GetLine() << ":" << location.GetColumn() << " - " << s << std::endl;
+        stream << L"Error: " << location << " - " << s << std::endl;
     messages.push_back(AssemblerMessage(location, s));
     ++numErrors;
     errorDistance = 0;
@@ -97,7 +100,7 @@ void ErrorHandler::Error(Location const & location, std::wstring const & s)
 
 void ErrorHandler::Warning(Location const & location, std::wstring const & s)
 {
-    stream << L"Warning: " << location.GetLine() << ":" << location.GetColumn() << " - " << s << std::endl;
+    stream << L"Warning: " << location << " - " << s << std::endl;
     messages.push_back(AssemblerMessage(location, s));
     ++numWarnings;
 }

@@ -22,6 +22,8 @@ public:
     size_t NumExceptions() const { return numExceptions; }
     size_t NumErrors() const { return numErrors; }
     size_t NumWarnings() const { return numWarnings; }
+    AssemblerMessages::const_iterator begin() const { return messages.begin(); }
+    AssemblerMessages::const_iterator end() const { return messages.end(); }
 
 private:
     std::wostream & stream;

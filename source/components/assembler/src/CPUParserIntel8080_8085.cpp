@@ -1,12 +1,14 @@
 #include "CPUParserIntel8080_8085.h"
 
+#include "ICPUAssembler.h"
 #include "core/Util.h"
+#include "Nodes.h"
 
 namespace Assembler
 {
 
-CPUParserIntel8080_8085::CPUParserIntel8080_8085(CPUType cpuType, Scanner & scanner, ErrorHandler & errorHandler)
-    : CPUParser(cpuType, scanner, errorHandler)
+CPUParserIntel8080_8085::CPUParserIntel8080_8085(CPUType cpuType, Scanner & scanner, ErrorHandler & errorHandler, std::wostream & reportStream)
+    : CPUParser(cpuType, scanner, errorHandler, reportStream)
     , registers8()
     , registers16()
     , rstCodes()
@@ -139,99 +141,99 @@ void CPUParserIntel8080_8085::Init()
     rstCodes.Set(L"6", RSTCode::RST6);
     rstCodes.Set(L"7", RSTCode::RST7);
 
-    startStates.Set(OpcodeType::MOV, OperandState::R8_R8);
-    startStates.Set(OpcodeType::MVI, OperandState::R8_D8);
-    startStates.Set(OpcodeType::LXI, OperandState::R16_BDH_SP_D16);
-    startStates.Set(OpcodeType::STAX, OperandState::R16_BD);
-    startStates.Set(OpcodeType::LDAX, OperandState::R16_BD);
-    startStates.Set(OpcodeType::STA, OperandState::A16);
-    startStates.Set(OpcodeType::LDA, OperandState::A16);
-    startStates.Set(OpcodeType::SHLD, OperandState::A16);
-    startStates.Set(OpcodeType::LHLD, OperandState::A16);
-    startStates.Set(OpcodeType::XCHG, OperandState::Simple);
-    startStates.Set(OpcodeType::PUSH, OperandState::R16_BDH_PSW);
-    startStates.Set(OpcodeType::POP, OperandState::R16_BDH_PSW);
-    startStates.Set(OpcodeType::XTHL, OperandState::Simple);
-    startStates.Set(OpcodeType::SPHL, OperandState::Simple);
-    startStates.Set(OpcodeType::INX, OperandState::R16_BDH_SP);
-    startStates.Set(OpcodeType::DCX, OperandState::R16_BDH_SP);
-    startStates.Set(OpcodeType::CALL, OperandState::A16);
-    startStates.Set(OpcodeType::CC, OperandState::A16);
-    startStates.Set(OpcodeType::CNC, OperandState::A16);
-    startStates.Set(OpcodeType::CZ, OperandState::A16);
-    startStates.Set(OpcodeType::CNZ, OperandState::A16);
-    startStates.Set(OpcodeType::CP, OperandState::A16);
-    startStates.Set(OpcodeType::CM, OperandState::A16);
-    startStates.Set(OpcodeType::CPE, OperandState::A16);
-    startStates.Set(OpcodeType::CPO, OperandState::A16);
-    startStates.Set(OpcodeType::PCHL, OperandState::Simple);
-    startStates.Set(OpcodeType::JMP, OperandState::A16);
-    startStates.Set(OpcodeType::JC, OperandState::A16);
-    startStates.Set(OpcodeType::JNC, OperandState::A16);
-    startStates.Set(OpcodeType::JZ, OperandState::A16);
-    startStates.Set(OpcodeType::JNZ, OperandState::A16);
-    startStates.Set(OpcodeType::JP, OperandState::A16);
-    startStates.Set(OpcodeType::JM, OperandState::A16);
-    startStates.Set(OpcodeType::JPE, OperandState::A16);
-    startStates.Set(OpcodeType::JPO, OperandState::A16);
-    startStates.Set(OpcodeType::RET, OperandState::Simple);
-    startStates.Set(OpcodeType::RC, OperandState::Simple);
-    startStates.Set(OpcodeType::RNC, OperandState::Simple);
-    startStates.Set(OpcodeType::RZ, OperandState::Simple);
-    startStates.Set(OpcodeType::RNZ, OperandState::Simple);
-    startStates.Set(OpcodeType::RP, OperandState::Simple);
-    startStates.Set(OpcodeType::RM, OperandState::Simple);
-    startStates.Set(OpcodeType::RPE, OperandState::Simple);
-    startStates.Set(OpcodeType::RPO, OperandState::Simple);
-    startStates.Set(OpcodeType::RST, OperandState::N);
-    startStates.Set(OpcodeType::INR, OperandState::R8);
-    startStates.Set(OpcodeType::DCR, OperandState::R8);
-    startStates.Set(OpcodeType::ADD, OperandState::R8);
-    startStates.Set(OpcodeType::ADC, OperandState::R8);
-    startStates.Set(OpcodeType::SUB, OperandState::R8);
-    startStates.Set(OpcodeType::SBB, OperandState::R8);
-    startStates.Set(OpcodeType::DAD, OperandState::R16_BDH_SP);
-    startStates.Set(OpcodeType::ANA, OperandState::R8);
-    startStates.Set(OpcodeType::ORA, OperandState::R8);
-    startStates.Set(OpcodeType::XRA, OperandState::R8);
-    startStates.Set(OpcodeType::CMP, OperandState::R8);
-    startStates.Set(OpcodeType::ADI, OperandState::D8);
-    startStates.Set(OpcodeType::ACI, OperandState::D8);
-    startStates.Set(OpcodeType::SUI, OperandState::D8);
-    startStates.Set(OpcodeType::SBI, OperandState::D8);
-    startStates.Set(OpcodeType::ANI, OperandState::D8);
-    startStates.Set(OpcodeType::ORI, OperandState::D8);
-    startStates.Set(OpcodeType::XRI, OperandState::D8);
-    startStates.Set(OpcodeType::CPI, OperandState::D8);
-    startStates.Set(OpcodeType::RLC, OperandState::Simple);
-    startStates.Set(OpcodeType::RRC, OperandState::Simple);
-    startStates.Set(OpcodeType::RAL, OperandState::Simple);
-    startStates.Set(OpcodeType::RAR, OperandState::Simple);
-    startStates.Set(OpcodeType::CMA, OperandState::Simple);
-    startStates.Set(OpcodeType::STC, OperandState::Simple);
-    startStates.Set(OpcodeType::CMC, OperandState::Simple);
-    startStates.Set(OpcodeType::DAA, OperandState::Simple);
-    startStates.Set(OpcodeType::INP, OperandState::P8);
-    startStates.Set(OpcodeType::OUTP, OperandState::P8);
-    startStates.Set(OpcodeType::EI, OperandState::Simple);
-    startStates.Set(OpcodeType::DI, OperandState::Simple);
-    startStates.Set(OpcodeType::NOP, OperandState::Simple);
-    startStates.Set(OpcodeType::HLT, OperandState::Simple);
+    instructionData.Set(OpcodeType::MOV,  InstructionMapping8080 { OperandType::R8_R8, size_t{ 1 } });
+    instructionData.Set(OpcodeType::MVI,  InstructionMapping8080 { OperandType::R8_D8, size_t{ 2 } });
+    instructionData.Set(OpcodeType::LXI,  InstructionMapping8080 { OperandType::R16_BDH_SP_D16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::STAX, InstructionMapping8080 { OperandType::R16_BD, size_t{ 1 } });
+    instructionData.Set(OpcodeType::LDAX, InstructionMapping8080 { OperandType::R16_BD, size_t{ 1 } });
+    instructionData.Set(OpcodeType::STA,  InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::LDA,  InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::SHLD, InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::LHLD, InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::XCHG, InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::PUSH, InstructionMapping8080 { OperandType::R16_BDH_PSW, size_t{ 1 } });
+    instructionData.Set(OpcodeType::POP,  InstructionMapping8080 { OperandType::R16_BDH_PSW, size_t{ 1 } });
+    instructionData.Set(OpcodeType::XTHL, InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::SPHL, InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::INX,  InstructionMapping8080 { OperandType::R16_BDH_SP, size_t{ 1 } });
+    instructionData.Set(OpcodeType::DCX,  InstructionMapping8080 { OperandType::R16_BDH_SP, size_t{ 1 } });
+    instructionData.Set(OpcodeType::CALL, InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::CC,   InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::CNC,  InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::CZ,   InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::CNZ,  InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::CP,   InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::CM,   InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::CPE,  InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::CPO,  InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::PCHL, InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::JMP,  InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::JC,   InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::JNC,  InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::JZ,   InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::JNZ,  InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::JP,   InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::JM,   InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::JPE,  InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::JPO,  InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    instructionData.Set(OpcodeType::RET,  InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::RC,   InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::RNC,  InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::RZ,   InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::RNZ,  InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::RP,   InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::RM,   InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::RPE,  InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::RPO,  InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::RST,  InstructionMapping8080 { OperandType::N, size_t{ 1 } });
+    instructionData.Set(OpcodeType::INR,  InstructionMapping8080 { OperandType::R8, size_t{ 1 } });
+    instructionData.Set(OpcodeType::DCR,  InstructionMapping8080 { OperandType::R8, size_t{ 1 } });
+    instructionData.Set(OpcodeType::ADD,  InstructionMapping8080 { OperandType::R8, size_t{ 1 } });
+    instructionData.Set(OpcodeType::ADC,  InstructionMapping8080 { OperandType::R8, size_t{ 1 } });
+    instructionData.Set(OpcodeType::SUB,  InstructionMapping8080 { OperandType::R8, size_t{ 1 } });
+    instructionData.Set(OpcodeType::SBB,  InstructionMapping8080 { OperandType::R8, size_t{ 1 } });
+    instructionData.Set(OpcodeType::DAD,  InstructionMapping8080 { OperandType::R16_BDH_SP, size_t{ 1 } });
+    instructionData.Set(OpcodeType::ANA,  InstructionMapping8080 { OperandType::R8, size_t{ 1 } });
+    instructionData.Set(OpcodeType::ORA,  InstructionMapping8080 { OperandType::R8, size_t{ 1 } });
+    instructionData.Set(OpcodeType::XRA,  InstructionMapping8080 { OperandType::R8, size_t{ 1 } });
+    instructionData.Set(OpcodeType::CMP,  InstructionMapping8080 { OperandType::R8, size_t{ 1 } });
+    instructionData.Set(OpcodeType::ADI,  InstructionMapping8080 { OperandType::D8, size_t{ 2 } });
+    instructionData.Set(OpcodeType::ACI,  InstructionMapping8080 { OperandType::D8, size_t{ 2 } });
+    instructionData.Set(OpcodeType::SUI,  InstructionMapping8080 { OperandType::D8, size_t{ 2 } });
+    instructionData.Set(OpcodeType::SBI,  InstructionMapping8080 { OperandType::D8, size_t{ 2 } });
+    instructionData.Set(OpcodeType::ANI,  InstructionMapping8080 { OperandType::D8, size_t{ 2 } });
+    instructionData.Set(OpcodeType::ORI,  InstructionMapping8080 { OperandType::D8, size_t{ 2 } });
+    instructionData.Set(OpcodeType::XRI,  InstructionMapping8080 { OperandType::D8, size_t{ 2 } });
+    instructionData.Set(OpcodeType::CPI,  InstructionMapping8080 { OperandType::D8, size_t{ 2 } });
+    instructionData.Set(OpcodeType::RLC,  InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::RRC,  InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::RAL,  InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::RAR,  InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::CMA,  InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::STC,  InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::CMC,  InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::DAA,  InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::INP,  InstructionMapping8080 { OperandType::P8, size_t{ 2 } });
+    instructionData.Set(OpcodeType::OUTP, InstructionMapping8080 { OperandType::P8, size_t{ 2 } });
+    instructionData.Set(OpcodeType::EI,   InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::DI,   InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::NOP,  InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    instructionData.Set(OpcodeType::HLT,  InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
 
     if (cpuType == CPUType::Intel8085)
     {
-    	startStates.Set(OpcodeType::DSUB, OperandState::Simple);
-    	startStates.Set(OpcodeType::ARHL, OperandState::Simple);
-    	startStates.Set(OpcodeType::RDEL, OperandState::Simple);
-    	startStates.Set(OpcodeType::RIM, OperandState::Simple);
-    	startStates.Set(OpcodeType::LDHI, OperandState::D8);
-    	startStates.Set(OpcodeType::SIM, OperandState::Simple);
-    	startStates.Set(OpcodeType::LDSI, OperandState::D8);
-    	startStates.Set(OpcodeType::RSTV, OperandState::Simple);
-    	startStates.Set(OpcodeType::SHLX, OperandState::Simple);
-    	startStates.Set(OpcodeType::JNK, OperandState::A16);
-    	startStates.Set(OpcodeType::LHLX, OperandState::Simple);
-    	startStates.Set(OpcodeType::JK, OperandState::A16);
+    	instructionData.Set(OpcodeType::DSUB, InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    	instructionData.Set(OpcodeType::ARHL, InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    	instructionData.Set(OpcodeType::RDEL, InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    	instructionData.Set(OpcodeType::RIM,  InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    	instructionData.Set(OpcodeType::LDHI, InstructionMapping8080 { OperandType::D8, size_t{ 2 } });
+    	instructionData.Set(OpcodeType::SIM,  InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    	instructionData.Set(OpcodeType::LDSI, InstructionMapping8080 { OperandType::D8, size_t{ 2 } });
+    	instructionData.Set(OpcodeType::RSTV, InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    	instructionData.Set(OpcodeType::SHLX, InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    	instructionData.Set(OpcodeType::JNK,  InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
+    	instructionData.Set(OpcodeType::LHLX, InstructionMapping8080 { OperandType::Simple, size_t{ 1 } });
+    	instructionData.Set(OpcodeType::JK,   InstructionMapping8080 { OperandType::A16, size_t{ 3 } });
     }
 }
 
@@ -250,6 +252,122 @@ RSTNode::Ptr CPUParserIntel8080_8085::CreateRSTNode(RSTCode rstCode, std::wstrin
     return std::make_shared<RSTNode>(rstCode, value, location);
 }
 
+static size_t BytesPerInstructionMax = 3;
+static std::wstring Spacer(size_t numBytes)
+{
+    std::wstring result;
+    result += std::wstring((BytesPerInstructionMax - numBytes) * 3, L' ');
+    return result;
+}
+static std::wstring Spacer()
+{
+    return std::wstring(5, L' ') + Spacer(0);
+}
+
+void CPUParserIntel8080_8085::PrintWithErrors()
+{
+    ASTNode::Ptr node = ast.FirstNode();
+    size_t line = 1;
+    AddressType address{};
+    AssemblerMessages::const_iterator messageIt = errorHandler.begin();
+    
+    while (node != nullptr)
+    {
+        PrintWithErrors(node, line, messageIt);
+        node = node->Next();
+    }
+    reportStream << std::endl;
+}
+
+void CPUParserIntel8080_8085::PrintWithErrors(ASTNode::Ptr node, size_t & line, AssemblerMessages::const_iterator & it)
+{
+    StatementNode * statementNode = dynamic_cast<StatementNode *>(node.get());
+    std::wstring label;
+    if ((statementNode != nullptr) && (statementNode->Label() != nullptr))
+    {
+        label = statementNode->Label()->Value() + L":";
+    }
+    while (line < node->Loc().GetLine())
+    {
+        reportStream << std::endl;
+        ++line;
+        while ((it != errorHandler.end()) && (it->Loc().GetLine() < line))
+        {
+            reportStream << L"--> Error: " << it->Loc() << L" - " << it->Message() << std::endl;
+            ++it;
+        }
+    }
+
+    switch (node->NodeType())
+    {
+    case ASTNodeType::CPU:
+        reportStream << Spacer() << L"CPU " << node->Value();
+        break;
+    case ASTNodeType::Comment:
+        reportStream << L";" << node->Value();
+        break;
+    case ASTNodeType::ORG:
+        reportStream << Spacer() << label << L"ORG " << node->Value();
+        break;
+    case ASTNodeType::END:
+        reportStream << Spacer() << label << L"END";
+        break;
+    case ASTNodeType::Opcode:
+        {
+            OpcodeNode<OpcodeType, AddressType> * opcode = dynamic_cast<OpcodeNode<OpcodeType, AddressType> *>(node.get());
+            AddressType address = opcode->Address();
+            reportStream << std::hex << std::setw(4) << std::setfill(L'0') << address << L" " << std::dec;
+            OpcodeType opcodeType = opcode->Type();
+            MachineCode const & machineCode = opcode->Code();
+            for (size_t i = 0; i < machineCode.size(); ++i)
+            {
+                reportStream << std::hex << std::setw(2) << int(machineCode[i]) << L" ";
+            }
+            reportStream << Spacer(machineCode.size()) << label << node->Value();
+            ASTNode::Ptr subNode = node->FirstChild();
+            bool firstNode = true;
+            while (subNode != nullptr)
+            {
+                if (firstNode)
+                {
+                    reportStream << L" ";
+                    firstNode = false;
+                }
+                else
+                    reportStream << L",";
+
+                switch (subNode->NodeType())
+                {
+                case ASTNodeType::Expression:
+                    {
+                        ASTNode::Ptr subsubNode = subNode->FirstChild();
+                        bool firstNode = true;
+                        while (subsubNode != nullptr)
+                        {
+                            if (firstNode)
+                            {
+                                firstNode = false;
+                            }
+                            else
+                                reportStream << L",";
+
+                            reportStream << subsubNode->Value();
+                            subsubNode = subsubNode->Next();
+                        }
+                    }
+                    break;
+                default:
+                    reportStream << subNode->Value();
+                }
+                subNode = subNode->Next();
+            }
+        }
+        break;
+    default:
+        reportStream << node->Value();
+    }
+}
+
 void CPUParserIntel8080_8085::HandleOpcodeAndOperands(LabelNode::Ptr label)
 {
     OpcodeType opcode = opcodes.Get(lastToken.value, OpcodeType::Invalid);
@@ -260,50 +378,54 @@ void CPUParserIntel8080_8085::HandleOpcodeAndOperands(LabelNode::Ptr label)
         SemanticError(stream.str());
         return;
     }
-    auto opcodeNode = Nodes::CreateOpcode(opcode, lastToken.value, label, lastToken.location);
+    auto opcodeNode = Nodes::CreateOpcode(programCounter, opcode, lastToken.value, label, lastToken.location);
     ast.AddNode(opcodeNode);
-    OperandState state = startStates.Get(opcode);
-    if (state == OperandState::Invalid)
+    InstructionMapping8080 const & instructionInfo = instructionData.Get(opcode);
+    OperandType operandType = instructionInfo.operandType;
+    if (operandType == OperandType::Invalid)
     {
         std::wostringstream stream;
         stream << L"No state defined for opcode: " << lastToken.value;
         SemanticError(lastToken.location, stream.str());
     }
     else
-        HandleOperands(opcodeNode, state);
+    {
+        HandleOperands(opcodeNode, operandType);
+        programCounter += instructionInfo.instructionSize;
+    }
 }
 
-void CPUParserIntel8080_8085::HandleOperands(OpcodeNode<OpcodeType>::Ptr opcode, OperandState state)
+void CPUParserIntel8080_8085::HandleOperands(OpcodeNode<OpcodeType, AddressType>::Ptr opcode, OperandType state)
 {
     switch (state)
     {
-    case OperandState::Simple:
+    case OperandType::Simple:
         {
+            HandleComment();
             Expect(TokenType::EOL);
         }
         break;
-    case OperandState::R8:
+    case OperandType::R8:
         {
             Expect(TokenType::Identifier);
             Register8Type reg = registers8.Get(lastToken.value, Register8Type::Invalid);
-            if (reg != Register8Type::Invalid)
-                opcode->AddChild(CreateRegisterNode(reg, lastToken.value, lastToken.location));
-            else
+            opcode->AddChild(CreateRegisterNode(reg, lastToken.value, lastToken.location));
+            if (reg == Register8Type::Invalid)
             {
                 std::wostringstream stream;
                 stream << L"Invalid register: " << lastToken.value;
                 SemanticError(lastToken.location, stream.str());
             }
+            HandleComment();
             Expect(TokenType::EOL);
         }
         break;
-    case OperandState::R8_R8:
+    case OperandType::R8_R8:
         {
             Expect(TokenType::Identifier);
             Register8Type registerDst = registers8.Get(lastToken.value, Register8Type::Invalid);
-            if (registerDst != Register8Type::Invalid)
-                opcode->AddChild(CreateRegisterNode(registerDst, lastToken.value, lastToken.location));
-            else
+            opcode->AddChild(CreateRegisterNode(registerDst, lastToken.value, lastToken.location));
+            if (registerDst == Register8Type::Invalid)
             {
                 std::wostringstream stream;
                 stream << L"Invalid destination register: " << lastToken.value;
@@ -312,9 +434,8 @@ void CPUParserIntel8080_8085::HandleOperands(OpcodeNode<OpcodeType>::Ptr opcode,
             Expect(TokenType::Comma);
             Expect(TokenType::Identifier);
             Register8Type registerSrc = registers8.Get(lastToken.value, Register8Type::Invalid);
-            if (registerSrc != Register8Type::Invalid)
-                opcode->AddChild(CreateRegisterNode(registerSrc, lastToken.value, lastToken.location));
-            else
+            opcode->AddChild(CreateRegisterNode(registerSrc, lastToken.value, lastToken.location));
+            if (registerSrc == Register8Type::Invalid)
             {
                 std::wostringstream stream;
                 stream << L"Invalid source register: " << lastToken.value;
@@ -324,16 +445,16 @@ void CPUParserIntel8080_8085::HandleOperands(OpcodeNode<OpcodeType>::Ptr opcode,
             {
                 SemanticError(opcode->Loc(), L"Incorrect opcode: MOV M,M");
             }
+            HandleComment();
             Expect(TokenType::EOL);
         }
         break;
-    case OperandState::R8_D8:
+    case OperandType::R8_D8:
         {
             Expect(TokenType::Identifier);
             Register8Type registerDst = registers8.Get(lastToken.value, Register8Type::Invalid);
-            if (registerDst != Register8Type::Invalid)
-                opcode->AddChild(CreateRegisterNode(registerDst, lastToken.value, lastToken.location));
-            else
+            opcode->AddChild(CreateRegisterNode(registerDst, lastToken.value, lastToken.location));
+            if (registerDst == Register8Type::Invalid)
             {
                 std::wostringstream stream;
                 stream << L"Invalid register: " << lastToken.value;
@@ -341,16 +462,16 @@ void CPUParserIntel8080_8085::HandleOperands(OpcodeNode<OpcodeType>::Ptr opcode,
             }
             Expect(TokenType::Comma);
             ParseExpression8(opcode);
+            HandleComment();
             Expect(TokenType::EOL);
         }
         break;
-    case OperandState::R16_BD:
+    case OperandType::R16_BD:
         {
             Expect(TokenType::Identifier);
             Register16Type registerType = registers16.Get(lastToken.value, Register16Type::Invalid);
-            if (registerType != Register16Type::Invalid)
-                opcode->AddChild(CreateRegisterNode(registerType, lastToken.value, lastToken.location));
-            else
+            opcode->AddChild(CreateRegisterNode(registerType, lastToken.value, lastToken.location));
+            if (registerType == Register16Type::Invalid)
             {
                 std::wostringstream stream;
                 stream << L"Invalid register pair: " << lastToken.value;
@@ -362,16 +483,16 @@ void CPUParserIntel8080_8085::HandleOperands(OpcodeNode<OpcodeType>::Ptr opcode,
                 stream << L"Opcode " << opcode->Value() << L" only supports B or D register pair, " << lastToken.value << L" specified";
                 SemanticError(opcode->Loc(), stream.str());
             }
+            HandleComment();
             Expect(TokenType::EOL);
         }
         break;
-    case OperandState::R16_BDH_SP:
+    case OperandType::R16_BDH_SP:
         {
             Expect(TokenType::Identifier);
             Register16Type registerType = registers16.Get(lastToken.value, Register16Type::Invalid);
-            if (registerType != Register16Type::Invalid)
-                opcode->AddChild(CreateRegisterNode(registerType, lastToken.value, lastToken.location));
-            else
+            opcode->AddChild(CreateRegisterNode(registerType, lastToken.value, lastToken.location));
+            if (registerType == Register16Type::Invalid)
             {
                 std::wostringstream stream;
                 stream << L"Invalid register pair: " << lastToken.value;
@@ -384,16 +505,16 @@ void CPUParserIntel8080_8085::HandleOperands(OpcodeNode<OpcodeType>::Ptr opcode,
                 stream << L"Opcode " << opcode->Value() << L" only supports B, D, H or SP register pair, " << lastToken.value << L" specified";
                 SemanticError(opcode->Loc(), stream.str());
             }
+            HandleComment();
             Expect(TokenType::EOL);
         }
         break;
-    case OperandState::R16_BDH_PSW:
+    case OperandType::R16_BDH_PSW:
         {
             Expect(TokenType::Identifier);
             Register16Type registerType = registers16.Get(lastToken.value, Register16Type::Invalid);
-            if (registerType != Register16Type::Invalid)
-                opcode->AddChild(CreateRegisterNode(registerType, lastToken.value, lastToken.location));
-            else
+            opcode->AddChild(CreateRegisterNode(registerType, lastToken.value, lastToken.location));
+            if (registerType == Register16Type::Invalid)
             {
                 std::wostringstream stream;
                 stream << L"Invalid register pair: " << lastToken.value;
@@ -406,16 +527,16 @@ void CPUParserIntel8080_8085::HandleOperands(OpcodeNode<OpcodeType>::Ptr opcode,
                 stream << L"Opcode " << opcode->Value() << L" only supports B, D, H or PSW register pair, " << lastToken.value << L" specified";
                 SemanticError(opcode->Loc(), stream.str());
             }
+            HandleComment();
             Expect(TokenType::EOL);
         }
         break;
-    case OperandState::R16_BDH_SP_D16:
+    case OperandType::R16_BDH_SP_D16:
         {
             Expect(TokenType::Identifier);
             Register16Type registerType = registers16.Get(lastToken.value, Register16Type::Invalid);
-            if (registerType != Register16Type::Invalid)
-                opcode->AddChild(CreateRegisterNode(registerType, lastToken.value, lastToken.location));
-            else
+            opcode->AddChild(CreateRegisterNode(registerType, lastToken.value, lastToken.location));
+            if (registerType == Register16Type::Invalid)
             {
                 std::wostringstream stream;
                 stream << L"Invalid register pair: " << lastToken.value;
@@ -430,34 +551,39 @@ void CPUParserIntel8080_8085::HandleOperands(OpcodeNode<OpcodeType>::Ptr opcode,
             }
             Expect(TokenType::Comma);
             ParseExpression16(opcode);
+            HandleComment();
             Expect(TokenType::EOL);
         }
         break;
-    case OperandState::D8:
+    case OperandType::D8:
         {
             ParseExpression8(opcode);
+            HandleComment();
             Expect(TokenType::EOL);
         }
         break;
-    case OperandState::P8:
+    case OperandType::P8:
         {
             ParseExpression8(opcode);
+            HandleComment();
             Expect(TokenType::EOL);
         }
         break;
-    case OperandState::A16:
+    case OperandType::A16:
         {
             ParseExpression16(opcode);
+            HandleComment();
             Expect(TokenType::EOL);
         }
         break;
-    case OperandState::D16:
+    case OperandType::D16:
         {
             ParseExpression16(opcode);
+            HandleComment();
             Expect(TokenType::EOL);
         }
         break;
-    case OperandState::N:
+    case OperandType::N:
         {
             Expect(TokenType::Number);
             RSTCode reg = rstCodes.Get(lastToken.value, RSTCode::Invalid);
@@ -469,6 +595,7 @@ void CPUParserIntel8080_8085::HandleOperands(OpcodeNode<OpcodeType>::Ptr opcode,
                 stream << L"Invalid RST code: " << lastToken.value;
                 SemanticError(lastToken.location, stream.str());
             }
+            HandleComment();
             Expect(TokenType::EOL);
         }
         break;
@@ -479,16 +606,24 @@ void CPUParserIntel8080_8085::HandleOperands(OpcodeNode<OpcodeType>::Ptr opcode,
 
 }
 
-void CPUParserIntel8080_8085::ParseExpression8(OpcodeNode<OpcodeType>::Ptr opcode)
+void CPUParserIntel8080_8085::ParseExpression8(OpcodeNode<OpcodeType, AddressType>::Ptr opcode)
 {
     ExpressionNode::Ptr expression = Nodes::CreateExpression(L"", lastToken.location);
     opcode->AddChild(expression);
     // TODO: Parse an actual expression
-    Expect(TokenType::Number);
-    expression->AddChild(Nodes::CreateData8(lastToken.value, lastToken.location));
+    if (currentToken.kind == TokenType::Number)
+    {
+        Get();
+        expression->AddChild(Nodes::CreateData8(lastToken.value, lastToken.location));
+    }
+    else if (currentToken.kind == TokenType::Identifier)
+    {
+        Get();
+        expression->AddChild(Nodes::CreateRefData(lastToken.value, 0, lastToken.location));
+    }
 }
 
-void CPUParserIntel8080_8085::ParseExpression16(OpcodeNode<OpcodeType>::Ptr opcode)
+void CPUParserIntel8080_8085::ParseExpression16(OpcodeNode<OpcodeType, AddressType>::Ptr opcode)
 {
     ExpressionNode::Ptr expression = Nodes::CreateExpression(L"", lastToken.location);
     opcode->AddChild(expression);
@@ -501,14 +636,25 @@ void CPUParserIntel8080_8085::ParseExpression16(OpcodeNode<OpcodeType>::Ptr opco
     else if (currentToken.kind == TokenType::LocCounter)
     {
         Get();
-        expression->AddChild(Nodes::CreateLocCounter(lastToken.value, lastToken.location));
+        expression->AddChild(Nodes::CreateLocCounter(programCounter, lastToken.value, lastToken.location));
     }
     else if (currentToken.kind == TokenType::Identifier)
     {
         Get();
-        expression->AddChild(Nodes::CreateRef(lastToken.value, lastToken.location));
+        if (HaveLabel(lastToken.value))
+        {
+            Label<AddressType> const & label = GetLabel(lastToken.value);
+            if (label.locationDefined)
+                expression->AddChild(Nodes::CreateRefAddress(lastToken.value, label.location, lastToken.location));
+            else
+                expression->AddChild(Nodes::CreateRefAddressUndefined<AddressType>(lastToken.value, lastToken.location));
+        }
+        else
+        {
+            AddLabel(Label<AddressType>(lastToken.value));
+            expression->AddChild(Nodes::CreateRefAddressUndefined<AddressType>(lastToken.value, lastToken.location));
+        }
     }
-
 }
 
 } // namespace Assembler

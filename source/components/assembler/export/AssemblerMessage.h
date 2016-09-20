@@ -14,8 +14,8 @@ public:
         : location(location)
         , message(message)
     {}
-    Location const & GetLocation() const { return location; }
-    std::wstring const & GetMessage() const { return message; }
+    Location const & Loc() const { return location; }
+    std::wstring const & Message() const { return message; }
 
 private:
     Location location;

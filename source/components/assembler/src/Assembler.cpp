@@ -6,7 +6,7 @@ namespace Assembler
 Assembler::Assembler(Simulate::SimpleMachine & machine, std::istream & source, std::wostream & reportStream)
     : machine(machine)
     , source(source)
-    , scanner(&source, false, reportStream)
+    , scanner(&source, false)
     , opcodeKeywords()
 {
     opcodeKeywords.Set(L"NOP", OpcodeType::NOP);

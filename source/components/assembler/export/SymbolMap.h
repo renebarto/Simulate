@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 #include "core/String.h"
+#include "Exceptions.h"
 
 namespace Assembler
 {
@@ -26,7 +27,7 @@ public:
         }
         std::ostringstream stream;
         stream << "Symbol already exists: " << Core::String::ToString(name);
-        throw std::invalid_argument(stream.str());
+        throw AssemblerException(stream.str());
 	}
 
     bool Exists(std::wstring const & name) const
@@ -44,7 +45,18 @@ public:
         }
         std::ostringstream stream;
         stream << "Symbol does not exist: " << Core::String::ToString(name);
-        throw std::invalid_argument(stream.str());
+        throw AssemblerException(stream.str());
+	}
+	Value & Lookup(std::wstring const & name)
+    {
+        Map::iterator it = map.find(Core::String::ToUpper(name));
+        if (it != map.end())
+        {
+            return it->second;
+        }
+        std::ostringstream stream;
+        stream << "Symbol does not exist: " << Core::String::ToString(name);
+        throw AssemblerException(stream.str());
 	}
 private:
     Map map;

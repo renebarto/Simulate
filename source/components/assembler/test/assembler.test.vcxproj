@@ -166,7 +166,8 @@
     <ClInclude Include="include\TestData.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Assembler\TestAbstractSyntaxTree.cpp" />
+    <ClCompile Include="src\Assembler\TestASTNode.cpp" />
+    <ClCompile Include="src\Assembler\TestASTree.cpp" />
     <ClCompile Include="src\Assembler\TestAssemblerMessage.cpp" />
     <ClCompile Include="src\Assembler\TestBuffer.cpp" />
     <ClCompile Include="src\Assembler\TestCharClass.cpp" />
@@ -174,6 +175,7 @@
     <ClCompile Include="src\Assembler\TestErrorHandler.cpp" />
     <ClCompile Include="src\Assembler\TestKeywordMap.cpp" />
     <ClCompile Include="src\Assembler\TestLocation.cpp" />
+    <ClCompile Include="src\Assembler\TestNodes.cpp" />
     <ClCompile Include="src\Assembler\TestParser.cpp" />
     <ClCompile Include="src\Assembler\TestScanner.cpp" />
     <ClCompile Include="src\Assembler\TestStartStates.cpp" />

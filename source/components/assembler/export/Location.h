@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ostream>
+
 namespace Assembler
 {
 
@@ -28,5 +30,17 @@ private:
     size_t column;      // column number of current character
     size_t charPos;     // position by unicode characters starting with 0
 };
+
+inline std::ostream & operator << (std::ostream & stream, Location const & location)
+{
+    stream << location.GetLine() << ":" << location.GetColumn();
+    return stream;
+}
+
+inline std::wostream & operator << (std::wostream & stream, Location const & location)
+{
+    stream << location.GetLine() << L":" << location.GetColumn();
+    return stream;
+}
 
 } // namespace Assembler

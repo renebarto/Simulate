@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 #include "core/String.h"
+#include "Exceptions.h"
 
 namespace Assembler
 {
@@ -26,7 +27,7 @@ public:
         }
         std::ostringstream stream;
         stream << "Key already exists: " << Core::String::ToString(key);
-        throw std::invalid_argument(stream.str());
+        throw AssemblerException(stream.str());
 	}
 
 	Base Get(std::wstring const & key, Base defaultVal)

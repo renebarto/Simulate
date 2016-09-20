@@ -32,27 +32,25 @@ const wchar_t Scanner::CR = L'\r';
 const wchar_t Scanner::LF = L'\n';
 const wchar_t Scanner::FF = L'\f';
 
-Scanner::Scanner(std::istream * stream, bool isUserOwned, std::wostream & reportStream)
+Scanner::Scanner(std::istream * stream, bool isUserOwned)
     : currentChar()
 	, bufferPos()
 	, location()
     , buffer(stream, isUserOwned, true)
     , assemblerKeywords()
     , startStates()
-    , reportStream(reportStream)
     , queuedTokens()
 {
     Init();
 }
 
-Scanner::Scanner(std::string const & path, std::wostream & reportStream)
+Scanner::Scanner(std::string const & path)
     : currentChar()
 	, bufferPos()
 	, location()
     , buffer(path, true)
     , assemblerKeywords()
     , startStates()
-    , reportStream(reportStream)
     , queuedTokens()
 {
     Init();
@@ -178,10 +176,7 @@ wchar_t Scanner::NextCh()
 	if (ch == EOL)
     { 
         location.NewLine(); 
-        reportStream << std::endl;
     }
-    else
-        reportStream << ch;
     return ch;
 }
 
@@ -366,6 +361,8 @@ Token Scanner::NextToken()
                 }
                 else if (currentChar == DoubleQuote)
                 {
+                    tokenValue += currentChar;
+                    currentChar = NextCh();
                     break;
                 }
                 else if (currentChar == BackSlash)
@@ -400,6 +397,8 @@ Token Scanner::NextToken()
                 }
                 else if (currentChar == SingleQuote)
                 {
+                    tokenValue += currentChar;
+                    currentChar = NextCh();
                     break;
                 }
                 else if (currentChar == BackSlash)
@@ -422,24 +421,27 @@ Token Scanner::NextToken()
         }
     case CharType::Semicolon:
         {
+            tokenValue.clear();
             currentChar = NextCh();
 	        for (;;)
             {
 		        if (currentChar == EOL)
                 {
-                    token = NextToken();
                     break;
 		        }
                 else if (currentChar == Buffer::EndOfFile)
                 {
-                    token.kind = TokenType::EndOfFile;
-                    token.bufferPos = bufferPos;
-                    token.location = location;
                     break;
                 }
-		        else 
+                else
+                {
+                    tokenValue += currentChar;
                     currentChar = NextCh();
+                }
 	        }
+            token.kind = TokenType::Comment;
+            token.value = tokenValue;
+            break;
         }
     }
     return token;

@@ -139,7 +139,7 @@ enum class RSTCode : uint8_t
     RST7 = 0x07,
 };
 
-enum class OperandState
+enum class OperandType
 {
     Invalid,
     Simple,
@@ -171,16 +171,21 @@ private:
     RSTCode rstCode;    
 };
 
-class CPUParserIntel8080_8085 : public CPUParser<OpcodeType, OperandState>
+class CPUParserIntel8080_8085 : public CPUParser<OpcodeType, OperandType, uint16_t>
 {
 public:
-	CPUParserIntel8080_8085(CPUType cpuType, Scanner & scanner, ErrorHandler & errorHandler);
+	CPUParserIntel8080_8085(CPUType cpuType, Scanner & scanner, ErrorHandler & errorHandler, std::wostream & reportStream);
 	virtual ~CPUParserIntel8080_8085();
 
+    void PrintWithErrors() override;
+
 private:
+    using AddressType = uint16_t;
+    using InstructionMapping8080 = InstructionMapping<OperandType, AddressType>;
     KeywordMap<Register8Type> registers8;
     KeywordMap<Register16Type> registers16;
     KeywordMap<RSTCode> rstCodes;
+  	OpcodeMap<OpcodeType, InstructionMapping8080> instructionData;
 
     void Init();
 
@@ -188,10 +193,11 @@ private:
     Register16Node<Register16Type>::Ptr CreateRegisterNode(Register16Type registerType, std::wstring const & value, Location const & location);
     RSTNode::Ptr CreateRSTNode(RSTCode rstCode, std::wstring const & value, Location const & location);
     void HandleOpcodeAndOperands(LabelNode::Ptr label) override;
-    void HandleOperands(OpcodeNode<OpcodeType>::Ptr opcode, OperandState state) override;
+    void HandleOperands(OpcodeNode<OpcodeType, AddressType>::Ptr opcode, OperandType state) override;
 
-    void ParseExpression8(OpcodeNode<OpcodeType>::Ptr opcode);
-    void ParseExpression16(OpcodeNode<OpcodeType>::Ptr opcode);
-}; // Parser
+    void PrintWithErrors(ASTNode::Ptr node, size_t & line, AssemblerMessages::const_iterator & it);
+    void ParseExpression8(OpcodeNode<OpcodeType, AddressType>::Ptr opcode);
+    void ParseExpression16(OpcodeNode<OpcodeType, AddressType>::Ptr opcode);
+}; // CPUParserIntel8080_8085
 
 } // namespace Assembler

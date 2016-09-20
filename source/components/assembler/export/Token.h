@@ -18,6 +18,7 @@ enum class TokenType : size_t
     Comma = 6,
     EOL = 7,
     LocCounter = 8,
+    Comment = 9,
     ORGCommand = 10,
     ENDCommand = 11,
     EOTCommand = 12,
