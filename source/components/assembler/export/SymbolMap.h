@@ -13,10 +13,21 @@ class SymbolMap
 {
 public:
     using Map = std::map<std::wstring, Value>;
+    typedef typename Map::const_iterator ConstIterator;
 
     SymbolMap()
         : map()
     {}
+
+    ConstIterator begin()
+    {
+        return map.begin();
+    }
+    ConstIterator end()
+    {
+        return map.end();
+    }
+
     void Add(std::wstring const & name, Value val)
     {
         std::wstring nameUpper = Core::String::ToUpper(name);

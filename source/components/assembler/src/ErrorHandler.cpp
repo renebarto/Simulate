@@ -5,15 +5,11 @@
 namespace Assembler
 {
 
-const size_t ErrorHandler::MinErrorDistance = 1;
-
-ErrorHandler::ErrorHandler(std::wostream & stream, AssemblerMessages & messages)
-    : stream(stream)
-    , messages(messages)
+ErrorHandler::ErrorHandler(AssemblerMessages & messages)
+    : messages(messages)
     , numExceptions()
     , numErrors()
     , numWarnings()
-    , errorDistance(MinErrorDistance)
 {
 }
 
@@ -91,39 +87,26 @@ void ErrorHandler::SyntaxError(Location const & location, TokenType tokenType)
 
 void ErrorHandler::Error(Location const & location, std::wstring const & s)
 {
-    if (errorDistance >= MinErrorDistance) 
-        stream << L"Error: " << location << " - " << s << std::endl;
     messages.push_back(AssemblerMessage(location, s));
     ++numErrors;
-    errorDistance = 0;
 }
 
 void ErrorHandler::Warning(Location const & location, std::wstring const & s)
 {
-    stream << L"Warning: " << location << " - " << s << std::endl;
     messages.push_back(AssemblerMessage(location, s));
     ++numWarnings;
 }
 
 void ErrorHandler::Warning(std::wstring const & s)
 {
-    stream << L"Warning: " << s << std::endl;
     messages.push_back(AssemblerMessage(Location(), s));
     ++numWarnings;
 }
 
 void ErrorHandler::Exception(std::wstring const & s)
 {
-    if (errorDistance >= MinErrorDistance) 
-        stream << L"Exception: " << s << std::endl;
     messages.push_back(AssemblerMessage(Location(), s));
     ++numExceptions;
-    errorDistance = 0;
-}
-
-void ErrorHandler::NoError()
-{
-    ++errorDistance;
 }
 
 } // namespace Assembler

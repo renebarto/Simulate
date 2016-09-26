@@ -12,7 +12,7 @@ public:
 	ICPUAssembler() {}
     virtual ~ICPUAssembler() {}
 
-	virtual bool Generate(ASTree const & ast, MachineCode & machineCode) = 0;
+	virtual bool Generate(MachineCode & machineCode) = 0;
 }; // ICPUAssembler
 
 } // namespace Assembler

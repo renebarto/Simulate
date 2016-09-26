@@ -5,6 +5,7 @@
 #include "MachineCode.h"
 #include "Scanner.h"
 #include "ErrorHandler.h"
+#include "PrettyPrinter.h"
 
 namespace Assembler
 {
@@ -15,10 +16,13 @@ class ICPUAssembler;
 class Parser
 {
 public:
-	Parser(Scanner & scanner, AssemblerMessages & messages, std::wostream & errorStream, std::wostream & reportStream);
+	Parser(Scanner & scanner, AssemblerMessages & messages, std::wostream & reportStream);
 	~Parser();
 
-	void Parse();
+	bool Parse();
+    void PrintSymbols();
+    void PrintSymbolCrossReference();
+    void DumpAST();
     std::vector<uint8_t> const & GetMachineCode() { return machineCode; }
 
     size_t NumErrors() const { return errorHandler.NumErrors(); }
@@ -31,15 +35,17 @@ private:
 
 	Scanner & scanner;
 	ErrorHandler errorHandler;
-	std::wostream & reportStream;
+	PrettyPrinter<wchar_t> printer;
     Token currentToken;
     Token lastToken;
 
     KeywordMap<CPUType> knownCPU;
     CPUType cpuType;
     MachineCode machineCode;
-    std::unique_ptr<ICPUParser> cpuAssemblerParser;
+    std::shared_ptr<ICPUParser> cpuAssemblerParser;
     std::unique_ptr<ICPUAssembler> cpuAssembler;
+    bool showSymbols;
+    bool showCrossReference;
 
     void Init();
     void PrintErrors();
@@ -49,8 +55,8 @@ private:
 	void Get();
 	void Expect(TokenType tokenType);
     void ParseAssembler();
-    std::unique_ptr<ICPUParser> CreateAssemblerParser();
-    std::unique_ptr<ICPUAssembler> CreateAssembler();
+    std::shared_ptr<ICPUParser> CreateAssemblerParser();
+    std::unique_ptr<ICPUAssembler> CreateAssembler(std::shared_ptr<ICPUParser> parser);
 }; // Parser
 
 } // namespace Assembler

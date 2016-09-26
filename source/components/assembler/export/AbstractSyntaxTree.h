@@ -10,9 +10,12 @@ namespace Assembler
 enum class ASTNodeType
 {
     Tree,
-    CPU,
+    StatementLine,
     Comment,
     Label,
+    // Statements
+    Empty,
+    CPU,
     ORG,
     END,
     EQU,
@@ -20,6 +23,7 @@ enum class ASTNodeType
     DB,
     DW,
     Opcode,
+    //Operands
     Register8,
     Register16,
     Expression,
@@ -29,7 +33,9 @@ enum class ASTNodeType
     Data8,
     Data16,
     RSTCode,
+    UndefinedOperand,
 };
+std::wostream & operator << (std::wostream & stream, ASTNodeType nodeType);
 
 class ASTNode
 {
@@ -49,7 +55,7 @@ public:
 
     virtual std::wstring ToString() const { return Value(); }
 
-private:
+protected:
     ASTNodeType type;
     std::wstring value;
     Location location;

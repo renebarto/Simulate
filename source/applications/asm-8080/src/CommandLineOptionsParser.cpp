@@ -6,19 +6,22 @@
 
 static const std::string ApplicationName = "asm-8080";
 static const std::string DefaultObjectExtension = ".dat";
-static const std::string DefaultListingExtension = ".txt";
+static const std::string DefaultReportExtension = ".txt";
 
-CommandLineOptionsParser::CommandLineOptionsParser() :
-    inputFilePath(),
-    outputObjectFilePath(),
-    outputListingFilePath(),
-    outputCrossReferenceFilePath()
+CommandLineOptionsParser::CommandLineOptionsParser()
+    : inputFilePath()
+    , outputObjectFilePath()
+    , outputReportingFilePath()
+    , listSymbols()
+    , listSymbolCrossReferences()
+    , emulate()
 {
     Core::CommandLineOptionGroupPtr group = std::make_shared<Core::CommandLineOptionGroup>("Main", "Global options");
     group->AddOptionRequiredArgument("input", 'i', "Input file (required)", &inputFilePath);
     group->AddOptionRequiredArgument("output", 'o', "Object output file (default = <input base path>" + DefaultObjectExtension + ")", &outputObjectFilePath);
-    group->AddOptionRequiredArgument("listing", 'l', "Output listing file (default = <object output base path>" + DefaultListingExtension + ")", &outputListingFilePath);
-    group->AddOptionRequiredArgument("xref", 'x', "Output cross-reference file (default = none)", &outputCrossReferenceFilePath);
+    group->AddOptionRequiredArgument("report", 'r', "Output reporting file (default = <input base path>-lst" + DefaultReportExtension + ")", &outputReportingFilePath);
+    group->AddOptionNoArgument("symbols", 's', "Output symbols list to reporting file", &listSymbols);
+    group->AddOptionNoArgument("xref", 'x', "Output symbols cross reference to reporting file", &listSymbolCrossReferences);
     AddGroup(group);
 }
 
@@ -38,8 +41,8 @@ void CommandLineOptionsParser::ResolveDefaults()
     {
         outputObjectFilePath = Core::Path::StripExtension(inputFilePath) + DefaultObjectExtension;
     }
-    if (outputListingFilePath.empty())
+    if (outputReportingFilePath.empty())
     {
-        outputListingFilePath = Core::Path::StripExtension(outputObjectFilePath) + DefaultListingExtension;
+        outputReportingFilePath = Core::Path::StripExtension(outputObjectFilePath) + "-lst" + DefaultReportExtension;
     }
 }

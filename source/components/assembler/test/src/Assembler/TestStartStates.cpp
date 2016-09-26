@@ -75,7 +75,7 @@ TEST_FIXTURE(StartStatesTest, SetExistent)
     EXPECT_EQ(ValueNonExistent, startStates.Get(Char2));
     EXPECT_EQ(ValueNonExistent, startStates.Get(Char3));
 
-    EXPECT_THROW(startStates.Set(Char1, Value2), std::invalid_argument);
+    EXPECT_THROW(startStates.Set(Char1, Value2), AssemblerException);
 }
 
 } // namespace Test

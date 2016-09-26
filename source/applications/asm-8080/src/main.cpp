@@ -1,26 +1,23 @@
 #include <fstream>
 #include <iostream>
 #include <CommandLineOptionsParser.h>
-#include <LineParser8080.h>
-#include <Assembler.h>
+#include <ASM-8080.h>
 
 using namespace std;
-using namespace ASM8080;
+using namespace ASM;
 
 int main(int argc, char * argv[])
 {
-    cout << "8080 assembler (C) Barsoft 2016" << endl;
+    cout << "8080 assembler (C) Barsoft 2016" << endl << endl;
     CommandLineOptionsParser commandLineParser;
 
     commandLineParser.Parse(argc, argv);
+    commandLineParser.ResolveDefaults();
 
-    ifstream inputFile(commandLineParser.inputFilePath);
-    ofstream outputObjectFile(commandLineParser.outputObjectFilePath, ios::binary);
-    ofstream outputListingFile(commandLineParser.outputListingFilePath);
-    ofstream outputCrossReferenceFile(commandLineParser.outputCrossReferenceFilePath);
-
-    Reader reader(inputFile);
-    LineParser8080 lineParser;
-    Assembler parser(reader, lineParser);
-    parser.Parse();
+    ASM_8080 assembler(commandLineParser);
+    if (!assembler.Run())
+    {
+        cout << endl << "Errors assembling." << endl;;
+    }
+    cout << endl << "Done." << endl;;
 }

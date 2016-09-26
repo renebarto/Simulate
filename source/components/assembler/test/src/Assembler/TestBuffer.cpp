@@ -6,6 +6,7 @@
 #include <locale>
 #include "Buffer.h"
 #include "CharSet.h"
+#include "Exceptions.h"
 
 using namespace std;
 
@@ -80,7 +81,7 @@ TEST_FIXTURE(BufferTest, ConstructDefault)
 
 TEST_FIXTURE(BufferTest, ConstructNullStream)
 {
-    EXPECT_THROW(Buffer buffer(nullptr, false), std::invalid_argument);
+    EXPECT_THROW(Buffer buffer(nullptr, false), AssemblerException);
 }
 
 TEST_FIXTURE(BufferTest, ConstructFileNonExistent)

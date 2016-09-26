@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CPUParser.h"
+#include "SymbolList.h"
 
 namespace Assembler
 {
@@ -171,13 +172,21 @@ private:
     RSTCode rstCode;    
 };
 
-class CPUParserIntel8080_8085 : public CPUParser<OpcodeType, OperandType, uint16_t>
+using SegmentType = uint8_t;
+using AddressType = uint16_t;
+
+class CPUParserIntel8080_8085 : public CPUParser<OpcodeType, OperandType, SegmentType, AddressType>
 {
 public:
-	CPUParserIntel8080_8085(CPUType cpuType, Scanner & scanner, ErrorHandler & errorHandler, std::wostream & reportStream);
+	CPUParserIntel8080_8085(CPUType cpuType, Scanner & scanner, ErrorHandler & errorHandler, PrettyPrinter<wchar_t> & printer);
 	virtual ~CPUParserIntel8080_8085();
 
+    void Print();
+    void Print(ASTNode::Ptr node, size_t & line);
     void PrintWithErrors() override;
+    void PrintSymbolTable() override;
+    void PrintSymbolCrossReference() override;
+    void DumpAST(std::wostream & stream, size_t startColumn) override;
 
 private:
     using AddressType = uint16_t;
@@ -196,8 +205,13 @@ private:
     void HandleOperands(OpcodeNode<OpcodeType, AddressType>::Ptr opcode, OperandType state) override;
 
     void PrintWithErrors(ASTNode::Ptr node, size_t & line, AssemblerMessages::const_iterator & it);
+    void Print(ASTNode::Ptr node);
     void ParseExpression8(OpcodeNode<OpcodeType, AddressType>::Ptr opcode);
     void ParseExpression16(OpcodeNode<OpcodeType, AddressType>::Ptr opcode);
+    void DumpNode(PrettyPrinter<wchar_t> & printer, ASTNode::Ptr node, size_t startColumn);
+    void ScanOperandNodeForReferences(ASTNode::Ptr node, SymbolList<SymbolReference> & list);
+    void ScanOpcodeNodeForReferences(OpcodeNode<OpcodeType, AddressType>::Ptr node, SymbolList<SymbolReference> & list);
+    void ScanASTForReferences(SymbolList<SymbolReference> & list);
 }; // CPUParserIntel8080_8085
 
 } // namespace Assembler

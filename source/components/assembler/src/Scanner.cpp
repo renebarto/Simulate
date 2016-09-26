@@ -291,7 +291,7 @@ Token Scanner::NextToken()
                 else
                 {
                     // Special case: B or b is also considered a value hex digit
-                    if (towupper(tokenValue[tokenValue.length() - 1]) == 'B')
+                    if ((towupper(tokenValue[tokenValue.length() - 1]) == 'B') && (towupper(currentChar) != L'H'))
                     {
                         std::wstring val = tokenValue.substr(0, tokenValue.length() - 1);
                         if (!CheckAgainstCharSet(val, binaryNumber))

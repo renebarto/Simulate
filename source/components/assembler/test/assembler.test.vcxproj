@@ -177,8 +177,10 @@
     <ClCompile Include="src\Assembler\TestLocation.cpp" />
     <ClCompile Include="src\Assembler\TestNodes.cpp" />
     <ClCompile Include="src\Assembler\TestParser.cpp" />
+    <ClCompile Include="src\Assembler\TestPrettyPrinter.cpp" />
     <ClCompile Include="src\Assembler\TestScanner.cpp" />
     <ClCompile Include="src\Assembler\TestStartStates.cpp" />
+    <ClCompile Include="src\Assembler\TestSymbolList.cpp" />
     <ClCompile Include="src\Assembler\TestSymbolMap.cpp" />
     <ClCompile Include="src\Assembler\TestToken.cpp" />
     <ClCompile Include="src\CommandLineOptionsParser.cpp" />

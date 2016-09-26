@@ -76,10 +76,10 @@ TEST_FIXTURE(KeywordMapTest, SetExisting)
     EXPECT_EQ(ValueNonExistent, keywordMap.Get(Keyword2, ValueNonExistent));
     EXPECT_EQ(ValueNonExistent, keywordMap.Get(Keyword3, ValueNonExistent));
 
-    EXPECT_THROW(keywordMap.Set(Keyword1, Value2), std::invalid_argument);
+    EXPECT_THROW(keywordMap.Set(Keyword1, Value2), AssemblerException);
 
     keywordMap.Set(Keyword3, Value3);
-    EXPECT_THROW(keywordMap.Set(Keyword4, Value3), std::invalid_argument);
+    EXPECT_THROW(keywordMap.Set(Keyword4, Value3), AssemblerException);
 }
 
 } // namespace Test

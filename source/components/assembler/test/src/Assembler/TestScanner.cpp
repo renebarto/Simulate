@@ -34,7 +34,7 @@ TEST_FIXTURE(ScannerTest, ConstructStream)
 
 TEST_FIXTURE(ScannerTest, ConstructStreamNull)
 {
-    EXPECT_THROW(Scanner scanner(nullptr, true), std::invalid_argument);
+    EXPECT_THROW(Scanner scanner(nullptr, true), AssemblerException);
 }
 
 TEST_FIXTURE(ScannerTest, NextCh)

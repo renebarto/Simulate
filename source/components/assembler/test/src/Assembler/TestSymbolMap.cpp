@@ -73,8 +73,8 @@ TEST_FIXTURE(SymbolMapTest, LookupNonExisting)
 
     symbolMap.Add(Key1, Value1);
     EXPECT_EQ(Value1, symbolMap.Lookup(Key1));
-    EXPECT_THROW(symbolMap.Lookup(Key2), std::invalid_argument);
-    EXPECT_THROW(symbolMap.Lookup(Key3), std::invalid_argument);
+    EXPECT_THROW(symbolMap.Lookup(Key2), AssemblerException);
+    EXPECT_THROW(symbolMap.Lookup(Key3), AssemblerException);
 }
 
 TEST_FIXTURE(SymbolMapTest, AddExisting)
@@ -86,10 +86,10 @@ TEST_FIXTURE(SymbolMapTest, AddExisting)
     EXPECT_FALSE(symbolMap.Exists(Key2));
     EXPECT_FALSE(symbolMap.Exists(Key3));
 
-    EXPECT_THROW(symbolMap.Add(Key1, Value2), std::invalid_argument);
+    EXPECT_THROW(symbolMap.Add(Key1, Value2), AssemblerException);
 
     symbolMap.Add(Key3, Value3);
-    EXPECT_THROW(symbolMap.Add(Key4, Value3), std::invalid_argument);
+    EXPECT_THROW(symbolMap.Add(Key4, Value3), AssemblerException);
 }
 
 } // namespace Test

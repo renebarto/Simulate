@@ -3,12 +3,14 @@
 #include "ICPUAssembler.h"
 #include "core/Util.h"
 #include "Nodes.h"
+#include "Printer.h"
+#include "SymbolList.h"
 
 namespace Assembler
 {
 
-CPUParserIntel8080_8085::CPUParserIntel8080_8085(CPUType cpuType, Scanner & scanner, ErrorHandler & errorHandler, std::wostream & reportStream)
-    : CPUParser(cpuType, scanner, errorHandler, reportStream)
+CPUParserIntel8080_8085::CPUParserIntel8080_8085(CPUType cpuType, Scanner & scanner, ErrorHandler & errorHandler, PrettyPrinter<wchar_t> & printer)
+    : CPUParser(cpuType, scanner, errorHandler, printer)
     , registers8()
     , registers16()
     , rstCodes()
@@ -252,16 +254,15 @@ RSTNode::Ptr CPUParserIntel8080_8085::CreateRSTNode(RSTCode rstCode, std::wstrin
     return std::make_shared<RSTNode>(rstCode, value, location);
 }
 
-static size_t BytesPerInstructionMax = 3;
-static std::wstring Spacer(size_t numBytes)
+void CPUParserIntel8080_8085::Print()
 {
-    std::wstring result;
-    result += std::wstring((BytesPerInstructionMax - numBytes) * 3, L' ');
-    return result;
-}
-static std::wstring Spacer()
-{
-    return std::wstring(5, L' ') + Spacer(0);
+    ASTNode::Ptr node = ast.FirstNode();
+    size_t line = 1;
+    while (node != nullptr)
+    {
+        Print(node, line);
+    }
+    printer << std::endl;
 }
 
 void CPUParserIntel8080_8085::PrintWithErrors()
@@ -276,110 +277,307 @@ void CPUParserIntel8080_8085::PrintWithErrors()
         PrintWithErrors(node, line, messageIt);
         node = node->Next();
     }
-    reportStream << std::endl;
+    printer << std::endl;
 }
 
 void CPUParserIntel8080_8085::PrintWithErrors(ASTNode::Ptr node, size_t & line, AssemblerMessages::const_iterator & it)
 {
-    StatementNode * statementNode = dynamic_cast<StatementNode *>(node.get());
-    std::wstring label;
-    if ((statementNode != nullptr) && (statementNode->Label() != nullptr))
-    {
-        label = statementNode->Label()->Value() + L":";
-    }
     while (line < node->Loc().GetLine())
     {
-        reportStream << std::endl;
+        printer << std::endl;
         ++line;
         while ((it != errorHandler.end()) && (it->Loc().GetLine() < line))
         {
-            reportStream << L"--> Error: " << it->Loc() << L" - " << it->Message() << std::endl;
+            printer << L"--> Error: " << it->Loc() << L" - " << it->Message() << std::endl;
             ++it;
         }
     }
+    Print(node);
+}
 
-    switch (node->NodeType())
+void CPUParserIntel8080_8085::Print(ASTNode::Ptr node, size_t & line)
+{
+    while (line < node->Loc().GetLine())
     {
-    case ASTNodeType::CPU:
-        reportStream << Spacer() << L"CPU " << node->Value();
-        break;
-    case ASTNodeType::Comment:
-        reportStream << L";" << node->Value();
-        break;
-    case ASTNodeType::ORG:
-        reportStream << Spacer() << label << L"ORG " << node->Value();
-        break;
-    case ASTNodeType::END:
-        reportStream << Spacer() << label << L"END";
-        break;
-    case ASTNodeType::Opcode:
+        printer << std::endl;
+        ++line;
+    }
+    Print(node);
+}
+
+void CPUParserIntel8080_8085::Print(ASTNode::Ptr node)
+{
+    StatementLineNode * statementLineNode = dynamic_cast<StatementLineNode *>(node.get());
+    std::wstring label;
+    if ((statementLineNode != nullptr) && (statementLineNode->Label() != nullptr))
+    {
+        label = statementLineNode->Label()->Value() + L":";
+    }
+    StatementNode::Ptr statementNode = statementLineNode->Statement();
+    if (statementNode != nullptr)
+    {
+        switch (statementNode->NodeType())
         {
-            OpcodeNode<OpcodeType, AddressType> * opcode = dynamic_cast<OpcodeNode<OpcodeType, AddressType> *>(node.get());
-            AddressType address = opcode->Address();
-            reportStream << std::hex << std::setw(4) << std::setfill(L'0') << address << L" " << std::dec;
-            OpcodeType opcodeType = opcode->Type();
-            MachineCode const & machineCode = opcode->Code();
-            for (size_t i = 0; i < machineCode.size(); ++i)
+        case ASTNodeType::CPU:
+            printer << column(OpcodeColumn) << L"CPU " << statementNode->Value();
+            break;
+        case ASTNodeType::ORG:
+            PrintAddress(printer, AddressType(ConvertToValue(statementNode->Value())));
+            PrintLabel(printer, label);
+            printer << column(OpcodeColumn) << L"ORG " << statementNode->Value();
+            break;
+        case ASTNodeType::END:
+            PrintLabel(printer, label);
+            printer << column(OpcodeColumn) << L"END";
+            break;
+        case ASTNodeType::Opcode:
             {
-                reportStream << std::hex << std::setw(2) << int(machineCode[i]) << L" ";
-            }
-            reportStream << Spacer(machineCode.size()) << label << node->Value();
-            ASTNode::Ptr subNode = node->FirstChild();
-            bool firstNode = true;
-            while (subNode != nullptr)
-            {
-                if (firstNode)
+                OpcodeNode<OpcodeType, AddressType> * opcode = dynamic_cast<OpcodeNode<OpcodeType, AddressType> *>(statementNode.get());
+                AddressType address = opcode->Address();
+                printer << std::hex << std::setw(4) << std::setfill(L'0') << address << L" " << std::dec;
+                OpcodeType opcodeType = opcode->Type();
+                MachineCode const & machineCode = opcode->Code();
+                PrintCode(printer, machineCode);
+                PrintLabel(printer, label);
+                printer << column(OpcodeColumn) << statementNode->Value();
+                ASTNode::Ptr subNode = statementNode->FirstChild();
+                bool firstNode = true;
+                while (subNode != nullptr)
                 {
-                    reportStream << L" ";
-                    firstNode = false;
-                }
-                else
-                    reportStream << L",";
-
-                switch (subNode->NodeType())
-                {
-                case ASTNodeType::Expression:
+                    if (firstNode)
                     {
-                        ASTNode::Ptr subsubNode = subNode->FirstChild();
-                        bool firstNode = true;
-                        while (subsubNode != nullptr)
-                        {
-                            if (firstNode)
-                            {
-                                firstNode = false;
-                            }
-                            else
-                                reportStream << L",";
-
-                            reportStream << subsubNode->Value();
-                            subsubNode = subsubNode->Next();
-                        }
+                        printer << L" ";
+                        firstNode = false;
                     }
-                    break;
-                default:
-                    reportStream << subNode->Value();
+                    else
+                        printer << L",";
+
+                    switch (subNode->NodeType())
+                    {
+                    case ASTNodeType::Expression:
+                        {
+                            ASTNode::Ptr subsubNode = subNode->FirstChild();
+                            bool firstNode = true;
+                            while (subsubNode != nullptr)
+                            {
+                                if (firstNode)
+                                {
+                                    firstNode = false;
+                                }
+                                else
+                                    printer << L",";
+
+                                printer << subsubNode->Value();
+                                subsubNode = subsubNode->Next();
+                            }
+                        }
+                        break;
+                    default:
+                        printer << subNode->Value();
+                    }
+                    subNode = subNode->Next();
                 }
-                subNode = subNode->Next();
+            }
+            break;
+        default:
+            printer << column(OpcodeColumn) << statementNode->Value();
+        }
+    }
+    if ((statementLineNode != nullptr) && (statementLineNode->Comment() != nullptr))
+    {
+        printer << column(CommentColumn) << statementLineNode->Comment()->ToString();
+    }
+}
+
+void CPUParserIntel8080_8085::PrintSymbolTable()
+{
+    SymbolList<Symbol<SegmentType, AddressType>> list;
+
+    for (auto label : labels)
+    {
+        list.Add(label.first, label.second);
+    }
+    list.Sort();
+    printer << L"Symbols:" << std::endl;
+    for (auto label : list)
+    {
+        if (label.second.locationDefined)
+            printer << label.first << column(21) << std::hex << std::uppercase << std::setw(4) << std::setfill(L'0') <<  label.second.location << std::dec << std::endl;
+        else
+            printer << label.first << column(21) << L"Undefined" << std::endl;
+    }
+    printer << std::endl;
+}
+
+void CPUParserIntel8080_8085::DumpAST(std::wostream & stream, size_t startColumn)
+{
+    ASTNode::Ptr node = ast.FirstNode();
+    PrettyPrinter<wchar_t> printer(stream);
+    while (node != nullptr)
+    {
+        DumpNode(printer, node, startColumn);
+        node = node->Next();
+    }
+}
+
+void CPUParserIntel8080_8085::DumpNode(PrettyPrinter<wchar_t> & printer, ASTNode::Ptr node, size_t startColumn)
+{
+    printer << column(startColumn) << node->NodeType() << L" " << node->Value() << std::endl;
+    StatementLineNode::Ptr statementLine = std::dynamic_pointer_cast<StatementLineNode>(node);
+    if (statementLine != nullptr)
+    {
+        if (statementLine->Label() != nullptr)
+            DumpNode(printer, statementLine->Label(), startColumn + 2);
+        if (statementLine->Statement() != nullptr)
+            DumpNode(printer, statementLine->Statement(), startColumn + 2);
+        if (statementLine->Comment() != nullptr)
+            DumpNode(printer, statementLine->Comment(), startColumn + 2);
+    }
+
+    ASTNode::Ptr subNode = node->FirstChild();
+    while (subNode != nullptr)
+    {
+        DumpNode(printer, subNode, startColumn + 2);
+        subNode = subNode->Next();
+    }
+}
+
+void CPUParserIntel8080_8085::ScanOperandNodeForReferences(ASTNode::Ptr node, SymbolList<SymbolReference> & list)
+{
+    ASTNode::Ptr operandNode = node->FirstChild();
+    while (operandNode != nullptr)
+    {
+        switch (operandNode->NodeType())
+        {
+        case ASTNodeType::Expression:
+            ScanOperandNodeForReferences(operandNode, list);
+            break;
+        case ASTNodeType::Register8:
+            break;
+        case ASTNodeType::Register16:
+            break;
+        case ASTNodeType::LocCounter:
+            break;
+        case ASTNodeType::RefAddress:
+            {
+                SymbolList<SymbolReference>::Iterator reference = list.Find(operandNode->Value());
+                reference->second.AddReference(operandNode->Loc().GetLine());
+            }
+            break;
+        case ASTNodeType::RefData:
+            break;
+        case ASTNodeType::Data8:
+            break;
+        case ASTNodeType::Data16:
+            break;
+        case ASTNodeType::RSTCode:
+            break;
+        }
+        operandNode = operandNode->Next();
+    }
+}
+
+void CPUParserIntel8080_8085::ScanOpcodeNodeForReferences(OpcodeNode<OpcodeType, AddressType>::Ptr node, SymbolList<SymbolReference> & list)
+{
+    ASTNode::Ptr operandNode = node->FirstChild();
+    while (operandNode != nullptr)
+    {
+        switch (operandNode->NodeType())
+        {
+        case ASTNodeType::Expression:
+            ScanOperandNodeForReferences(operandNode, list);
+            break;
+        default:
+            break;
+        }
+        operandNode = operandNode->Next();
+    }
+}
+
+void CPUParserIntel8080_8085::ScanASTForReferences(SymbolList<SymbolReference> & list)
+{
+    ASTNode::Ptr node = ast.FirstNode();
+    while (node != nullptr)
+    {
+//        DumpNode(printer, node, 1);
+        StatementLineNode::Ptr statementLineNode = std::dynamic_pointer_cast<StatementLineNode>(node);
+        StatementNode::Ptr statementNode = statementLineNode->Statement();
+
+        switch (statementNode->NodeType())
+        {
+        case ASTNodeType::CPU:
+            break;
+        case ASTNodeType::ORG:
+        case ASTNodeType::END:
+            if (statementLineNode->Label() != nullptr)
+            {
+                SymbolList<SymbolReference>::Iterator reference = list.Find(statementLineNode->Label()->Value());
+                reference->second.AddReference(statementLineNode->Label()->Loc().GetLine());
+            }
+            break;
+        case ASTNodeType::Opcode:
+            if (statementLineNode->Label() != nullptr)
+            {
+                SymbolList<SymbolReference>::Iterator reference = list.Find(statementLineNode->Label()->Value());
+                reference->second.AddReference(statementLineNode->Label()->Loc().GetLine());
+            }
+            ScanOpcodeNodeForReferences(std::dynamic_pointer_cast<OpcodeNode<OpcodeType, AddressType>>(statementNode), list);
+            break;
+        default:
+            break;
+        }
+        node = node->Next();
+    }
+}
+
+void CPUParserIntel8080_8085::PrintSymbolCrossReference()
+{
+    SymbolList<SymbolReference> list;
+
+    for (auto label : labels)
+    {
+        list.Add(label.first, label.first);
+    }
+    list.Sort();
+    printer << L"Symbol references:" << std::endl;
+    ScanASTForReferences(list);
+    for (auto label : list)
+    {
+        printer << label.first;
+        if (label.second.references.size())
+        {
+            for (auto ref : label.second.references)
+            {
+                printer << column(21) << ref << std::endl;
             }
         }
-        break;
-    default:
-        reportStream << node->Value();
+        else
+            printer << column(21) << L"No references" << std::endl;
+
     }
+    printer << std::endl;
 }
 
 void CPUParserIntel8080_8085::HandleOpcodeAndOperands(LabelNode::Ptr label)
 {
     OpcodeType opcode = opcodes.Get(lastToken.value, OpcodeType::Invalid);
+    auto opcodeNode = Nodes::CreateOpcode(programCounter, opcode, lastToken.value, lastToken.location);
+    currentStatementLine = Nodes::CreateStatementLine(label, opcodeNode);
+    ast.AddNode(currentStatementLine);
     if (opcode == OpcodeType::Invalid)
     {
         std::wostringstream stream;
         stream << L"Expected Opcode: " << lastToken.value;
-        SemanticError(stream.str());
+        SemanticError(lastToken.location, stream.str());
+        while ((currentToken.kind != TokenType::EOL) && (currentToken.kind != TokenType::Comment))
+        {
+            Get();
+            opcodeNode->AddChild(Nodes::CreateNode(ASTNodeType::UndefinedOperand, lastToken.value, lastToken.location));
+        }
+        HandleComment();
+        Expect(TokenType::EOL);
         return;
     }
-    auto opcodeNode = Nodes::CreateOpcode(programCounter, opcode, lastToken.value, label, lastToken.location);
-    ast.AddNode(opcodeNode);
     InstructionMapping8080 const & instructionInfo = instructionData.Get(opcode);
     OperandType operandType = instructionInfo.operandType;
     if (operandType == OperandType::Invalid)
@@ -587,9 +785,8 @@ void CPUParserIntel8080_8085::HandleOperands(OpcodeNode<OpcodeType, AddressType>
         {
             Expect(TokenType::Number);
             RSTCode reg = rstCodes.Get(lastToken.value, RSTCode::Invalid);
-            if (reg != RSTCode::Invalid)
-                opcode->AddChild(CreateRSTNode(reg, lastToken.value, lastToken.location));
-            else
+            opcode->AddChild(CreateRSTNode(reg, lastToken.value, lastToken.location));
+            if (reg == RSTCode::Invalid)
             {
                 std::wostringstream stream;
                 stream << L"Invalid RST code: " << lastToken.value;
@@ -643,16 +840,16 @@ void CPUParserIntel8080_8085::ParseExpression16(OpcodeNode<OpcodeType, AddressTy
         Get();
         if (HaveLabel(lastToken.value))
         {
-            Label<AddressType> const & label = GetLabel(lastToken.value);
+            Symbol<SegmentType, AddressType> const & label = GetLabel(lastToken.value);
             if (label.locationDefined)
-                expression->AddChild(Nodes::CreateRefAddress(lastToken.value, label.location, lastToken.location));
+                expression->AddChild(Nodes::CreateRefAddress(lastToken.value, label.segment, label.location, lastToken.location));
             else
-                expression->AddChild(Nodes::CreateRefAddressUndefined<AddressType>(lastToken.value, lastToken.location));
+                expression->AddChild(Nodes::CreateRefAddressUndefined<SegmentType, AddressType>(lastToken.value, lastToken.location));
         }
         else
         {
-            AddLabel(Label<AddressType>(lastToken.value));
-            expression->AddChild(Nodes::CreateRefAddressUndefined<AddressType>(lastToken.value, lastToken.location));
+            AddLabel(Symbol<SegmentType, AddressType>(lastToken.value));
+            expression->AddChild(Nodes::CreateRefAddressUndefined<SegmentType, AddressType>(lastToken.value, lastToken.location));
         }
     }
 }

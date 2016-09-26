@@ -6,10 +6,10 @@
 namespace Assembler
 {
 
-Parser::Parser(Scanner & scanner, AssemblerMessages & messages, std::wostream & errorStream, std::wostream & reportStream)
+Parser::Parser(Scanner & scanner, AssemblerMessages & messages, std::wostream & reportStream)
     : scanner(scanner)
-    , errorHandler(errorStream, messages)
-    , reportStream(reportStream)
+    , errorHandler(messages)
+    , printer(reportStream)
     , currentToken()
     , lastToken()
     , knownCPU()
@@ -17,6 +17,8 @@ Parser::Parser(Scanner & scanner, AssemblerMessages & messages, std::wostream & 
     , machineCode()
     , cpuAssemblerParser()
     , cpuAssembler()
+    , showSymbols()
+    , showCrossReference()
 {
     Init();
 }
@@ -25,7 +27,7 @@ Parser::~Parser()
 {
 }
 
-void Parser::Parse()
+bool Parser::Parse()
 {
     currentToken = Token();
     lastToken = Token();
@@ -37,22 +39,38 @@ void Parser::Parse()
     {
         if ((errorHandler.NumErrors() == 0) && (errorHandler.NumExceptions() == 0))
         {
-            cpuAssembler = CreateAssembler();
-            cpuAssembler->Generate(cpuAssemblerParser->GetAST(), machineCode);
+            cpuAssembler = CreateAssembler(cpuAssemblerParser);
+            return cpuAssembler->Generate(machineCode);
         }
         else
             cpuAssemblerParser->PrintWithErrors();
     }
     else
         PrintErrors();
+    return false;
 }
 
 void Parser::PrintErrors()
 {
     for (auto message : errorHandler)
     {
-        reportStream << L"Error: " << message.Loc() << L" - " << message.Message() << std::endl;
+        printer << L"Error: " << message.Loc() << L" - " << message.Message() << std::endl;
     }
+}
+
+void Parser::PrintSymbols()
+{
+    cpuAssemblerParser->PrintSymbolTable();
+}
+
+void Parser::PrintSymbolCrossReference()
+{
+    cpuAssemblerParser->PrintSymbolCrossReference();
+}
+
+void Parser::DumpAST()
+{
+    cpuAssemblerParser->DumpAST(std::wcout, 1);
 }
 
 void Parser::Init()
@@ -81,7 +99,6 @@ void Parser::Get()
         currentToken = scanner.Scan();
         if (currentToken.kind != TokenType::Unknown)
         {
-            errorHandler.NoError();
             break;
         }
     }
@@ -115,6 +132,12 @@ void Parser::ParseAssembler()
             cpuAssemblerParser->Parse();
         }
     }
+    else if (currentToken.kind == TokenType::Number)
+    {
+        std::wostringstream stream;
+        stream << L"Unknown CPU type: " << currentToken.value;
+        SemanticError(stream.str());
+    }
     else
         SyntaxError(TokenType::Identifier);
     Get();
@@ -131,30 +154,30 @@ ASTree const & Parser::GetAST() const
     return cpuAssemblerParser->GetAST();
 }
 
-std::unique_ptr<ICPUParser> Parser::CreateAssemblerParser()
+std::shared_ptr<ICPUParser> Parser::CreateAssemblerParser()
 {
     switch (cpuType)
     {
     case CPUType::Intel8080:
     case CPUType::Intel8085:
-        return std::unique_ptr<ICPUParser>(new CPUParserIntel8080_8085(cpuType, scanner, errorHandler, reportStream));
+        return std::shared_ptr<ICPUParser>(new CPUParserIntel8080_8085(cpuType, scanner, errorHandler, printer));
     default:
         {
             std::wostringstream stream;
             stream << L"Unsupported CPU type: " << cpuType;
             SemanticError(stream.str());
-            return std::unique_ptr<ICPUParser>();
+            return std::shared_ptr<ICPUParser>();
         }
     }
 }
 
-std::unique_ptr<ICPUAssembler> Parser::CreateAssembler()
+std::unique_ptr<ICPUAssembler> Parser::CreateAssembler(std::shared_ptr<ICPUParser> parser)
 {
     switch (cpuType)
     {
     case CPUType::Intel8080:
     case CPUType::Intel8085:
-        return std::unique_ptr<ICPUAssembler>(new CPUAssemblerIntel8080_8085(cpuType, errorHandler, reportStream));
+        return std::unique_ptr<ICPUAssembler>(new CPUAssemblerIntel8080_8085(parser, errorHandler, printer));
     default:
         {
             std::wostringstream stream;

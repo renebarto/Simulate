@@ -1,46 +1,10 @@
-#pragma once
+﻿#pragma once
 
 #include "AbstractSyntaxTree.h"
 #include "MachineCode.h"
 
 namespace Assembler
 {
-
-class CPUNode : public ASTNode
-{
-public:
-    using Ptr = std::shared_ptr<CPUNode>;
-    CPUNode(std::wstring const & value, Location const & location)
-        : ASTNode(ASTNodeType::CPU, value, location)
-    {}
-    virtual ~CPUNode() {}
-
-    std::wstring ToString() const override { return L"CPU " + Value(); }
-};
-
-class ORGNode : public ASTNode
-{
-public:
-    using Ptr = std::shared_ptr<ORGNode>;
-    ORGNode(std::wstring const & value, Location const & location)
-        : ASTNode(ASTNodeType::ORG, value, location)
-    {}
-    virtual ~ORGNode() {}
-
-    std::wstring ToString() const override { return L"ORG " + Value(); }
-};
-
-class ENDNode : public ASTNode
-{
-public:
-    using Ptr = std::shared_ptr<ENDNode>;
-    ENDNode(std::wstring const & value, Location const & location)
-        : ASTNode(ASTNodeType::END, value, location)
-    {}
-    virtual ~ENDNode() {}
-
-    std::wstring ToString() const override { return L"END"; }
-};
 
 class LabelNode : public ASTNode
 {
@@ -54,20 +18,134 @@ public:
     std::wstring ToString() const override { return Value() + L":"; }
 };
 
-template<class AddressType>
+class CommentNode : public ASTNode
+{
+public:
+    using Ptr = std::shared_ptr<CommentNode>;
+    CommentNode(std::wstring const & value, Location const & location)
+        : ASTNode(ASTNodeType::Comment, value, location)
+    {}
+    virtual ~CommentNode() {}
+
+    std::wstring ToString() const override { return L";" + Value(); }
+};
+
+class StatementNode : public ASTNode
+{
+public:
+    using Ptr = std::shared_ptr<StatementNode>;
+    StatementNode(ASTNodeType type, std::wstring const & value, Location const & location)
+        : ASTNode(type, value, location)
+    {}
+    virtual ~StatementNode() {}
+};
+
+class StatementLineNode : public ASTNode
+{
+public:
+    using Ptr = std::shared_ptr<StatementLineNode>;
+    StatementLineNode(LabelNode::Ptr label, StatementNode::Ptr statement, CommentNode::Ptr comment)
+        : ASTNode(ASTNodeType::StatementLine, L"", Location())
+        , label(label)
+        , statement(statement)
+        , comment(comment)
+    {
+        if (label != nullptr)
+            location = label->Loc();
+        else if (statement != nullptr)
+            location = statement->Loc();
+        else if (comment != nullptr)
+            location = comment->Loc();
+    }
+    virtual ~StatementLineNode() {}
+    LabelNode::Ptr Label() const { return label; }
+    StatementNode::Ptr Statement() const { return statement; }
+    CommentNode::Ptr Comment() const { return comment; }
+    void SetComment(CommentNode::Ptr value) { comment = value; }
+
+private:
+    LabelNode::Ptr label;
+    StatementNode::Ptr statement;
+    CommentNode::Ptr comment;
+};
+
+class CPUNode : public StatementNode
+{
+public:
+    using Ptr = std::shared_ptr<CPUNode>;
+    CPUNode(std::wstring const & value, Location const & location)
+        : StatementNode(ASTNodeType::CPU, value, location)
+    {}
+    virtual ~CPUNode() {}
+
+    std::wstring ToString() const override { return L"CPU " + Value(); }
+};
+
+class ORGNode : public StatementNode
+{
+public:
+    using Ptr = std::shared_ptr<ORGNode>;
+    ORGNode(std::wstring const & value, Location const & location)
+        : StatementNode(ASTNodeType::ORG, value, location)
+    {}
+    virtual ~ORGNode() {}
+
+    std::wstring ToString() const override { return L"ORG " + Value(); }
+};
+
+class ENDNode : public StatementNode
+{
+public:
+    using Ptr = std::shared_ptr<ENDNode>;
+    ENDNode(std::wstring const & value, Location const & location)
+        : StatementNode(ASTNodeType::END, value, location)
+    {}
+    virtual ~ENDNode() {}
+
+    std::wstring ToString() const override { return L"END"; }
+};
+
+template<class OpcodeType, class AddressType>
+class OpcodeNode : public StatementNode
+{
+public:
+    using Ptr = std::shared_ptr<OpcodeNode<OpcodeType, AddressType>>;
+    OpcodeNode(AddressType address, OpcodeType opcodeType, std::wstring const & value, Location const & location)
+        : StatementNode(ASTNodeType::Opcode, value, location)
+        , opcodeType(opcodeType)
+        , address(address)
+        , machineCode()
+    {}
+    virtual ~OpcodeNode() {}
+
+    OpcodeType Type() const { return opcodeType; }
+    AddressType Address() const { return address; }
+    MachineCode Code() const { return machineCode; }
+    void SetCode(MachineCode const & code) { machineCode = code; }
+
+private:
+    OpcodeType opcodeType;
+    AddressType address;
+    MachineCode machineCode;
+};
+
+template<class SegmentType, class AddressType>
 class RefAddressNode : public ASTNode
 {
 public:
-    using Ptr = std::shared_ptr<RefAddressNode<AddressType>>;
-    RefAddressNode(std::wstring const & value, AddressType address, Location const & location)
+    using Ptr = std::shared_ptr<RefAddressNode<SegmentType, AddressType>>;
+    RefAddressNode(std::wstring const & value, SegmentType segment, AddressType address, Location const & location)
         : ASTNode(ASTNodeType::RefAddress, value, location)
+        , segment(segment)
         , address(address)
     {}
     virtual ~RefAddressNode() {}
 
+    SegmentType Segment() const { return segment; }
     AddressType Address() const { return address; }
 
 private:
+    SegmentType segment;
     AddressType address;
 };
 
@@ -86,45 +164,6 @@ public:
 
 private:
     DataType data;
-};
-
-class StatementNode : public ASTNode
-{
-public:
-    using Ptr = std::shared_ptr<StatementNode>;
-    StatementNode(ASTNodeType type, std::wstring const & value, LabelNode::Ptr label, Location const & location)
-        : ASTNode(type, value, location)
-        , label(label)
-    {}
-    virtual ~StatementNode() {}
-    LabelNode::Ptr Label() const { return label; }
-
-private:
-    LabelNode::Ptr label;
-};
-
-template<class OpcodeType, class AddressType>
-class OpcodeNode : public StatementNode
-{
-public:
-    using Ptr = std::shared_ptr<OpcodeNode<OpcodeType, AddressType>>;
-    OpcodeNode(AddressType address, OpcodeType opcodeType, std::wstring const & value, LabelNode::Ptr label, Location const & location)
-        : StatementNode(ASTNodeType::Opcode, value, label, location)
-        , opcodeType(opcodeType)
-        , address(address)
-        , machineCode()
-    {}
-    virtual ~OpcodeNode() {}
-
-    OpcodeType Type() const { return opcodeType; }
-    AddressType Address() const { return address; }
-    MachineCode Code() const { return machineCode; }
-    void SetCode(MachineCode const & code) { machineCode = code; }
-
-private:
-    OpcodeType opcodeType;
-    AddressType address;
-    MachineCode machineCode;
 };
 
 template<class Register8Type>
@@ -213,15 +252,23 @@ struct Nodes
     {
         return std::make_shared<LabelNode>(value, location);
     }
-    template<class AddressType>
-    static typename RefAddressNode<AddressType>::Ptr CreateRefAddress(std::wstring const & value, AddressType address, Location const & location)
+    static CommentNode::Ptr CreateCommentNode(std::wstring const & value, Location const & location)
     {
-        return std::make_shared<RefAddressNode<AddressType>>(value, address, location);
+        return std::make_shared<CommentNode>(value, location);
     }
-    template<class AddressType>
-    static typename RefAddressNode<AddressType>::Ptr CreateRefAddressUndefined(std::wstring const & value, Location const & location)
+    static CPUNode::Ptr CreateCPUNode(std::wstring const & value, Location const & location)
     {
-        return std::make_shared<RefAddressNode<AddressType>>(value, 0, location);
+        return std::make_shared<CPUNode>(value, location);
+    }
+    template<class SegmentType, class AddressType>
+    static typename RefAddressNode<SegmentType, AddressType>::Ptr CreateRefAddress(std::wstring const & value, SegmentType segment, AddressType address, Location const & location)
+    {
+        return std::make_shared<RefAddressNode<SegmentType, AddressType>>(value, segment, address, location);
+    }
+    template<class SegmentType, class AddressType>
+    static typename RefAddressNode<SegmentType, AddressType>::Ptr CreateRefAddressUndefined(std::wstring const & value, Location const & location)
+    {
+        return std::make_shared<RefAddressNode<SegmentType, AddressType>>(value, SegmentType{}, AddressType{}, location);
     }
     template<class DataType>
     static typename RefDataNode<DataType>::Ptr CreateRefData(std::wstring const & value, DataType data, Location const & location)
@@ -232,14 +279,18 @@ struct Nodes
     {
         return std::make_shared<ASTNode>(type, value, location);
     }
-    static StatementNode::Ptr CreateStatement(ASTNodeType type, std::wstring const & value, LabelNode::Ptr label, Location const & location)
+    static StatementLineNode::Ptr CreateStatementLine(LabelNode::Ptr label, StatementNode::Ptr statement, CommentNode::Ptr comment = nullptr)
     {
-        return std::make_shared<StatementNode>(type, value, label, location);
+        return std::make_shared<StatementLineNode>(label, statement, comment);
+    }
+    static StatementNode::Ptr CreateStatement(ASTNodeType type, std::wstring const & value, Location const & location)
+    {
+        return std::make_shared<StatementNode>(type, value, location);
     }
     template<class OpcodeType, class AddressType>
-    static typename OpcodeNode<OpcodeType, AddressType>::Ptr CreateOpcode(AddressType address, OpcodeType opcodeType, std::wstring const & value, LabelNode::Ptr label, Location const & location)
+    static typename OpcodeNode<OpcodeType, AddressType>::Ptr CreateOpcode(AddressType address, OpcodeType opcodeType, std::wstring const & value, Location const & location)
     {
-        return std::make_shared<OpcodeNode<OpcodeType, AddressType>>(address, opcodeType, value, label, location);
+        return std::make_shared<OpcodeNode<OpcodeType, AddressType>>(address, opcodeType, value, location);
     }
     static ExpressionNode::Ptr CreateExpression(std::wstring const & valueStr, Location const & location)
     {

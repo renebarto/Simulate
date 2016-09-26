@@ -31,10 +31,14 @@
     <ClInclude Include="export\KeywordMap.h" />
     <ClInclude Include="export\Location.h" />
     <ClInclude Include="export\MachineCode.h" />
+    <ClInclude Include="export\ObjectCode.h" />
+    <ClInclude Include="export\ObjectFile.h" />
     <ClInclude Include="export\Parser.h" />
+    <ClInclude Include="export\PrettyPrinter.h" />
     <ClInclude Include="export\Scanner.h" />
     <ClInclude Include="export\OpcodeMap.h" />
     <ClInclude Include="export\StartStates.h" />
+    <ClInclude Include="export\SymbolList.h" />
     <ClInclude Include="export\SymbolMap.h" />
     <ClInclude Include="export\Token.h" />
     <ClInclude Include="include\CPUAssemblerIntel8080_8085.h" />
@@ -43,6 +47,7 @@
     <ClInclude Include="include\ICPUParser.h" />
     <ClInclude Include="include\CPUParserIntel8080_8085.h" />
     <ClInclude Include="include\Nodes.h" />
+    <ClInclude Include="include\Printer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\AbstractSyntaxTree.cpp" />
@@ -55,8 +60,11 @@
     <ClCompile Include="src\ErrorHandler.cpp" />
     <ClCompile Include="src\Exceptions.cpp" />
     <ClCompile Include="src\Location.cpp" />
+    <ClCompile Include="src\ObjectCode.cpp" />
+    <ClCompile Include="src\ObjectFile.cpp" />
     <ClCompile Include="src\Parser.cpp" />
     <ClCompile Include="src\CPUParserIntel8080_8085.cpp" />
+    <ClCompile Include="src\Printer.cpp" />
     <ClCompile Include="src\Scanner.cpp" />
     <ClCompile Include="src\Token.cpp" />
   </ItemGroup>

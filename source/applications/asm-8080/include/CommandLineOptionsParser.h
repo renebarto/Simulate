@@ -10,8 +10,10 @@ public:
 
     std::string inputFilePath;
     std::string outputObjectFilePath;
-    std::string outputListingFilePath;
-    std::string outputCrossReferenceFilePath;
+    std::string outputReportingFilePath;
+    bool listSymbols;
+    bool listSymbolCrossReferences;
+    bool emulate;
 
     void ResolveDefaults();
 };
