@@ -1,6 +1,6 @@
 #include "unit-test-c++/UnitTestC++.h"
 
-#include "Nodes.h"
+#include "assembler/Nodes.h"
 
 using namespace std;
 

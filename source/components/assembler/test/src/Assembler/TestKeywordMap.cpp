@@ -1,6 +1,6 @@
 #include "unit-test-c++/UnitTestC++.h"
 
-#include "KeywordMap.h"
+#include "assembler/KeywordMap.h"
 
 using namespace std;
 

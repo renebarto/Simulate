@@ -1,7 +1,7 @@
 #include "unit-test-c++/UnitTestC++.h"
 
 #include "TestData.h"
-#include "Scanner.h"
+#include "assembler/Scanner.h"
 
 using namespace std;
 
@@ -739,45 +739,63 @@ TEST_FIXTURE(ScannerTest, NextTokenMultiply)
     Scanner scanner(&stream, true);
 
     Token token = scanner.NextToken();
-    EXPECT_EQ(TokenType::Identifier, token.kind);
-    EXPECT_EQ(L"MULT", token.value);
-    EXPECT_EQ(size_t{ 1 }, token.location.GetLine());
-    EXPECT_EQ(size_t{ 1 }, token.location.GetColumn());
-
-    token = scanner.NextToken();
-    EXPECT_EQ(TokenType::Colon, token.kind);
-    EXPECT_EQ(L":", token.value);
-    EXPECT_EQ(size_t{ 1 }, token.location.GetLine());
-    EXPECT_EQ(size_t{ 5 }, token.location.GetColumn());
-
-    token = scanner.NextToken();
-    EXPECT_EQ(TokenType::Identifier, token.kind);
-    EXPECT_EQ(L"MVI", token.value);
+    EXPECT_EQ(TokenType::CPUDirective, token.kind);
+    EXPECT_EQ(L"CPU", token.value);
     EXPECT_EQ(size_t{ 1 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 9 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
-    EXPECT_EQ(L"B", token.value);
+    EXPECT_EQ(L"Intel8080", token.value);
     EXPECT_EQ(size_t{ 1 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 13 }, token.location.GetColumn());
+
+    token = scanner.NextToken();
+    EXPECT_EQ(TokenType::EOL, token.kind);
+
+    token = scanner.NextToken();
+    EXPECT_EQ(TokenType::EOL, token.kind);
+
+    token = scanner.NextToken();
+    EXPECT_EQ(TokenType::Identifier, token.kind);
+    EXPECT_EQ(L"MULT", token.value);
+    EXPECT_EQ(size_t{ 3 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 1 }, token.location.GetColumn());
+
+    token = scanner.NextToken();
+    EXPECT_EQ(TokenType::Colon, token.kind);
+    EXPECT_EQ(L":", token.value);
+    EXPECT_EQ(size_t{ 3 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 5 }, token.location.GetColumn());
+
+    token = scanner.NextToken();
+    EXPECT_EQ(TokenType::Identifier, token.kind);
+    EXPECT_EQ(L"MVI", token.value);
+    EXPECT_EQ(size_t{ 3 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 9 }, token.location.GetColumn());
+
+    token = scanner.NextToken();
+    EXPECT_EQ(TokenType::Identifier, token.kind);
+    EXPECT_EQ(L"B", token.value);
+    EXPECT_EQ(size_t{ 3 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 13 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Comma, token.kind);
     EXPECT_EQ(L",", token.value);
-    EXPECT_EQ(size_t{ 1 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 3 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 14 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Number, token.kind);
     EXPECT_EQ(L"0", token.value);
-    EXPECT_EQ(size_t{ 1 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 3 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 15 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Comment, token.kind);
     EXPECT_EQ(L"INITIALIZE MOST SIGNIFICANT BYTE", token.value);
-    EXPECT_EQ(size_t{ 1 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 3 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 21 }, token.location.GetColumn());
 
     token = scanner.NextToken();
@@ -786,7 +804,7 @@ TEST_FIXTURE(ScannerTest, NextTokenMultiply)
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Comment, token.kind);
     EXPECT_EQ(L"OF RESULT", token.value);
-    EXPECT_EQ(size_t{ 2 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 4 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 21 }, token.location.GetColumn());
 
     token = scanner.NextToken();
@@ -795,31 +813,31 @@ TEST_FIXTURE(ScannerTest, NextTokenMultiply)
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"MVI", token.value);
-    EXPECT_EQ(size_t{ 3 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 5 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 9 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"E", token.value);
-    EXPECT_EQ(size_t{ 3 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 5 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 13 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Comma, token.kind);
     EXPECT_EQ(L",", token.value);
-    EXPECT_EQ(size_t{ 3 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 5 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 14 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Number, token.kind);
     EXPECT_EQ(L"9", token.value);
-    EXPECT_EQ(size_t{ 3 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 5 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 15 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Comment, token.kind);
     EXPECT_EQ(L"BIT COUNTER", token.value);
-    EXPECT_EQ(size_t{ 3 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 5 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 21 }, token.location.GetColumn());
 
     token = scanner.NextToken();
@@ -828,43 +846,43 @@ TEST_FIXTURE(ScannerTest, NextTokenMultiply)
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"MULT0", token.value);
-    EXPECT_EQ(size_t{ 4 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 6 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 1 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Colon, token.kind);
     EXPECT_EQ(L":", token.value);
-    EXPECT_EQ(size_t{ 4 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 6 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 6 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"MOV", token.value);
-    EXPECT_EQ(size_t{ 4 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 6 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 9 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"A", token.value);
-    EXPECT_EQ(size_t{ 4 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 6 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 13 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Comma, token.kind);
     EXPECT_EQ(L",", token.value);
-    EXPECT_EQ(size_t{ 4 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 6 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 14 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"C", token.value);
-    EXPECT_EQ(size_t{ 4 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 6 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 15 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Comment, token.kind);
     EXPECT_EQ(L"ROTATE LEAST SIGNIFICANT BIT OF", token.value);
-    EXPECT_EQ(size_t{ 4 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 6 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 21 }, token.location.GetColumn());
 
     token = scanner.NextToken();
@@ -873,13 +891,13 @@ TEST_FIXTURE(ScannerTest, NextTokenMultiply)
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"RAR", token.value);
-    EXPECT_EQ(size_t{ 5 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 7 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 9 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Comment, token.kind);
     EXPECT_EQ(L"MULTIPLIER TO CARRY AND SHIFT", token.value);
-    EXPECT_EQ(size_t{ 5 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 7 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 21 }, token.location.GetColumn());
 
     token = scanner.NextToken();
@@ -888,31 +906,31 @@ TEST_FIXTURE(ScannerTest, NextTokenMultiply)
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"MOV", token.value);
-    EXPECT_EQ(size_t{ 6 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 8 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 9 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"C", token.value);
-    EXPECT_EQ(size_t{ 6 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 8 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 13 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Comma, token.kind);
     EXPECT_EQ(L",", token.value);
-    EXPECT_EQ(size_t{ 6 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 8 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 14 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"A", token.value);
-    EXPECT_EQ(size_t{ 6 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 8 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 15 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Comment, token.kind);
     EXPECT_EQ(L"LOW-ORDER BYTE OF RESULT", token.value);
-    EXPECT_EQ(size_t{ 6 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 8 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 21 }, token.location.GetColumn());
 
     token = scanner.NextToken();
@@ -921,13 +939,13 @@ TEST_FIXTURE(ScannerTest, NextTokenMultiply)
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"DCR", token.value);
-    EXPECT_EQ(size_t{ 7 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 9 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 9 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"E", token.value);
-    EXPECT_EQ(size_t{ 7 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 9 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 13 }, token.location.GetColumn());
 
     token = scanner.NextToken();
@@ -936,19 +954,19 @@ TEST_FIXTURE(ScannerTest, NextTokenMultiply)
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"JZ", token.value);
-    EXPECT_EQ(size_t{ 8 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 10 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 9 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"DONE", token.value);
-    EXPECT_EQ(size_t{ 8 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 10 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 12 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Comment, token.kind);
     EXPECT_EQ(L"EXIT IF COMPLETE", token.value);
-    EXPECT_EQ(size_t{ 8 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 10 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 21 }, token.location.GetColumn());
 
     token = scanner.NextToken();
@@ -957,25 +975,25 @@ TEST_FIXTURE(ScannerTest, NextTokenMultiply)
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"MOV", token.value);
-    EXPECT_EQ(size_t{ 9 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 11 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 9 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"A", token.value);
-    EXPECT_EQ(size_t{ 9 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 11 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 13 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Comma, token.kind);
     EXPECT_EQ(L",", token.value);
-    EXPECT_EQ(size_t{ 9 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 11 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 14 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"B", token.value);
-    EXPECT_EQ(size_t{ 9 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 11 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 15 }, token.location.GetColumn());
 
     token = scanner.NextToken();
@@ -984,13 +1002,13 @@ TEST_FIXTURE(ScannerTest, NextTokenMultiply)
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"JNC", token.value);
-    EXPECT_EQ(size_t{ 10 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 12 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 9 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"MULT1", token.value);
-    EXPECT_EQ(size_t{ 10 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 12 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 13 }, token.location.GetColumn());
 
     token = scanner.NextToken();
@@ -999,19 +1017,19 @@ TEST_FIXTURE(ScannerTest, NextTokenMultiply)
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"ADD", token.value);
-    EXPECT_EQ(size_t{ 11 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 13 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 9 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"D", token.value);
-    EXPECT_EQ(size_t{ 11 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 13 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 13 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Comment, token.kind);
     EXPECT_EQ(L"ADD MULTIPLICAND TO HIGH-", token.value);
-    EXPECT_EQ(size_t{ 11 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 13 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 21 }, token.location.GetColumn());
 
     token = scanner.NextToken();
@@ -1020,7 +1038,7 @@ TEST_FIXTURE(ScannerTest, NextTokenMultiply)
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Comment, token.kind);
     EXPECT_EQ(L"ORDER BYTE OF RESULT IF BIT", token.value);
-    EXPECT_EQ(size_t{ 12 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 14 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 21 }, token.location.GetColumn());
 
     token = scanner.NextToken();
@@ -1029,42 +1047,6 @@ TEST_FIXTURE(ScannerTest, NextTokenMultiply)
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Comment, token.kind);
     EXPECT_EQ(L"WAS A ONE", token.value);
-    EXPECT_EQ(size_t{ 13 }, token.location.GetLine());
-    EXPECT_EQ(size_t{ 21 }, token.location.GetColumn());
-
-    token = scanner.NextToken();
-    EXPECT_EQ(TokenType::EOL, token.kind);
-
-    token = scanner.NextToken();
-    EXPECT_EQ(TokenType::Identifier, token.kind);
-    EXPECT_EQ(L"MULT1", token.value);
-    EXPECT_EQ(size_t{ 14 }, token.location.GetLine());
-    EXPECT_EQ(size_t{ 1 }, token.location.GetColumn());
-
-    token = scanner.NextToken();
-    EXPECT_EQ(TokenType::Colon, token.kind);
-    EXPECT_EQ(L":", token.value);
-    EXPECT_EQ(size_t{ 14 }, token.location.GetLine());
-    EXPECT_EQ(size_t{ 6 }, token.location.GetColumn());
-
-    token = scanner.NextToken();
-    EXPECT_EQ(TokenType::Identifier, token.kind);
-    EXPECT_EQ(L"RAR", token.value);
-    EXPECT_EQ(size_t{ 14 }, token.location.GetLine());
-    EXPECT_EQ(size_t{ 9 }, token.location.GetColumn());
-
-    token = scanner.NextToken();
-    EXPECT_EQ(TokenType::Comment, token.kind);
-    EXPECT_EQ(L"CARRY=O HERE SHIFT HIGH-", token.value);
-    EXPECT_EQ(size_t{ 14 }, token.location.GetLine());
-    EXPECT_EQ(size_t{ 21 }, token.location.GetColumn());
-
-    token = scanner.NextToken();
-    EXPECT_EQ(TokenType::EOL, token.kind);
-
-    token = scanner.NextToken();
-    EXPECT_EQ(TokenType::Comment, token.kind);
-    EXPECT_EQ(L"ORDER BYTE OF RESULT", token.value);
     EXPECT_EQ(size_t{ 15 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 21 }, token.location.GetColumn());
 
@@ -1073,26 +1055,62 @@ TEST_FIXTURE(ScannerTest, NextTokenMultiply)
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
-    EXPECT_EQ(L"MOV", token.value);
+    EXPECT_EQ(L"MULT1", token.value);
     EXPECT_EQ(size_t{ 16 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 1 }, token.location.GetColumn());
+
+    token = scanner.NextToken();
+    EXPECT_EQ(TokenType::Colon, token.kind);
+    EXPECT_EQ(L":", token.value);
+    EXPECT_EQ(size_t{ 16 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 6 }, token.location.GetColumn());
+
+    token = scanner.NextToken();
+    EXPECT_EQ(TokenType::Identifier, token.kind);
+    EXPECT_EQ(L"RAR", token.value);
+    EXPECT_EQ(size_t{ 16 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 9 }, token.location.GetColumn());
+
+    token = scanner.NextToken();
+    EXPECT_EQ(TokenType::Comment, token.kind);
+    EXPECT_EQ(L"CARRY=O HERE SHIFT HIGH-", token.value);
+    EXPECT_EQ(size_t{ 16 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 21 }, token.location.GetColumn());
+
+    token = scanner.NextToken();
+    EXPECT_EQ(TokenType::EOL, token.kind);
+
+    token = scanner.NextToken();
+    EXPECT_EQ(TokenType::Comment, token.kind);
+    EXPECT_EQ(L"ORDER BYTE OF RESULT", token.value);
+    EXPECT_EQ(size_t{ 17 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 21 }, token.location.GetColumn());
+
+    token = scanner.NextToken();
+    EXPECT_EQ(TokenType::EOL, token.kind);
+
+    token = scanner.NextToken();
+    EXPECT_EQ(TokenType::Identifier, token.kind);
+    EXPECT_EQ(L"MOV", token.value);
+    EXPECT_EQ(size_t{ 18 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 9 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"B", token.value);
-    EXPECT_EQ(size_t{ 16 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 18 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 13 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Comma, token.kind);
     EXPECT_EQ(L",", token.value);
-    EXPECT_EQ(size_t{ 16 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 18 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 14 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"A", token.value);
-    EXPECT_EQ(size_t{ 16 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 18 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 15 }, token.location.GetColumn());
 
     token = scanner.NextToken();
@@ -1101,13 +1119,13 @@ TEST_FIXTURE(ScannerTest, NextTokenMultiply)
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"JMP", token.value);
-    EXPECT_EQ(size_t{ 17 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 19 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 9 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"MULT0", token.value);
-    EXPECT_EQ(size_t{ 17 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 19 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 13 }, token.location.GetColumn());
 
     token = scanner.NextToken();
@@ -1116,19 +1134,19 @@ TEST_FIXTURE(ScannerTest, NextTokenMultiply)
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Identifier, token.kind);
     EXPECT_EQ(L"DONE", token.value);
-    EXPECT_EQ(size_t{ 18 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 20 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 1 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::Colon, token.kind);
     EXPECT_EQ(L":", token.value);
-    EXPECT_EQ(size_t{ 18 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 20 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 5 }, token.location.GetColumn());
 
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::ENDCommand, token.kind);
     EXPECT_EQ(L"END", token.value);
-    EXPECT_EQ(size_t{ 18 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 20 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 9 }, token.location.GetColumn());
 
     token = scanner.NextToken();
@@ -1137,10 +1155,10 @@ TEST_FIXTURE(ScannerTest, NextTokenMultiply)
     token = scanner.NextToken();
     EXPECT_EQ(TokenType::EndOfFile, token.kind);
     EXPECT_EQ(L"", token.value);
-    EXPECT_EQ(size_t{ 19 }, token.location.GetLine());
+    EXPECT_EQ(size_t{ 21 }, token.location.GetLine());
     EXPECT_EQ(size_t{ 1 }, token.location.GetColumn());
-    EXPECT_EQ(size_t{ 615 }, token.location.GetCharPos());
-    EXPECT_EQ(size_t{ 633 }, token.bufferPos);
+    EXPECT_EQ(size_t{ 638 }, token.location.GetCharPos());
+    EXPECT_EQ(size_t{ 658 }, token.bufferPos);
 }
 
 

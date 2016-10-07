@@ -1,4 +1,4 @@
-#include "CharClass.h"
+#include "assembler/CharClass.h"
 
 namespace Assembler
 {

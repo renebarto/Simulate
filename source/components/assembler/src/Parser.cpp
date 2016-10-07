@@ -1,12 +1,12 @@
-#include "Parser.h"
+#include "assembler/Parser.h"
 
-#include "CPUParserIntel8080_8085.h"
-#include "CPUAssemblerIntel8080_8085.h"
+#include "assembler/CPUParserIntel8080_8085.h"
+#include "assembler/CPUAssemblerIntel8080_8085.h"
 
 namespace Assembler
 {
 
-Parser::Parser(Scanner & scanner, AssemblerMessages & messages, std::wostream & reportStream)
+Parser::Parser(std::string const & moduleName, Scanner & scanner, AssemblerMessages & messages, std::wostream & reportStream)
     : scanner(scanner)
     , errorHandler(messages)
     , printer(reportStream)
@@ -14,11 +14,8 @@ Parser::Parser(Scanner & scanner, AssemblerMessages & messages, std::wostream & 
     , lastToken()
     , knownCPU()
     , cpuType(CPUType::Undefined)
-    , machineCode()
+    , objectCode(moduleName)
     , cpuAssemblerParser()
-    , cpuAssembler()
-    , showSymbols()
-    , showCrossReference()
 {
     Init();
 }
@@ -34,20 +31,21 @@ bool Parser::Parse()
     Get();
     ParseAssembler();
     Expect(TokenType::EndOfFile);
-    machineCode.clear();
-    if (cpuAssemblerParser != nullptr)
+    objectCode.Clear();
+    if (cpuAssemblerParser == nullptr)
     {
-        if ((errorHandler.NumErrors() == 0) && (errorHandler.NumExceptions() == 0))
-        {
-            cpuAssembler = CreateAssembler(cpuAssemblerParser);
-            return cpuAssembler->Generate(machineCode);
-        }
-        else
-            cpuAssemblerParser->PrintWithErrors();
-    }
-    else
         PrintErrors();
-    return false;
+        return false;
+    }
+    if ((errorHandler.NumErrors() != 0) || (errorHandler.NumExceptions() != 0))
+    {
+        cpuAssemblerParser->PrintWithErrors();
+        return false;
+    }
+    std::unique_ptr<ICPUAssembler> cpuAssembler(CreateAssembler(cpuAssemblerParser));
+    if (!cpuAssembler->Generate(objectCode))
+        return false;
+    return true;
 }
 
 void Parser::PrintErrors()

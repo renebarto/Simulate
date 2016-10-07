@@ -1,6 +1,6 @@
 #include "unit-test-c++/UnitTestC++.h"
 
-#include "SymbolList.h"
+#include "assembler/SymbolList.h"
 
 using namespace std;
 

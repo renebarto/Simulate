@@ -22,6 +22,7 @@ CommandLineOptionsParser::CommandLineOptionsParser()
     group->AddOptionRequiredArgument("report", 'r', "Output reporting file (default = <input base path>-lst" + DefaultReportExtension + ")", &outputReportingFilePath);
     group->AddOptionNoArgument("symbols", 's', "Output symbols list to reporting file", &listSymbols);
     group->AddOptionNoArgument("xref", 'x', "Output symbols cross reference to reporting file", &listSymbolCrossReferences);
+    group->AddOptionNoArgument("emulate", 'e', "After successful assembling, start emulator", &emulate);
     AddGroup(group);
 }
 

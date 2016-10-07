@@ -1,4 +1,4 @@
-#include "CPUType.h"
+#include "assembler/CPUType.h"
 
 namespace Assembler
 {

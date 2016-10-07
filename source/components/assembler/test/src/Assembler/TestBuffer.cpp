@@ -4,9 +4,9 @@
 
 #include <codecvt>
 #include <locale>
-#include "Buffer.h"
-#include "CharSet.h"
-#include "Exceptions.h"
+#include "assembler/Buffer.h"
+#include "assembler/CharSet.h"
+#include "assembler/Exceptions.h"
 
 using namespace std;
 

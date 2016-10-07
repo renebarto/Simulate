@@ -1,10 +1,10 @@
-#include "CPUAssemblerIntel8080_8085.h"
+#include "assembler/CPUAssemblerIntel8080_8085.h"
 
 #include <limits>
 #include "core/Util.h"
-#include "Exceptions.h"
-#include "Nodes.h"
-#include "Printer.h"
+#include "assembler/Exceptions.h"
+#include "assembler/Nodes.h"
+#include "assembler/Printer.h"
 
 namespace Assembler
 {
@@ -16,6 +16,9 @@ CPUAssemblerIntel8080_8085::CPUAssemblerIntel8080_8085(std::shared_ptr<ICPUParse
     , errorHandler(errorHandler)
     , printer(printer)
     , instructionData()
+    , machineCode()
+    , currentSegmentID()
+    , currentSegmentOffset()
 {
     this->parser = std::dynamic_pointer_cast<CPUParserIntel8080_8085>(parser);
     cpuType = this->parser->GetCPUType();
@@ -251,9 +254,27 @@ uint8_t CPUAssemblerIntel8080_8085::ExpectOperandLiteralRst(ASTNode::Ptr node)
     return uint8_t(value);
 }
 
-bool CPUAssemblerIntel8080_8085::Generate(MachineCode & machineCode)
+void CPUAssemblerIntel8080_8085::InitializeSegment(ObjectCode & objectCode, SegmentID segmentID, std::wstring const & segmentName)
 {
+    if (!objectCode.HaveSegment(segmentID))
+    {
+        objectCode.AddSegment(segmentID, Core::String::ToString(segmentName));
+    }
+    currentSegmentID = segmentID;
+    currentSegmentOffset = 0;
     machineCode.clear();
+}
+
+void CPUAssemblerIntel8080_8085::FinalizeSegment(ObjectCode & objectCode)
+{
+    objectCode.GetSegment(currentSegmentID).SetOffset(currentSegmentOffset);
+    objectCode.GetSegment(currentSegmentID).SetData(machineCode);
+}
+
+bool CPUAssemblerIntel8080_8085::Generate(ObjectCode & objectCode)
+{
+    objectCode.Clear();
+    InitializeSegment(objectCode, SegmentID::ASEG, L"ASEG");
     ASTree const & ast = parser->GetAST();
     StatementLineNode::Ptr node = std::dynamic_pointer_cast<StatementLineNode>(ast.FirstNode());
     size_t line = 1;
@@ -268,6 +289,15 @@ bool CPUAssemblerIntel8080_8085::Generate(MachineCode & machineCode)
         else
         switch (statementNode->NodeType())
         {
+        case ASTNodeType::ORG:
+            {
+                ORGNode * orgNode = dynamic_cast<ORGNode *>(statementNode.get());
+                if (orgNode == nullptr)
+                    throw AssemblerException("Invalid ORG node");
+                int64_t orgValue = ConvertToValue(orgNode->Value());
+                currentSegmentOffset = uint16_t(orgValue);
+            }
+            break;
         case ASTNodeType::Opcode:
             {
                 OpcodeNode<OpcodeType, AddressType> * opcode = dynamic_cast<OpcodeNode<OpcodeType, AddressType> *>(statementNode.get());
@@ -410,6 +440,7 @@ bool CPUAssemblerIntel8080_8085::Generate(MachineCode & machineCode)
         node = std::dynamic_pointer_cast<StatementLineNode>(node->Next());;
     }
     printer << std::endl;
+    FinalizeSegment(objectCode);
     return true;
 }
 

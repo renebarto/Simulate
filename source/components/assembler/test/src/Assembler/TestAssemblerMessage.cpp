@@ -1,6 +1,6 @@
 #include "unit-test-c++/UnitTestC++.h"
 
-#include "AssemblerMessage.h"
+#include "assembler/AssemblerMessage.h"
 
 using namespace std;
 

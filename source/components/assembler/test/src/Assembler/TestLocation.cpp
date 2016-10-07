@@ -1,6 +1,6 @@
 #include "unit-test-c++/UnitTestC++.h"
 
-#include "Location.h"
+#include "assembler/Location.h"
 
 using namespace std;
 

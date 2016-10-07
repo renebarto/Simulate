@@ -1,6 +1,6 @@
 #include "unit-test-c++/UnitTestC++.h"
 
-#include "ErrorHandler.h"
+#include "assembler/ErrorHandler.h"
 
 using namespace std;
 

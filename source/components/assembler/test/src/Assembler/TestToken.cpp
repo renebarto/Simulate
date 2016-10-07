@@ -1,6 +1,6 @@
 #include "unit-test-c++/UnitTestC++.h"
 
-#include "Token.h"
+#include "assembler/Token.h"
 
 using namespace std;
 

@@ -39,6 +39,23 @@ void CopyMem(void * destination, const void * source, int offsetSource, int size
 void CopyMem(void * destination, int offsetDestination, const void * source, int offsetSource, int size);
 
 template <typename T>
+size_t CountOnes(T value)
+{
+    size_t numberOfOnes = 0;
+    size_t numberOfBits = sizeof(T) * 8;
+    T valueShift = value;
+    for (size_t i = 0; (i < numberOfBits) && (valueShift != 0); i++)
+    {
+        if ((valueShift & 0x00000001) != 0)
+        {
+            numberOfOnes++;
+        }
+        valueShift >>= 1;
+    }
+    return numberOfOnes;
+}
+
+template <typename T>
 T NextPowerOfTwo(T value)
 {
 	T rest = value;

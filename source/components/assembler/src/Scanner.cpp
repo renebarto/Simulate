@@ -1,4 +1,4 @@
-#include "Scanner.h"
+#include "assembler/Scanner.h"
 
 namespace Assembler
 {

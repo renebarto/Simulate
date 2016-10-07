@@ -1,6 +1,6 @@
 #include "unit-test-c++/UnitTestC++.h"
 
-#include "AbstractSyntaxTree.h"
+#include "assembler/AbstractSyntaxTree.h"
 
 using namespace std;
 

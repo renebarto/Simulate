@@ -19,39 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="export\AbstractSyntaxTree.h" />
-    <ClInclude Include="export\Assembler.h" />
-    <ClInclude Include="export\AssemblerMessage.h" />
-    <ClInclude Include="export\Buffer.h" />
-    <ClInclude Include="export\CharClass.h" />
-    <ClInclude Include="export\CharSet.h" />
-    <ClInclude Include="export\CPUType.h" />
-    <ClInclude Include="export\ErrorHandler.h" />
-    <ClInclude Include="export\Exceptions.h" />
-    <ClInclude Include="export\KeywordMap.h" />
-    <ClInclude Include="export\Location.h" />
-    <ClInclude Include="export\MachineCode.h" />
-    <ClInclude Include="export\ObjectCode.h" />
-    <ClInclude Include="export\ObjectFile.h" />
-    <ClInclude Include="export\Parser.h" />
-    <ClInclude Include="export\PrettyPrinter.h" />
-    <ClInclude Include="export\Scanner.h" />
-    <ClInclude Include="export\OpcodeMap.h" />
-    <ClInclude Include="export\StartStates.h" />
-    <ClInclude Include="export\SymbolList.h" />
-    <ClInclude Include="export\SymbolMap.h" />
-    <ClInclude Include="export\Token.h" />
-    <ClInclude Include="include\CPUAssemblerIntel8080_8085.h" />
-    <ClInclude Include="include\CPUParser.h" />
-    <ClInclude Include="include\ICPUAssembler.h" />
-    <ClInclude Include="include\ICPUParser.h" />
-    <ClInclude Include="include\CPUParserIntel8080_8085.h" />
-    <ClInclude Include="include\Nodes.h" />
-    <ClInclude Include="include\Printer.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="src\AbstractSyntaxTree.cpp" />
-    <ClCompile Include="src\Assembler.cpp" />
     <ClCompile Include="src\Buffer.cpp" />
     <ClCompile Include="src\CharClass.cpp" />
     <ClCompile Include="src\CharSet.cpp" />
@@ -67,6 +35,35 @@
     <ClCompile Include="src\Printer.cpp" />
     <ClCompile Include="src\Scanner.cpp" />
     <ClCompile Include="src\Token.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="export\assembler\AbstractSyntaxTree.h" />
+    <ClInclude Include="export\assembler\AssemblerMessage.h" />
+    <ClInclude Include="export\assembler\Buffer.h" />
+    <ClInclude Include="export\assembler\CharClass.h" />
+    <ClInclude Include="export\assembler\CharSet.h" />
+    <ClInclude Include="export\assembler\CPUType.h" />
+    <ClInclude Include="export\assembler\ErrorHandler.h" />
+    <ClInclude Include="export\assembler\Exceptions.h" />
+    <ClInclude Include="export\assembler\ICPUAssembler.h" />
+    <ClInclude Include="export\assembler\ICPUParser.h" />
+    <ClInclude Include="export\assembler\KeywordMap.h" />
+    <ClInclude Include="export\assembler\Location.h" />
+    <ClInclude Include="export\assembler\ObjectCode.h" />
+    <ClInclude Include="export\assembler\ObjectFile.h" />
+    <ClInclude Include="export\assembler\OpcodeMap.h" />
+    <ClInclude Include="export\assembler\Parser.h" />
+    <ClInclude Include="export\assembler\PrettyPrinter.h" />
+    <ClInclude Include="export\assembler\Scanner.h" />
+    <ClInclude Include="export\assembler\StartStates.h" />
+    <ClInclude Include="export\assembler\SymbolList.h" />
+    <ClInclude Include="export\assembler\SymbolMap.h" />
+    <ClInclude Include="export\assembler\Token.h" />
+    <ClInclude Include="include\assembler\CPUAssemblerIntel8080_8085.h" />
+    <ClInclude Include="include\assembler\CPUParser.h" />
+    <ClInclude Include="include\assembler\CPUParserIntel8080_8085.h" />
+    <ClInclude Include="include\assembler\Nodes.h" />
+    <ClInclude Include="include\assembler\Printer.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2451DC79-65E9-4463-BC3A-026AC95DBFE7}</ProjectGuid>

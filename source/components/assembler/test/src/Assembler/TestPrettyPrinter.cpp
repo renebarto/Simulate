@@ -1,6 +1,6 @@
 #include "unit-test-c++/UnitTestC++.h"
 
-#include "PrettyPrinter.h"
+#include "assembler/PrettyPrinter.h"
 
 using namespace std;
 

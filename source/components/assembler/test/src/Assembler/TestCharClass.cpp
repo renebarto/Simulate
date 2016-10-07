@@ -1,6 +1,6 @@
 #include "unit-test-c++/UnitTestC++.h"
 
-#include "CharClass.h"
+#include "assembler/CharClass.h"
 
 using namespace std;
 

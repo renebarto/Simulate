@@ -1,4 +1,4 @@
-#include "AbstractSyntaxTree.h"
+#include "assembler/AbstractSyntaxTree.h"
 
 namespace Assembler
 {

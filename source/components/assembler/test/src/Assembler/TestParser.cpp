@@ -1,8 +1,8 @@
 #include "unit-test-c++/UnitTestC++.h"
 
-#include "Parser.h"
-#include "AbstractSyntaxTree.h"
-#include "CPUParserIntel8080_8085.h"
+#include "assembler/Parser.h"
+#include "assembler/AbstractSyntaxTree.h"
+#include "assembler/CPUParserIntel8080_8085.h"
 
 using namespace std;
 
@@ -336,13 +336,24 @@ void CheckOpcodeN(StatementLineNode::Ptr node, OpcodeType opcodeType, std::wstri
         CheckRSTCode(rstNode, rstCode, code);
 }
 
+void CheckCode(MachineCode const & ref, Parser const & parser, AddressType offset = 0)
+{
+    MachineCode machineCode;
+    if (parser.GetObjectCode().HaveSegment(SegmentID::ASEG))
+    {
+        machineCode = parser.GetObjectCode().GetSegment(SegmentID::ASEG).Data();
+        EXPECT_EQ(offset, parser.GetObjectCode().GetSegment(SegmentID::ASEG).Offset());
+    }
+    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+}
+
 TEST_FIXTURE(ParserTest, ConstructDefault)
 {
     AssemblerMessages messages;
     std::istringstream inputStream;
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     EXPECT_EQ(L"", reportStream.str());
     EXPECT_EQ(size_t{ 0 }, messages.size());
@@ -357,7 +368,7 @@ TEST_FIXTURE(ParserTest, ParseEmpty)
     std::istringstream inputStream("");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
     parser.Parse();
 
     EXPECT_EQ(L"Error: 1:1 - \"CPU\" expected\nError: 1:1 - Identifier expected\n", reportStream.str());
@@ -368,8 +379,7 @@ TEST_FIXTURE(ParserTest, ParseEmpty)
     EXPECT_THROW(parser.GetAST(), AssemblerException);
 
     MachineCode ref;
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseEnd)
@@ -378,7 +388,7 @@ TEST_FIXTURE(ParserTest, ParseEnd)
     std::istringstream inputStream("End");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
     parser.Parse();
 
     EXPECT_EQ(L"Error: 1:1 - \"CPU\" expected\nError: 1:1 - Identifier expected\n", reportStream.str());
@@ -389,8 +399,7 @@ TEST_FIXTURE(ParserTest, ParseEnd)
     EXPECT_THROW(parser.GetAST(), AssemblerException);
 
     MachineCode ref;
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseSimple1)
@@ -401,7 +410,7 @@ TEST_FIXTURE(ParserTest, ParseSimple1)
                                    "        END           ; Stop\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -423,8 +432,7 @@ TEST_FIXTURE(ParserTest, ParseSimple1)
     EXPECT_NULL(node->Next());
 
     MachineCode ref;
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseMOV)
@@ -449,7 +457,7 @@ TEST_FIXTURE(ParserTest, ParseMOV)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -514,8 +522,7 @@ TEST_FIXTURE(ParserTest, ParseMOV)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0x7F, 0x78, 0x79, 0x7A, 0x7B, 0x7C, 0x7D, 0x47, 0x4F, 0x57, 0x5F, 0x67, 0x6F, 0x7E, 0x77};
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseMOV_Invalid)
@@ -528,7 +535,7 @@ TEST_FIXTURE(ParserTest, ParseMOV_Invalid)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -560,8 +567,7 @@ TEST_FIXTURE(ParserTest, ParseMOV_Invalid)
     EXPECT_NULL(node->Next());
 
     MachineCode ref;
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseMVI)
@@ -579,7 +585,7 @@ TEST_FIXTURE(ParserTest, ParseMVI)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -623,8 +629,7 @@ TEST_FIXTURE(ParserTest, ParseMVI)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0x06, 0x00, 0x0E, 0x01, 0x16, 0x02, 0x1E, 0x03, 0x26, 0x04, 0x2E, 0x05, 0x3E, 0x06, 0x36, 0x07 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseMVI_Invalid)
@@ -635,7 +640,7 @@ TEST_FIXTURE(ParserTest, ParseMVI_Invalid)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -659,8 +664,7 @@ TEST_FIXTURE(ParserTest, ParseMVI_Invalid)
     EXPECT_NULL(node->Next());
 
     MachineCode ref;
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseLXI)
@@ -674,7 +678,7 @@ TEST_FIXTURE(ParserTest, ParseLXI)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -706,8 +710,7 @@ TEST_FIXTURE(ParserTest, ParseLXI)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0x01, 0x00, 0x01, 0x11, 0x02, 0x03, 0x21, 0x04, 0x05, 0x31, 0x06, 0x07 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseLXI_Invalid)
@@ -719,7 +722,7 @@ TEST_FIXTURE(ParserTest, ParseLXI_Invalid)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -747,8 +750,7 @@ TEST_FIXTURE(ParserTest, ParseLXI_Invalid)
     EXPECT_NULL(node->Next());
 
     MachineCode ref;
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseLXIInvalid2)
@@ -759,7 +761,7 @@ TEST_FIXTURE(ParserTest, ParseLXIInvalid2)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -783,8 +785,7 @@ TEST_FIXTURE(ParserTest, ParseLXIInvalid2)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0x11, 0x00, 0x00 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseLDAX_STAX)
@@ -798,7 +799,7 @@ TEST_FIXTURE(ParserTest, ParseLDAX_STAX)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -830,8 +831,7 @@ TEST_FIXTURE(ParserTest, ParseLDAX_STAX)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0x02, 0x12, 0x0A, 0x1A };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseLDAX_STAX_Invalid)
@@ -847,7 +847,7 @@ TEST_FIXTURE(ParserTest, ParseLDAX_STAX_Invalid)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -891,8 +891,7 @@ TEST_FIXTURE(ParserTest, ParseLDAX_STAX_Invalid)
     EXPECT_NULL(node->Next());
 
     MachineCode ref;
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseSTA_LDA)
@@ -904,7 +903,7 @@ TEST_FIXTURE(ParserTest, ParseSTA_LDA)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -930,8 +929,7 @@ TEST_FIXTURE(ParserTest, ParseSTA_LDA)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0x32, 0x00, 0x01, 0x3A, 0x02, 0x03 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseSTA_LDA_Invalid)
@@ -943,7 +941,7 @@ TEST_FIXTURE(ParserTest, ParseSTA_LDA_Invalid)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -971,8 +969,7 @@ TEST_FIXTURE(ParserTest, ParseSTA_LDA_Invalid)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0x32, 0x00, 0x00, 0x3A, 0x00, 0x00 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseSHLD_LHLD)
@@ -984,7 +981,7 @@ TEST_FIXTURE(ParserTest, ParseSHLD_LHLD)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -1010,8 +1007,7 @@ TEST_FIXTURE(ParserTest, ParseSHLD_LHLD)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0x22, 0x00, 0x01, 0x2A, 0x02, 0x03 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseSHLD_LHLD_Invalid)
@@ -1023,7 +1019,7 @@ TEST_FIXTURE(ParserTest, ParseSHLD_LHLD_Invalid)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -1051,8 +1047,7 @@ TEST_FIXTURE(ParserTest, ParseSHLD_LHLD_Invalid)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0x22, 0x00, 0x00, 0x2A, 0x00, 0x00 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseXCHG)
@@ -1063,7 +1058,7 @@ TEST_FIXTURE(ParserTest, ParseXCHG)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -1086,8 +1081,7 @@ TEST_FIXTURE(ParserTest, ParseXCHG)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0xEB };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParsePUSH_POP)
@@ -1105,7 +1099,7 @@ TEST_FIXTURE(ParserTest, ParsePUSH_POP)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -1149,8 +1143,7 @@ TEST_FIXTURE(ParserTest, ParsePUSH_POP)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0xC5, 0xD5, 0xE5, 0xF5, 0xC1, 0xD1, 0xE1, 0xF1 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParsePUSH_POP_Invalid)
@@ -1164,7 +1157,7 @@ TEST_FIXTURE(ParserTest, ParsePUSH_POP_Invalid)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -1200,8 +1193,7 @@ TEST_FIXTURE(ParserTest, ParsePUSH_POP_Invalid)
     EXPECT_NULL(node->Next());
 
     MachineCode ref;
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseXTHL_SPHL)
@@ -1213,7 +1205,7 @@ TEST_FIXTURE(ParserTest, ParseXTHL_SPHL)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -1239,8 +1231,7 @@ TEST_FIXTURE(ParserTest, ParseXTHL_SPHL)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0xE3, 0xF9 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseINX_DCX)
@@ -1258,7 +1249,7 @@ TEST_FIXTURE(ParserTest, ParseINX_DCX)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -1302,8 +1293,7 @@ TEST_FIXTURE(ParserTest, ParseINX_DCX)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0x03, 0x13, 0x23, 0x33, 0x0B, 0x1B, 0x2B, 0x3B };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseINX_DCX_Invalid)
@@ -1317,7 +1307,7 @@ TEST_FIXTURE(ParserTest, ParseINX_DCX_Invalid)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -1353,8 +1343,7 @@ TEST_FIXTURE(ParserTest, ParseINX_DCX_Invalid)
     EXPECT_NULL(node->Next());
 
     MachineCode ref;
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseJMP_JXX)
@@ -1373,7 +1362,7 @@ TEST_FIXTURE(ParserTest, ParseJMP_JXX)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -1422,8 +1411,7 @@ TEST_FIXTURE(ParserTest, ParseJMP_JXX)
     MachineCode ref{ 0xC3, 0x00, 0x01, 0xDA, 0x01, 0x01, 0xD2, 0x02, 0x01,
                      0xCA, 0x03, 0x01, 0xC2, 0x04, 0x01, 0xF2, 0x05, 0x01,
                      0xFA, 0x06, 0x01, 0xEA, 0x07, 0x01, 0xE2, 0x08, 0x01 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseJMP_JXX_Invalid)
@@ -1442,7 +1430,7 @@ TEST_FIXTURE(ParserTest, ParseJMP_JXX_Invalid)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -1500,8 +1488,7 @@ TEST_FIXTURE(ParserTest, ParseJMP_JXX_Invalid)
     MachineCode ref{ 0xC3, 0x00, 0x00, 0xDA, 0x00, 0x00, 0xD2, 0x00, 0x00,
                      0xCA, 0x00, 0x00, 0xC2, 0x00, 0x00, 0xF2, 0x00, 0x00,
                      0xFA, 0x00, 0x00, 0xEA, 0x00, 0x00, 0xE2, 0x00, 0x00 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParsePCHL)
@@ -1512,7 +1499,7 @@ TEST_FIXTURE(ParserTest, ParsePCHL)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -1535,8 +1522,7 @@ TEST_FIXTURE(ParserTest, ParsePCHL)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0xE9 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseCALL_CXX)
@@ -1555,7 +1541,7 @@ TEST_FIXTURE(ParserTest, ParseCALL_CXX)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -1604,8 +1590,7 @@ TEST_FIXTURE(ParserTest, ParseCALL_CXX)
     MachineCode ref{ 0xCD, 0x00, 0x01, 0xDC, 0x01, 0x01, 0xD4, 0x02, 0x01,
                      0xCC, 0x03, 0x01, 0xC4, 0x04, 0x01, 0xF4, 0x05, 0x01,
                      0xFC, 0x06, 0x01, 0xEC, 0x07, 0x01, 0xE4, 0x08, 0x01 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseCALL_CXX_Invalid)
@@ -1624,7 +1609,7 @@ TEST_FIXTURE(ParserTest, ParseCALL_CXX_Invalid)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -1682,8 +1667,7 @@ TEST_FIXTURE(ParserTest, ParseCALL_CXX_Invalid)
     MachineCode ref{ 0xCD, 0x00, 0x00, 0xDC, 0x00, 0x00, 0xD4, 0x00, 0x00,
                      0xCC, 0x00, 0x00, 0xC4, 0x00, 0x00, 0xF4, 0x00, 0x00,
                      0xFC, 0x00, 0x00, 0xEC, 0x00, 0x00, 0xE4, 0x00, 0x00 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseRET_RXX)
@@ -1702,7 +1686,7 @@ TEST_FIXTURE(ParserTest, ParseRET_RXX)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -1749,8 +1733,7 @@ TEST_FIXTURE(ParserTest, ParseRET_RXX)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0xC9, 0xD8, 0xD0, 0xC8, 0xC0, 0xF0, 0xF8, 0xE8, 0xE0 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseRST)
@@ -1768,7 +1751,7 @@ TEST_FIXTURE(ParserTest, ParseRST)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -1812,8 +1795,7 @@ TEST_FIXTURE(ParserTest, ParseRST)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0xC7, 0xCF, 0xD7, 0xDF, 0xE7, 0xEF, 0xF7, 0xFF };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseRST_Invalid)
@@ -1824,7 +1806,7 @@ TEST_FIXTURE(ParserTest, ParseRST_Invalid)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -1848,8 +1830,7 @@ TEST_FIXTURE(ParserTest, ParseRST_Invalid)
     EXPECT_NULL(node->Next());
 
     MachineCode ref;
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseINR_DCR)
@@ -1875,7 +1856,7 @@ TEST_FIXTURE(ParserTest, ParseINR_DCR)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -1943,8 +1924,7 @@ TEST_FIXTURE(ParserTest, ParseINR_DCR)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0x04, 0x0C, 0x14, 0x1C, 0x24, 0x2C, 0x3C, 0x34, 0x05, 0x0D, 0x15, 0x1D, 0x25, 0x2D, 0x3D, 0x35 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseINR_DCR_Invalid)
@@ -1956,7 +1936,7 @@ TEST_FIXTURE(ParserTest, ParseINR_DCR_Invalid)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -1984,8 +1964,7 @@ TEST_FIXTURE(ParserTest, ParseINR_DCR_Invalid)
     EXPECT_NULL(node->Next());
 
     MachineCode ref;
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseADD_ADC_SUB_SBB_ANA_ORA_XRA_CMP)
@@ -2059,7 +2038,7 @@ TEST_FIXTURE(ParserTest, ParseADD_ADC_SUB_SBB_ANA_ORA_XRA_CMP)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -2278,8 +2257,7 @@ TEST_FIXTURE(ParserTest, ParseADD_ADC_SUB_SBB_ANA_ORA_XRA_CMP)
                      0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAD, 0xAF, 0xAE,
                      0xB0, 0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB7, 0xB6,
                      0xB8, 0xB9, 0xBA, 0xBB, 0xBC, 0xBD, 0xBF, 0xBE };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseADD_ADC_SUB_SBB_ANA_ORA_XRA_CMP_Invalid)
@@ -2297,7 +2275,7 @@ TEST_FIXTURE(ParserTest, ParseADD_ADC_SUB_SBB_ANA_ORA_XRA_CMP_Invalid)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -2349,8 +2327,7 @@ TEST_FIXTURE(ParserTest, ParseADD_ADC_SUB_SBB_ANA_ORA_XRA_CMP_Invalid)
     EXPECT_NULL(node->Next());
 
     MachineCode ref;
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseADI_ACI_SUI_SBI_ANI_ORI_XRI_CPI)
@@ -2368,7 +2345,7 @@ TEST_FIXTURE(ParserTest, ParseADI_ACI_SUI_SBI_ANI_ORI_XRI_CPI)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -2413,8 +2390,7 @@ TEST_FIXTURE(ParserTest, ParseADI_ACI_SUI_SBI_ANI_ORI_XRI_CPI)
 
     MachineCode ref{ 0xC6, 0x00, 0xCE, 0x01, 0xD6, 0x02, 0xDE, 0x03,
                      0xE6, 0x04, 0xEE, 0x05, 0xF6, 0x06, 0xFE, 0x07 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseADI_ACI_SUI_SBI_ANI_ORI_XRI_CPI_Invalid)
@@ -2432,7 +2408,7 @@ TEST_FIXTURE(ParserTest, ParseADI_ACI_SUI_SBI_ANI_ORI_XRI_CPI_Invalid)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -2485,8 +2461,7 @@ TEST_FIXTURE(ParserTest, ParseADI_ACI_SUI_SBI_ANI_ORI_XRI_CPI_Invalid)
 
     MachineCode ref{ 0xC6, 0x00, 0xCE, 0x00, 0xD6, 0x00, 0xDE, 0x00,
                      0xE6, 0x00, 0xEE, 0x00, 0xF6, 0x00, 0xFE, 0x00 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseDAD)
@@ -2500,7 +2475,7 @@ TEST_FIXTURE(ParserTest, ParseDAD)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -2532,8 +2507,7 @@ TEST_FIXTURE(ParserTest, ParseDAD)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0x09, 0x19, 0x29, 0x39 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseDAD_Invalid)
@@ -2545,7 +2519,7 @@ TEST_FIXTURE(ParserTest, ParseDAD_Invalid)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -2573,8 +2547,7 @@ TEST_FIXTURE(ParserTest, ParseDAD_Invalid)
     EXPECT_NULL(node->Next());
 
     MachineCode ref;
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseRLC_RRC_RAL_RAR_CMA_STC_CMC_DAA)
@@ -2592,7 +2565,7 @@ TEST_FIXTURE(ParserTest, ParseRLC_RRC_RAL_RAR_CMA_STC_CMC_DAA)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -2636,8 +2609,7 @@ TEST_FIXTURE(ParserTest, ParseRLC_RRC_RAL_RAR_CMA_STC_CMC_DAA)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0x07, 0x0F, 0x17, 0x1F, 0x2F, 0x37, 0x3F, 0x27 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseIN_OUT)
@@ -2649,7 +2621,7 @@ TEST_FIXTURE(ParserTest, ParseIN_OUT)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -2675,8 +2647,7 @@ TEST_FIXTURE(ParserTest, ParseIN_OUT)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0xDB, 0x00, 0xD3, 0x01 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseIN_OUT_Invalid)
@@ -2688,7 +2659,7 @@ TEST_FIXTURE(ParserTest, ParseIN_OUT_Invalid)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -2716,8 +2687,7 @@ TEST_FIXTURE(ParserTest, ParseIN_OUT_Invalid)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0xDB, 0x00, 0xD3, 0x01 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseEI_DI_NOP_HLT)
@@ -2732,7 +2702,7 @@ TEST_FIXTURE(ParserTest, ParseEI_DI_NOP_HLT)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -2767,8 +2737,7 @@ TEST_FIXTURE(ParserTest, ParseEI_DI_NOP_HLT)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0xFB, 0xF3, 0x00, 0x76 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser, 0x0100);
 }
 
 TEST_FIXTURE(ParserTest, Parse8085Extensions)
@@ -2790,7 +2759,7 @@ TEST_FIXTURE(ParserTest, Parse8085Extensions)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -2846,8 +2815,7 @@ TEST_FIXTURE(ParserTest, Parse8085Extensions)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0x08, 0x10, 0x18, 0x20, 0x28, 0x01, 0x30, 0x38, 0x02, 0xCB, 0xD9, 0xDD, 0x03, 0x01, 0xED, 0xFD, 0x04, 0x01 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, Parse8085ExtensionsOn8080)
@@ -2869,7 +2837,7 @@ TEST_FIXTURE(ParserTest, Parse8085ExtensionsOn8080)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -2937,8 +2905,7 @@ TEST_FIXTURE(ParserTest, Parse8085ExtensionsOn8080)
     EXPECT_NULL(node->Next());
 
     MachineCode ref;
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseJMPWithLocationCounter)
@@ -2949,7 +2916,7 @@ TEST_FIXTURE(ParserTest, ParseJMPWithLocationCounter)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -2972,8 +2939,7 @@ TEST_FIXTURE(ParserTest, ParseJMPWithLocationCounter)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0xC3, 0x00, 0x00 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseJMPWithPredefinedLabel)
@@ -2985,7 +2951,7 @@ TEST_FIXTURE(ParserTest, ParseJMPWithPredefinedLabel)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -3011,8 +2977,7 @@ TEST_FIXTURE(ParserTest, ParseJMPWithPredefinedLabel)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0x00, 0xC3, 0x00, 0x00 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, ParseJMPWithUndefinedLabel)
@@ -3024,7 +2989,7 @@ TEST_FIXTURE(ParserTest, ParseJMPWithUndefinedLabel)
                                    "        END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -3050,8 +3015,7 @@ TEST_FIXTURE(ParserTest, ParseJMPWithUndefinedLabel)
     EXPECT_NULL(node->Next());
 
     MachineCode ref{ 0xC3, 0x03, 0x00, 0x00 };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, AllInstructions8080)
@@ -3318,7 +3282,7 @@ TEST_FIXTURE(ParserTest, AllInstructions8080)
         "END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -3587,8 +3551,7 @@ TEST_FIXTURE(ParserTest, AllInstructions8080)
         0xFE, 0x30,
         0xFF,
     };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, AllInstructions8085)
@@ -3855,7 +3818,7 @@ TEST_FIXTURE(ParserTest, AllInstructions8085)
         "END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -4124,8 +4087,7 @@ TEST_FIXTURE(ParserTest, AllInstructions8085)
         0xFE, 0x30,
         0xFF,
     };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 TEST_FIXTURE(ParserTest, Multiply8080)
@@ -4154,7 +4116,7 @@ TEST_FIXTURE(ParserTest, Multiply8080)
         "END\n");
     std::wostringstream reportStream;
     Scanner scanner(&inputStream, true);
-    Parser parser(scanner, messages, reportStream);
+    Parser parser("test", scanner, messages, reportStream);
 
     parser.Parse();
 
@@ -4200,8 +4162,7 @@ TEST_FIXTURE(ParserTest, Multiply8080)
         0xC3, 0x04, 0x00,
                         // DONE
     };
-    MachineCode const & machineCode = parser.GetMachineCode();
-    EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
+    CheckCode(ref, parser);
 }
 
 } // namespace Test

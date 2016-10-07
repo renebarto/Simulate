@@ -1,10 +1,10 @@
-#include "CPUParserIntel8080_8085.h"
+#include "assembler/CPUParserIntel8080_8085.h"
 
-#include "ICPUAssembler.h"
 #include "core/Util.h"
-#include "Nodes.h"
-#include "Printer.h"
-#include "SymbolList.h"
+#include "assembler/ICPUAssembler.h"
+#include "assembler/Nodes.h"
+#include "assembler/Printer.h"
+#include "assembler/SymbolList.h"
 
 namespace Assembler
 {
