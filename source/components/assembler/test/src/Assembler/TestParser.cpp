@@ -339,10 +339,10 @@ void CheckOpcodeN(StatementLineNode::Ptr node, OpcodeType opcodeType, std::wstri
 void CheckCode(MachineCode const & ref, Parser const & parser, AddressType offset = 0)
 {
     MachineCode machineCode;
-    if (parser.GetObjectCode().HaveSegment(SegmentID::ASEG))
+    if (parser.GetObjectCode().HaveSegment(ObjectFile::SegmentID::ASEG))
     {
-        machineCode = parser.GetObjectCode().GetSegment(SegmentID::ASEG).Data();
-        EXPECT_EQ(offset, parser.GetObjectCode().GetSegment(SegmentID::ASEG).Offset());
+        machineCode = parser.GetObjectCode().GetSegment(ObjectFile::SegmentID::ASEG).Data();
+        EXPECT_EQ(offset, parser.GetObjectCode().GetSegment(ObjectFile::SegmentID::ASEG).Offset());
     }
     EXPECT_TRUE(Core::Util::Compare(ref, machineCode));
 }

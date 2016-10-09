@@ -143,6 +143,9 @@ namespace Core
             pathDelimiterPos = result.find_last_of(Path::PathSeparator());
             if (pathDelimiterPos != string::npos)
                 result = result.substr(0, pathDelimiterPos);
+            pathDelimiterPos = result.find_last_of(Path::PathSeparator());
+            if (pathDelimiterPos != string::npos)
+                result = result.substr(0, pathDelimiterPos);
             string expected = result;
             EXPECT_EQ(expected, Path::StripPathToSubDirectory(currentDirectory, stripToDirectory));
         }
@@ -152,7 +155,7 @@ namespace Core
             string currentDirectory = Path::CurrentDir();
             string baseDirectory = Path::CombinePath(Path::StripPathToSubDirectory(currentDirectory, "source"), "..");
             string subDirectory = "testdata";
-            string expected = Path::CombinePath("..", Path::CombinePath("..", Path::CombinePath("..", subDirectory)));
+            string expected = Path::CombinePath("..", Path::CombinePath("..", Path::CombinePath("..", Path::CombinePath("..", subDirectory))));
             string fullPath = Path::CombinePath(baseDirectory, subDirectory);
             EXPECT_EQ(expected, Path::RelativePath(fullPath));
         }
@@ -174,7 +177,7 @@ namespace Core
         {
             string currentDirectory = Path::CurrentDir();
             string baseDirectory = Path::StripPathToSubDirectory(currentDirectory, "source");
-            string expected = Path::CombinePath("..", "..");
+            string expected = Path::CombinePath("..", Path::CombinePath("..", ".."));
             string fullPath = baseDirectory;
             EXPECT_EQ(expected, Path::RelativePath(fullPath));
         }

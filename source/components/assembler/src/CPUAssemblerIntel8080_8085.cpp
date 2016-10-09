@@ -254,7 +254,7 @@ uint8_t CPUAssemblerIntel8080_8085::ExpectOperandLiteralRst(ASTNode::Ptr node)
     return uint8_t(value);
 }
 
-void CPUAssemblerIntel8080_8085::InitializeSegment(ObjectCode & objectCode, SegmentID segmentID, std::wstring const & segmentName)
+void CPUAssemblerIntel8080_8085::InitializeSegment(ObjectFile::ObjectCode & objectCode, ObjectFile::SegmentID segmentID, std::wstring const & segmentName)
 {
     if (!objectCode.HaveSegment(segmentID))
     {
@@ -265,16 +265,16 @@ void CPUAssemblerIntel8080_8085::InitializeSegment(ObjectCode & objectCode, Segm
     machineCode.clear();
 }
 
-void CPUAssemblerIntel8080_8085::FinalizeSegment(ObjectCode & objectCode)
+void CPUAssemblerIntel8080_8085::FinalizeSegment(ObjectFile::ObjectCode & objectCode)
 {
     objectCode.GetSegment(currentSegmentID).SetOffset(currentSegmentOffset);
     objectCode.GetSegment(currentSegmentID).SetData(machineCode);
 }
 
-bool CPUAssemblerIntel8080_8085::Generate(ObjectCode & objectCode)
+bool CPUAssemblerIntel8080_8085::Generate(ObjectFile::ObjectCode & objectCode)
 {
     objectCode.Clear();
-    InitializeSegment(objectCode, SegmentID::ASEG, L"ASEG");
+    InitializeSegment(objectCode, ObjectFile::SegmentID::ASEG, L"ASEG");
     ASTree const & ast = parser->GetAST();
     StatementLineNode::Ptr node = std::dynamic_pointer_cast<StatementLineNode>(ast.FirstNode());
     size_t line = 1;

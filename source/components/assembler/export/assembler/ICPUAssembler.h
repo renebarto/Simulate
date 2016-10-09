@@ -1,6 +1,6 @@
 #pragma once
 
-#include "assembler/ObjectCode.h"
+#include "object-file/ObjectCode.h"
 
 namespace Assembler
 {
@@ -11,7 +11,7 @@ public:
 	ICPUAssembler() {}
     virtual ~ICPUAssembler() {}
 
-	virtual bool Generate(ObjectCode & objectCode) = 0;
+	virtual bool Generate(ObjectFile::ObjectCode & objectCode) = 0;
 }; // ICPUAssembler
 
 } // namespace Assembler

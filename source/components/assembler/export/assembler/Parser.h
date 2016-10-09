@@ -2,7 +2,7 @@
 
 #include "assembler/AbstractSyntaxTree.h"
 #include "assembler/CPUType.h"
-#include "assembler/ObjectCode.h"
+#include "object-file/ObjectCode.h"
 #include "assembler/Scanner.h"
 #include "assembler/ErrorHandler.h"
 #include "assembler/PrettyPrinter.h"
@@ -23,7 +23,7 @@ public:
     void PrintSymbols();
     void PrintSymbolCrossReference();
     void DumpAST();
-    ObjectCode const & GetObjectCode() const { return objectCode; }
+    ObjectFile::ObjectCode const & GetObjectCode() const { return objectCode; }
     CPUType GetCPUType() const { return cpuType; }
 
     size_t NumErrors() const { return errorHandler.NumErrors(); }
@@ -42,7 +42,7 @@ private:
 
     KeywordMap<CPUType> knownCPU;
     CPUType cpuType;
-    ObjectCode objectCode;
+    ObjectFile::ObjectCode objectCode;
     std::shared_ptr<ICPUParser> cpuAssemblerParser;
 
     void Init();

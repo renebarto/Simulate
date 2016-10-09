@@ -67,7 +67,7 @@ public:
 	CPUAssemblerIntel8080_8085(std::shared_ptr<ICPUParser> parser, ErrorHandler & errorHandler, PrettyPrinter<wchar_t> & printer);
 	virtual ~CPUAssemblerIntel8080_8085();
 
-    bool Generate(ObjectCode & objectCode) override;
+    bool Generate(ObjectFile::ObjectCode & objectCode) override;
 
 private:
     using AddressType = uint16_t;
@@ -81,11 +81,11 @@ private:
     PrettyPrinter<wchar_t> & printer;
 	OpcodeMap<OpcodeType, InstructionData8080> instructionData;
     MachineCode machineCode;
-    SegmentID currentSegmentID;
+    ObjectFile::SegmentID currentSegmentID;
     AddressType currentSegmentOffset;
 
-    void InitializeSegment(ObjectCode & objectCode, SegmentID segmentID, std::wstring const & segmentName);
-    void FinalizeSegment(ObjectCode & objectCode);
+    void InitializeSegment(ObjectFile::ObjectCode & objectCode, ObjectFile::SegmentID segmentID, std::wstring const & segmentName);
+    void FinalizeSegment(ObjectFile::ObjectCode & objectCode);
     Register8Type ExpectOperandRegister8(ASTNode::Ptr node);
     Register16Type ExpectOperandRegister16(ASTNode::Ptr node);
     uint8_t ExpectOperandData8(ASTNode::Ptr node);
