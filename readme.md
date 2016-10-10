@@ -8,4 +8,3 @@ Zilog Z80
 MOS 6502
 Motorola 68000
 
-Just testing
