@@ -74,7 +74,7 @@ public:
     }
     void Write(std::ostream & stream)
     {
-        recordLength += recordData.size();
+        recordLength += uint16_t(recordData.size());
         CalculateChecksum();
         stream.write((const char *)&recordType, sizeof(recordType));
         stream.write((const char *)&recordLength, sizeof(recordLength));

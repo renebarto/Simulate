@@ -1,6 +1,6 @@
 #pragma once
 
-#include "assembler/ObjectCode.h"
+#include "object-file/ObjectCode.h"
 #include "assembler/PrettyPrinter.h"
 #include "emulator/ICPUEmulator.h"
 #include "emulator/ProcessorIntel8080.h"
@@ -11,13 +11,13 @@ namespace Emulator
 class CPUEmulatorIntel8080 : public ICPUEmulator
 {
 public:
-    CPUEmulatorIntel8080(Assembler::ObjectCode const & objectCode, Assembler::PrettyPrinter<wchar_t> & printer);
+    CPUEmulatorIntel8080(ObjectFile::ObjectCode const & objectCode, Assembler::PrettyPrinter<wchar_t> & printer);
     virtual ~CPUEmulatorIntel8080();
 
 	bool Run(Options options) override;
 
 private:
-    Assembler::ObjectCode const & objectCode;
+    ObjectFile::ObjectCode const & objectCode;
     Assembler::PrettyPrinter<wchar_t> & printer;
     ProcessorIntel8080 processor;
 

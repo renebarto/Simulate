@@ -4,7 +4,7 @@
 #include <memory>
 #include "osal/flagoperators.h"
 #include "assembler/CPUType.h"
-#include "assembler/ObjectCode.h"
+#include "object-file/ObjectCode.h"
 #include "assembler/PrettyPrinter.h"
 #include "emulator/ROM.h"
 #include "emulator/RAM.h"

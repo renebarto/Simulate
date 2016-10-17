@@ -19,7 +19,7 @@ std::wostream & Emulator::operator << (std::wostream & stream, FlagsIntel8080 va
     return stream;
 }
 
-CPUEmulatorIntel8080::CPUEmulatorIntel8080(Assembler::ObjectCode const & objectCode, Assembler::PrettyPrinter<wchar_t> & printer)
+CPUEmulatorIntel8080::CPUEmulatorIntel8080(ObjectFile::ObjectCode const & objectCode, Assembler::PrettyPrinter<wchar_t> & printer)
     : objectCode(objectCode)
     , printer(printer)
     , processor()
@@ -83,9 +83,9 @@ bool CPUEmulatorIntel8080::Run(Options options)
     RegistersIntel8080 & registers = processor.GetRegisters();
     processor.Reset();
     MemoryManagerPtr memoryManager = std::make_shared<MemoryManager>();
-    ROMPtr rom = std::make_shared<ROM>(objectCode.GetSegment(Assembler::SegmentID::ASEG).Offset(), 
-                                       objectCode.GetSegment(Assembler::SegmentID::ASEG).Size());
-    size_t offset = objectCode.GetSegment(Assembler::SegmentID::ASEG).Offset() + objectCode.GetSegment(Assembler::SegmentID::ASEG).Size();
+    ROMPtr rom = std::make_shared<ROM>(objectCode.GetSegment(ObjectFile::SegmentID::ASEG).Offset(), 
+                                       objectCode.GetSegment(ObjectFile::SegmentID::ASEG).Size());
+    size_t offset = objectCode.GetSegment(ObjectFile::SegmentID::ASEG).Offset() + objectCode.GetSegment(ObjectFile::SegmentID::ASEG).Size();
     RAMPtr ram = std::make_shared<RAM>(offset, 65536 - offset);
     memoryManager->AddMemory(rom);
     memoryManager->AddMemory(ram);
@@ -93,8 +93,8 @@ bool CPUEmulatorIntel8080::Run(Options options)
     IOPortPtr ioPort = std::make_shared<IOPort>(0, 256);
     ioManager->AddIO(ioPort);
     processor.Setup(memoryManager, ioManager);
-    processor.LoadCode(objectCode.GetSegment(Assembler::SegmentID::ASEG).Data(), 
-                       objectCode.GetSegment(Assembler::SegmentID::ASEG).Offset(),
+    processor.LoadCode(objectCode.GetSegment(ObjectFile::SegmentID::ASEG).Data(), 
+                       objectCode.GetSegment(ObjectFile::SegmentID::ASEG).Offset(),
                        rom);
     if ((options & Options::ShowInstructionResults) != Options::None)
     {

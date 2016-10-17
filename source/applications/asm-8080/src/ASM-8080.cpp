@@ -1,6 +1,6 @@
 #include "ASM-8080.h"
 #include "assembler/Parser.h"
-#include "assembler/ObjectFile.h"
+#include "object-file/ObjectFile.h"
 #include "emulator/Emulator.h"
 
 using namespace std;
@@ -23,7 +23,7 @@ bool ASM_8080::Run()
     Assembler::AssemblerMessages messages;
     std::ifstream inputStream(options.inputFilePath);
     std::ofstream outputObjectStream(options.outputObjectFilePath, std::ios::binary);
-    ObjectFile outputObjectFile(&outputObjectStream);
+    ObjectFile::ObjectFile outputObjectFile;
     std::wofstream reportStream(options.outputReportingFilePath);
     Assembler::Scanner scanner(&inputStream, true);
     Assembler::Parser parser("code", scanner, messages, reportStream);
@@ -34,7 +34,7 @@ bool ASM_8080::Run()
         cout << "Writing objects code to " << options.outputObjectFilePath << endl;
         auto objectCode = parser.GetObjectCode();
 
-        outputObjectFile.WriteObjectCode(objectCode);
+        outputObjectFile.WriteObjectCode(outputObjectStream, objectCode);
         if (options.listSymbols)
         {
             cout << "Listing symbols" << endl;

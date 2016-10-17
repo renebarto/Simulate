@@ -29,7 +29,7 @@ TEST_FIXTURE(CPUEmulatorIntel8080Test, Construct)
 {
     std::wostringstream stream;
     Assembler::PrettyPrinter<wchar_t> printer(stream);
-    Assembler::ObjectCode code("test");
+    ObjectFile::ObjectCode code("test");
     CPUEmulatorIntel8080 emulator(code, printer);
 }
 
